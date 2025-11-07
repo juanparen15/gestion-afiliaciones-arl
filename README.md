@@ -1,8 +1,8 @@
-# 🏥 Sistema de Gestión de Afiliaciones ARL Independientes
+# Sistema de Gestión de Afiliaciones ARL Independientes
 
 Sistema web completo desarrollado en **Laravel 12** con **FilamentPHP 3** para la gestión y control de afiliaciones a la ARL de contratistas por prestación de servicios profesionales y de apoyo a la gestión en entidades públicas.
 
-## 📋 Características Principales
+## Características Principales
 
 ✅ **Gestión Completa de Afiliaciones ARL**  
 ✅ **Sistema de Roles**: Administrador, Dependencia, SSST  
@@ -16,7 +16,7 @@ Sistema web completo desarrollado en **Laravel 12** con **FilamentPHP 3** para l
 
 ---
 
-## 🚀 Instalación Rápida
+## Instalación Rápida
 
 ```bash
 # 1. Instalar dependencias
@@ -47,7 +47,7 @@ php artisan serve
 
 ---
 
-## 👥 Usuarios Predeterminados
+## Usuarios Predeterminados
 
 | Rol | Email | Contraseña |
 |-----|-------|------------|
@@ -59,7 +59,7 @@ php artisan serve
 
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 - **Laravel 12** (PHP 8.2+)
 - **FilamentPHP 3** (Panel Admin)
@@ -72,7 +72,7 @@ php artisan serve
 
 ---
 
-## 📊 Estructura de Base de Datos
+## Estructura de Base de Datos
 
 ### Tablas Principales
 
@@ -85,7 +85,7 @@ php artisan serve
 
 ---
 
-## 💼 Uso del Sistema
+## Uso del Sistema
 
 ### Roles y Permisos
 
@@ -116,7 +116,7 @@ php artisan serve
 
 ---
 
-## 📁 Módulos del Sistema
+## Módulos del Sistema
 
 ### 1. Gestión de Dependencias
 - CRUD completo de dependencias
@@ -143,7 +143,7 @@ php artisan serve
 
 ---
 
-## 📤 Importación/Exportación Excel
+## Importación/Exportación Excel
 
 ### Exportar
 1. Ir a módulo "Afiliaciones"
@@ -159,7 +159,7 @@ php artisan serve
 
 ---
 
-## 🔒 Seguridad
+## Seguridad
 
 - Autenticación robusta con Laravel
 - Sistema de roles y permisos granular
@@ -171,7 +171,7 @@ php artisan serve
 
 ---
 
-## 🛠️ Comandos Útiles
+## Comandos Útiles
 
 ```bash
 # Limpiar caché
@@ -192,7 +192,7 @@ php artisan tail
 
 ---
 
-## 📝 Configuración Adicional
+## Configuración Adicional
 
 ### Correo Electrónico
 
@@ -221,7 +221,7 @@ DB_PASSWORD=
 
 ---
 
-## 🐛 Solución de Problemas
+## Solución de Problemas
 
 ### Error de permisos
 ```bash
@@ -241,7 +241,7 @@ php artisan migrate:fresh --seed
 
 ---
 
-## 📚 Documentación Técnica
+## Documentación Técnica
 
 ### Estructura de Archivos
 
@@ -273,7 +273,7 @@ database/
 
 ---
 
-## 🚀 Despliegue en Producción
+## Despliegue en Producción
 
 1. Configurar servidor (Apache/Nginx)
 2. Instalar SSL/HTTPS
@@ -290,13 +290,13 @@ php artisan view:cache
 
 ---
 
-## 📞 Soporte
+## Soporte
 
 Para reportar problemas o sugerencias, contactar al equipo de desarrollo.
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Sistema propietario de uso interno exclusivo de la entidad pública.
 
@@ -306,11 +306,11 @@ Sistema propietario de uso interno exclusivo de la entidad pública.
 **Versión**: 1.0.0  
 **Fecha**: Octubre 2025
 
-🚀 **¡Sistema Listo para Producción!**
+**¡Sistema Listo para Producción!**
 
 ---
 
-## 📥 Importación de Excel - Guía Detallada
+## Importación de Excel - Guía Detallada
 
 ### Formato del Archivo Excel
 
@@ -320,8 +320,8 @@ El archivo Excel debe contener las siguientes columnas **en la primera fila** (e
 |---------|-------------------|--------------|---------|
 | A | No. CONTRATO | Texto | 19 |
 | B | OBJETO CONTRATO | Texto | PRESTACIÓN DE SERVICIOS... |
-| C | CC CONTRATISTA | Número | 91275160 |
-| D | CONTRATISTA | Texto | JUAN MAURICIO ROMERO QUIÑONES |
+| C | CC CONTRATISTA | Número | 12345678 |
+| D | CONTRATISTA | Texto | JUAN PABLO RENDON |
 | E | VALOR DEL CONTRATO | Moneda | $18.600.000,00 |
 | F | MESES | Número | 138 |
 | G | DIAS | Número | 0 |
@@ -332,12 +332,12 @@ El archivo Excel debe contener las siguientes columnas **en la primera fila** (e
 | L | Secretaría | Texto | General |
 | M | Fecha de Nacimiento | Fecha | 12-oct-1970 |
 | N | Nivel de riesgo | Número | 4 |
-| O | No. Celular | Texto | 3244196814 |
+| O | No. Celular | Texto | 3131234567 |
 | P | Barrio | Texto | Villatex |
 | Q | Dirección Residencia | Texto | Calle 20b No. 3-04 |
 | R | EPS | Texto | SURA |
 | S | AFP | Texto | PROTECCION |
-| T | Dirección de correo Electronica | Email | juanmarroqui70@gmail.com |
+| T | Dirección de correo Electronica | Email | jprendon11@gmail.com |
 | U | FECHA DE AFILIACION | Fecha | 28/01/2025 |
 | V | FECHA TERMIANCION AFILIACION | Fecha | 27/07/2025 |
 
@@ -397,33 +397,6 @@ Si hay errores durante la importación:
 - Los registros con errores se omitirán
 - Se indicará el número de fila con error
 
-### Ejemplo de Registro Completo
-
-```
-No. CONTRATO: 19
-OBJETO CONTRATO: PRESTACIÓN DE SERVICIOS PROFESIONALES...
-CC CONTRATISTA: 91275160
-CONTRATISTA: JUAN MAURICIO ROMERO QUIÑONES
-VALOR DEL CONTRATO: $18.600.000,00
-MESES: 138
-DIAS: 0
-Honorarios mensual: $4.650.000,00
-IBC: $1.860.000,00
-Fecha ingreso: 28-ene-2025
-Fecha retiro: 14-jun-2025
-Secretaría: General
-Fecha de Nacimiento: 12-oct-1970
-Nivel de riesgo: 4
-No. Celular: 3244196814
-Barrio: Villatex
-Dirección Residencia: Calle 20b No. 3-04
-EPS: SURA
-AFP: PROTECCION
-Correo: juanmarroqui70@gmail.com
-FECHA DE AFILIACION: 28/01/2025
-FECHA TERMINACION: 27/07/2025
-```
-
 ### Exportación de Datos
 
 Para **exportar** las afiliaciones existentes:
@@ -435,7 +408,7 @@ Para **exportar** las afiliaciones existentes:
 
 ---
 
-## 🔄 Funcionalidades Adicionales
+## Funcionalidades Adicionales
 
 ### Botón de Importación
 
@@ -456,7 +429,7 @@ El botón **"Exportar"** aparece al seleccionar registros con:
 
 ---
 
-## 📋 Solución de Problemas en Importación
+## Solución de Problemas en Importación
 
 ### Error: "No se pudo leer el archivo"
 **Solución**: Verificar que el archivo sea .xlsx, .xls o .csv válido
@@ -480,7 +453,7 @@ El botón **"Exportar"** aparece al seleccionar registros con:
 
 ---
 
-## 🎯 Buenas Prácticas
+## Buenas Prácticas
 
 1. **Antes de Importar**:
    - Crear todas las dependencias necesarias
@@ -498,5 +471,3 @@ El botón **"Exportar"** aparece al seleccionar registros con:
    - Validar las afiliaciones según el flujo SSST
 
 ---
-
-**Sistema actualizado con funcionalidad completa de importación/exportación** ✅
