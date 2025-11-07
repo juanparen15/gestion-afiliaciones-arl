@@ -15,10 +15,14 @@ class AfiliacionesStatsOverview extends BaseWidget
     {
         $user = Auth::user();
 
-        // Filtrar por dependencia si no es super_admin
+        // Filtrar por dependencia si no es super_admin o SSST
         $query = Afiliacion::query();
-        if (!$user->hasRole('super_admin')) {
-            $query->where('dependencia_id', $user->dependencia_id);
+        if (!$user->hasRole(['super_admin', 'SSST'])) {
+            if ($user->area_id) {
+                $query->where('area_id', $user->area_id);
+            } else {
+                $query->where('dependencia_id', $user->dependencia_id);
+            }
         }
 
         $total = $query->count();

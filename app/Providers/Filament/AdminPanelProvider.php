@@ -4,6 +4,10 @@ namespace App\Providers\Filament;
 
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Awcodes\Overlook\OverlookPlugin;
+use Cmsmaxinc\FilamentErrorPages\FilamentErrorPagesPlugin;
+use MartinPetricko\FilamentSentryFeedback\FilamentSentryFeedbackPlugin;
+use MartinPetricko\FilamentSentryFeedback\Enums\ColorScheme;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -55,6 +59,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
+                OverlookPlugin::make(),
+                FilamentErrorPagesPlugin::make(),
+                FilamentSentryFeedbackPlugin::make()
+                    ->colorScheme(ColorScheme::Auto)
+                    ->showBranding(false)
+                    ->showName(true)
+                    ->showEmail(true)
+                    ->enableScreenshot(true),
             ])
             ->authMiddleware([
                 Authenticate::class,
