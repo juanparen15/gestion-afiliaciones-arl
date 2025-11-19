@@ -1,0 +1,71 @@
+---
+title: Sistema de Gestión de Afiliaciones ARL
+description: Documentación completa del Sistema de Gestión de Afiliaciones a la ARL para entidades gubernamentales.
+template: splash
+hero:
+  tagline: Sistema integral para la gestión y seguimiento de afiliaciones a la Administradora de Riesgos Laborales (ARL) de contratistas.
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Comenzar
+      link: /docs/inicio/introduccion/
+      icon: right-arrow
+    - text: Guía de Instalación
+      link: /docs/instalacion/requisitos/
+      icon: rocket
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Características Principales
+
+<CardGrid stagger>
+	<Card title="Gestión de Afiliaciones" icon="document">
+		Registro completo de contratistas con información personal, contractual y de seguridad social.
+	</Card>
+	<Card title="Flujo de Validación" icon="approve-check">
+		Proceso de revisión y aprobación por parte del equipo de Seguridad y Salud en el Trabajo (SSST).
+	</Card>
+	<Card title="Importación Excel" icon="list-format">
+		Carga masiva de afiliaciones desde archivos Excel con validación automática de datos.
+	</Card>
+	<Card title="Control de Acceso" icon="warning">
+		Sistema de roles y permisos granular para cada tipo de usuario.
+	</Card>
+	<Card title="Dashboard Interactivo" icon="star">
+		Estadísticas en tiempo real con gráficos y alertas de contratos por vencer.
+	</Card>
+	<Card title="Auditoría Completa" icon="seti:notebook">
+		Registro detallado de todas las acciones realizadas en el sistema.
+	</Card>
+</CardGrid>
+
+## Roles del Sistema
+
+<CardGrid>
+	<Card title="Dependencia" icon="open-book">
+		Crea y gestiona las afiliaciones de su dependencia o secretaría.
+		[Ver guía](/docs/roles/dependencia/)
+	</Card>
+	<Card title="SSST" icon="approve-check">
+		Valida o rechaza afiliaciones y carga los certificados de la ARL.
+		[Ver guía](/docs/roles/ssst/)
+	</Card>
+	<Card title="Administrador" icon="setting">
+		Gestión completa del sistema, usuarios, dependencias y configuraciones.
+		[Ver guía](/docs/roles/administrador/)
+	</Card>
+</CardGrid>
+
+## Stack Tecnológico
+
+- **Backend**: Laravel 12
+- **Panel Admin**: FilamentPHP 3
+- **Base de Datos**: MySQL 8.0+
+- **PHP**: 8.2+
+- **Frontend**: Blade + Vite
+
+## Soporte
+
+Si necesitas ayuda o tienes preguntas sobre el sistema, consulta la sección de [Solución de Problemas](/docs/referencia/troubleshooting/) o contacta al equipo de soporte técnico.

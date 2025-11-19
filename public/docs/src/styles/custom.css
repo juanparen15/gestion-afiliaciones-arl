@@ -1,0 +1,72 @@
+/* Estilos personalizados para la documentación de Gestión ARL */
+
+:root {
+	--sl-color-accent-low: #1e3a5f;
+	--sl-color-accent: #3b82f6;
+	--sl-color-accent-high: #60a5fa;
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #f8fafc;
+	--sl-color-gray-2: #e2e8f0;
+	--sl-color-gray-3: #cbd5e1;
+	--sl-color-gray-4: #94a3b8;
+	--sl-color-gray-5: #64748b;
+	--sl-color-gray-6: #475569;
+	--sl-color-black: #1e293b;
+}
+
+:root[data-theme='dark'] {
+	--sl-color-accent-low: #1e3a5f;
+	--sl-color-accent: #60a5fa;
+	--sl-color-accent-high: #93c5fd;
+	--sl-color-white: #0f172a;
+	--sl-color-gray-1: #1e293b;
+	--sl-color-gray-2: #334155;
+	--sl-color-gray-3: #475569;
+	--sl-color-gray-4: #64748b;
+	--sl-color-gray-5: #94a3b8;
+	--sl-color-gray-6: #cbd5e1;
+	--sl-color-black: #f8fafc;
+}
+
+/* Badges personalizados */
+.badge-pendiente {
+	background-color: #fef3c7;
+	color: #92400e;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.25rem;
+	font-size: 0.875rem;
+}
+
+.badge-validado {
+	background-color: #d1fae5;
+	color: #065f46;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.25rem;
+	font-size: 0.875rem;
+}
+
+.badge-rechazado {
+	background-color: #fee2e2;
+	color: #991b1b;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.25rem;
+	font-size: 0.875rem;
+}
+
+/* Tablas mejoradas */
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th {
+	background-color: var(--sl-color-gray-2);
+	font-weight: 600;
+}
+
+/* Código inline */
+code {
+	background-color: var(--sl-color-gray-2);
+	padding: 0.125rem 0.25rem;
+	border-radius: 0.25rem;
+}

@@ -133,6 +133,7 @@ class AfiliacionResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->live()
+                                            ->disabled(fn() => Auth::user()->hasRole('Dependencia'))
                                             ->afterStateUpdated(function (Forms\Set $set) {
                                                 $set('area_id', null);
                                             })
@@ -226,6 +227,17 @@ class AfiliacionResource extends Resource
                                             ->displayFormat('d/m/Y')
                                             ->native(false)
                                             ->after('fecha_inicio'),
+
+                                        Forms\Components\FileUpload::make('contrato_pdf_o_word')
+                                            ->label('Cargar Contrato en PDF o Word')
+                                            ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                            ->maxSize(10240) // 10MB
+                                            ->directory('afiliaciones/contratos-pdf-word')
+                                            ->downloadable()
+                                            ->openable()
+                                            ->previewable()
+                                            ->required()
+                                            ->helperText('Suba el contrato en formato PDF o Word (máximo 10MB)'),
                                     ])
                                     ->columns(3),
                             ]),
@@ -256,16 +268,20 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('numero_afiliacion_arl')
                                             ->label('Número de Afiliación ARL')
+                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
                                             ->maxLength(255),
 
                                         Forms\Components\DatePicker::make('fecha_afiliacion_arl')
                                             ->label('Fecha de Afiliación ARL')
                                             ->displayFormat('d/m/Y')
+                                            ->minDate(now()->addDay())
+                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
                                             ->native(false),
 
                                         Forms\Components\DatePicker::make('fecha_terminacion_afiliacion')
                                             ->label('Fecha de Terminación de Afiliación ARL')
                                             ->displayFormat('d/m/Y')
+                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
                                             ->native(false),
 
                                         Forms\Components\FileUpload::make('pdf_arl')
@@ -299,21 +315,27 @@ class AfiliacionResource extends Resource
                                             ->required()
                                             ->default('pendiente')
                                             ->native(false)
-                                            ->disabled(fn($record) => $record && !Auth::user()->hasRole('SSST')),
+                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
 
                                         Forms\Components\Textarea::make('observaciones')
                                             ->label('Observaciones')
                                             ->rows(3)
-                                            ->columnSpanFull(),
+                                            ->columnSpanFull()
+                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
 
                                         Forms\Components\Textarea::make('motivo_rechazo')
                                             ->label('Motivo de Rechazo')
                                             ->rows(3)
                                             ->columnSpanFull()
-                                            ->visible(fn($get) => $get('estado') === 'rechazado'),
+                                            ->visible(fn($get) => $get('estado') === 'rechazado' && Auth::user()->hasRole(['super_admin', 'SSST']))
+                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
                                     ])
-                                    ->columns(2),
-                            ]),
+                                    ->columns(2)
+                                    ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST'])),
+                            ])
+                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST'])),
                     ])
                     ->columnSpanFull(),
             ]);
@@ -480,9 +502,9 @@ class AfiliacionResource extends Resource
                     ->trueLabel('Solo eliminados')
                     ->falseLabel('Con eliminados')
                     ->queries(
-                        true: fn (Builder $query) => $query->onlyTrashed(),
-                        false: fn (Builder $query) => $query->withTrashed(),
-                        blank: fn (Builder $query) => $query->withoutTrashed(),
+                        true: fn(Builder $query) => $query->onlyTrashed(),
+                        false: fn(Builder $query) => $query->withTrashed(),
+                        blank: fn(Builder $query) => $query->withoutTrashed(),
                     ),
             ])
             ->headerActions([
@@ -490,6 +512,7 @@ class AfiliacionResource extends Resource
                     ->label('Descargar Plantilla')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('info')
+                    ->visible(fn() => Auth::user()->hasRole('SSST') || Auth::user()->hasRole('super_admin'))
                     ->action(function () {
                         return \Maatwebsite\Excel\Facades\Excel::download(
                             new \App\Exports\AfiliacionesTemplateExport(),
@@ -501,7 +524,7 @@ class AfiliacionResource extends Resource
                     ->label('Exportar Todo')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
-                    ->visible(fn() => Auth::user()->hasRole('SSST'))
+                    // ->visible(fn() => Auth::user()->hasRole('SSST'))
                     ->action(function () {
                         $query = \App\Models\Afiliacion::query()->with(['dependencia', 'area']);
 
@@ -515,6 +538,7 @@ class AfiliacionResource extends Resource
                     ->label('Importar Excel')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('success')
+                    ->visible(fn() => Auth::user()->hasRole('SSST') || Auth::user()->hasRole('super_admin'))
                     ->form([
                         Forms\Components\FileUpload::make('archivo')
                             ->label('Archivo Excel')
@@ -858,7 +882,7 @@ class AfiliacionResource extends Resource
                 ]),
             ])
             ->emptyStateHeading('No hay afiliaciones registradas')
-            ->emptyStateDescription('Comience importando un archivo Excel o creando una nueva afiliación.')
+            ->emptyStateDescription('Comience creando una nueva afiliación.')
             ->emptyStateIcon('heroicon-o-user-group');
     }
 

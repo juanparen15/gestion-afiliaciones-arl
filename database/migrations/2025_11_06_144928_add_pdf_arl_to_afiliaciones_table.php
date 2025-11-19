@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('afiliaciones', function (Blueprint $table) {
             $table->string('pdf_arl')->nullable()->after('fecha_terminacion_afiliacion');
+            $table->string('contrato_pdf_o_word')->nullable()->after('pdf_arl');
         });
     }
 
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('afiliaciones', function (Blueprint $table) {
             $table->dropColumn('pdf_arl');
+            $table->dropColumn('contrato_pdf_o_word');
         });
     }
 };
