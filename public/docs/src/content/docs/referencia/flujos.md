@@ -366,5 +366,5 @@ description: Documentación de los flujos de trabajo del sistema
 
 ## Próximos Pasos
 
-- [Base de Datos](/referencia/base-datos/)
-- [Comandos Artisan](/referencia/comandos/)
+- [Base de Datos](/docs/referencia/base-datos/)
+- [Comandos Artisan](/docs/referencia/comandos/)

@@ -275,5 +275,5 @@ Estos campos son requeridos y no pueden estar vacíos:
 
 ## Próximos Pasos
 
-- [Validación y Rechazo](/usuario/validacion/)
-- [Guía por Rol](/roles/dependencia/)
+- [Validación y Rechazo](/docs/usuario/validacion/)
+- [Guía por Rol](/docs/roles/dependencia/)

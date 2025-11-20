@@ -459,4 +459,4 @@ php artisan tinker
 
 ## Próximos Pasos
 
-- [Solución de Problemas](/referencia/troubleshooting/)
+- [Solución de Problemas](/docs/referencia/troubleshooting/)

@@ -193,5 +193,5 @@ Verifica tu rol:
 
 ## Próximos Pasos
 
-- [Gestión de Afiliaciones](/usuario/afiliaciones/)
-- [Importar/Exportar Excel](/usuario/excel/)
+- [Gestión de Afiliaciones](/docs/usuario/afiliaciones/)
+- [Importar/Exportar Excel](/docs/usuario/excel/)

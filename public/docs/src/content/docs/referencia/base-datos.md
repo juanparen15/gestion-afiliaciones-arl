@@ -364,5 +364,5 @@ mysql -u usuario -p gestion_arl < backup.sql
 
 ## Próximos Pasos
 
-- [Comandos Artisan](/referencia/comandos/)
-- [Solución de Problemas](/referencia/troubleshooting/)
+- [Comandos Artisan](/docs/referencia/comandos/)
+- [Solución de Problemas](/docs/referencia/troubleshooting/)

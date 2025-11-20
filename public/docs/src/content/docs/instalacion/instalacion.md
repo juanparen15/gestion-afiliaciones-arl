@@ -275,4 +275,4 @@ php artisan storage:link
 
 ## Siguiente Paso
 
-Continúa con la [Configuración](/instalacion/configuracion/) para personalizar el sistema.
+Continúa con la [Configuración](/docs/instalacion/configuracion/) para personalizar el sistema.

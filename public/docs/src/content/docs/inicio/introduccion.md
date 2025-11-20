@@ -77,6 +77,6 @@ Para comenzar a usar el sistema necesitas:
 
 ## Próximos Pasos
 
-- [Ver las características completas](/inicio/caracteristicas/)
-- [Guía de primeros pasos](/usuario/primeros-pasos/)
-- [Instalación del sistema](/instalacion/requisitos/) (para desarrolladores)
+- [Ver las características completas](/docs/inicio/caracteristicas/)
+- [Guía de primeros pasos](/docs/usuario/primeros-pasos/)
+- [Instalación del sistema](/docs/instalacion/requisitos/) (para desarrolladores)

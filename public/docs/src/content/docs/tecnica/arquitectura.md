@@ -575,5 +575,5 @@ protected $casts = [
 
 ## Próximos Pasos
 
-- [Modelos de Datos](/tecnica/modelos/)
-- [Recursos Filament](/tecnica/recursos-filament/)
+- [Modelos de Datos](/docs/tecnica/modelos/)
+- [Recursos Filament](/docs/tecnica/recursos-filament/)

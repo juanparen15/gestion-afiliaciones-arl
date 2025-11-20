@@ -293,5 +293,5 @@ Si hay errores:
 
 ## Próximos Pasos
 
-- [Importar/Exportar Excel](/usuario/excel/)
-- [Validación y Rechazo](/usuario/validacion/)
+- [Importar/Exportar Excel](/docs/usuario/excel/)
+- [Validación y Rechazo](/docs/usuario/validacion/)

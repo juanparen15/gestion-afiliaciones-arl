@@ -512,5 +512,5 @@ $urgentes = Afiliacion::query()
 
 ## Próximos Pasos
 
-- [Recursos Filament](/tecnica/recursos-filament/)
-- [Eventos y Listeners](/tecnica/eventos/)
+- [Recursos Filament](/docs/tecnica/recursos-filament/)
+- [Eventos y Listeners](/docs/tecnica/eventos/)

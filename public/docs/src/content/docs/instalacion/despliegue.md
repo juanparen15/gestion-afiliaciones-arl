@@ -71,13 +71,9 @@ REDIS_PORT=6379
 ### 1. Subir Código al Servidor
 
 ```bash
-# Opción A: Git
 cd /var/www
-git clone https://github.com/tu-org/gestion-afiliaciones-arl.git
+git clone https://github.com/juanparen15/gestion-afiliaciones-arl.git
 cd gestion-afiliaciones-arl
-
-# Opción B: SFTP/SCP
-scp -r ./gestion-afiliaciones-arl user@servidor:/var/www/
 ```
 
 ### 2. Instalar Dependencias
@@ -402,4 +398,4 @@ php artisan up
 
 ## Soporte
 
-Si encuentras problemas durante el despliegue, consulta la sección de [Solución de Problemas](/referencia/troubleshooting/).
+Si encuentras problemas durante el despliegue, consulta la sección de [Solución de Problemas](/docs/referencia/troubleshooting/).

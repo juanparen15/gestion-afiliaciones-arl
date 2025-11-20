@@ -288,5 +288,5 @@ Una tasa de rechazo alta puede indicar necesidad de capacitación a las dependen
 
 ## Próximos Pasos
 
-- [Guía completa rol SSST](/roles/ssst/)
-- [Guía de Administrador](/roles/administrador/)
+- [Guía completa rol SSST](/docs/roles/ssst/)
+- [Guía de Administrador](/docs/roles/administrador/)

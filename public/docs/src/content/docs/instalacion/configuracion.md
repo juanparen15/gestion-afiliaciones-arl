@@ -31,7 +31,7 @@ El panel de administración se configura en `app/Providers/Filament/AdminPanelPr
 
 ```php
 ->login()
-->registration(false) // Deshabilitar auto-registro
+->registration() // Habilitar registro
 ->passwordReset()
 ```
 
@@ -320,4 +320,4 @@ En `config/app.php`:
 
 ## Siguiente Paso
 
-Continúa con la [Guía de Despliegue](/instalacion/despliegue/) para publicar en producción.
+Continúa con la [Guía de Despliegue](/docs/instalacion/despliegue/) para publicar en producción.

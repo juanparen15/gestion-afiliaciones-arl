@@ -474,5 +474,5 @@ php artisan tinker
 
 ## Próximos Pasos
 
-- [Flujos de Trabajo](/referencia/flujos/)
-- [Base de Datos](/referencia/base-datos/)
+- [Flujos de Trabajo](/docs/referencia/flujos/)
+- [Base de Datos](/docs/referencia/base-datos/)

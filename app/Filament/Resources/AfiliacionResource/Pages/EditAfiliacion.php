@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AfiliacionResource\Pages;
 use App\Filament\Resources\AfiliacionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Auth;
 
 class EditAfiliacion extends EditRecord
 {
@@ -15,5 +16,18 @@ class EditAfiliacion extends EditRecord
         return [
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Asegurar que campos del tab "Estado y Observaciones" estén como null si el usuario no es SSST o super_admin
+        if (!Auth::user()->hasRole(['super_admin', 'SSST'])) {
+            // No permitir modificar estos campos si no es SSST o super_admin
+            unset($data['estado']);
+            unset($data['observaciones']);
+            unset($data['motivo_rechazo']);
+        }
+
+        return $data;
     }
 }

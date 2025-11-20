@@ -282,7 +282,7 @@ Si está pendiente, puedes editarlo. Si ya fue validada, contacta al administrad
 
 Si tienes problemas:
 1. Consulta esta documentación
-2. Revisa la sección de [Solución de Problemas](/referencia/troubleshooting/)
+2. Revisa la sección de [Solución de Problemas](/docs/referencia/troubleshooting/)
 3. Contacta al equipo de SSST
 4. Contacta al administrador del sistema
 
@@ -290,5 +290,5 @@ Si tienes problemas:
 
 ## Próximos Pasos
 
-- [Gestión de Afiliaciones](/usuario/afiliaciones/)
-- [Importar/Exportar Excel](/usuario/excel/)
+- [Gestión de Afiliaciones](/docs/usuario/afiliaciones/)
+- [Importar/Exportar Excel](/docs/usuario/excel/)

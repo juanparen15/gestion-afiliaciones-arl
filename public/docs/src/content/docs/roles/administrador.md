@@ -403,6 +403,6 @@ Si necesitas ayuda técnica:
 
 ## Próximos Pasos
 
-- [Arquitectura del Sistema](/tecnica/arquitectura/)
-- [Modelos de Datos](/tecnica/modelos/)
-- [Solución de Problemas](/referencia/troubleshooting/)
+- [Arquitectura del Sistema](/docs/tecnica/arquitectura/)
+- [Modelos de Datos](/docs/tecnica/modelos/)
+- [Solución de Problemas](/docs/referencia/troubleshooting/)

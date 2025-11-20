@@ -277,4 +277,4 @@ mysql --version
 
 ## Siguiente Paso
 
-Una vez verificados todos los requisitos, continúa con la [Guía de Instalación](/instalacion/instalacion/).
+Una vez verificados todos los requisitos, continúa con la [Guía de Instalación](/docs/instalacion/instalacion/).

@@ -423,5 +423,5 @@ public function test_event_disparado_al_crear_afiliacion()
 
 ## Próximos Pasos
 
-- [Políticas y Permisos](/tecnica/permisos/)
-- [Base de Datos](/referencia/base-datos/)
+- [Políticas y Permisos](/docs/tecnica/permisos/)
+- [Base de Datos](/docs/referencia/base-datos/)

@@ -620,5 +620,5 @@ class AfiliacionesPorEstadoChart extends ChartWidget
 
 ## Próximos Pasos
 
-- [Eventos y Listeners](/tecnica/eventos/)
-- [Políticas y Permisos](/tecnica/permisos/)
+- [Eventos y Listeners](/docs/tecnica/eventos/)
+- [Políticas y Permisos](/docs/tecnica/permisos/)

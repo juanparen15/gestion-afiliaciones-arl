@@ -74,12 +74,14 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\DatePicker::make('fecha_nacimiento')
                                             ->label('Fecha de Nacimiento')
+                                            ->required()
                                             ->displayFormat('d/m/Y')
                                             ->native(false)
                                             ->maxDate(now()->subYears(18)),
 
                                         Forms\Components\TextInput::make('telefono_contratista')
                                             ->label('Número de Celular')
+                                            ->required()
                                             ->tel()
                                             ->maxLength(255),
 
@@ -93,11 +95,13 @@ class AfiliacionResource extends Resource
                                 Forms\Components\Section::make('Dirección de Residencia')
                                     ->schema([
                                         Forms\Components\TextInput::make('direccion_residencia')
+                                            ->required()
                                             ->label('Dirección')
                                             ->maxLength(255),
 
                                         Forms\Components\TextInput::make('barrio')
                                             ->label('Barrio')
+                                            ->required()
                                             ->maxLength(255),
                                     ])
                                     ->columns(2),
@@ -106,10 +110,12 @@ class AfiliacionResource extends Resource
                                     ->schema([
                                         Forms\Components\TextInput::make('eps')
                                             ->label('EPS')
+                                            ->required()
                                             ->maxLength(255),
 
                                         Forms\Components\TextInput::make('afp')
                                             ->label('Fondo de Pensiones (AFP)')
+                                            ->required()
                                             ->maxLength(255),
                                     ])
                                     ->columns(2),
@@ -179,6 +185,7 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('honorarios_mensual')
                                             ->label('Honorarios Mensuales')
+                                            ->required()
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
@@ -193,6 +200,7 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('ibc')
                                             ->label('IBC (Ingreso Base de Cotización)')
+                                            ->required()
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
@@ -268,20 +276,23 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('numero_afiliacion_arl')
                                             ->label('Número de Afiliación ARL')
-                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                                             ->maxLength(255),
 
                                         Forms\Components\DatePicker::make('fecha_afiliacion_arl')
                                             ->label('Fecha de Afiliación ARL')
                                             ->displayFormat('d/m/Y')
                                             ->minDate(now()->addDay())
-                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                                             ->native(false),
 
                                         Forms\Components\DatePicker::make('fecha_terminacion_afiliacion')
                                             ->label('Fecha de Terminación de Afiliación ARL')
                                             ->displayFormat('d/m/Y')
-                                            ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
+                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                                             ->native(false),
 
                                         Forms\Components\FileUpload::make('pdf_arl')
@@ -312,7 +323,7 @@ class AfiliacionResource extends Resource
                                                 'validado' => 'Validado',
                                                 'rechazado' => 'Rechazado',
                                             ])
-                                            ->required()
+                                            ->required(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                                             ->default('pendiente')
                                             ->native(false)
                                             ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))

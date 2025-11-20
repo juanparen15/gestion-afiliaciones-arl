@@ -237,8 +237,8 @@ Siempre cierra sesión cuando termines de usar el sistema, especialmente en comp
 ## Próximos Pasos
 
 Según tu rol, consulta la guía específica:
-- [Guía para rol Dependencia](/roles/dependencia/)
-- [Guía para rol SSST](/roles/ssst/)
-- [Guía para Administrador](/roles/administrador/)
+- [Guía para rol Dependencia](/docs/roles/dependencia/)
+- [Guía para rol SSST](/docs/roles/ssst/)
+- [Guía para Administrador](/docs/roles/administrador/)
 
-O continúa con la [Guía del Dashboard](/usuario/dashboard/).
+O continúa con la [Guía del Dashboard](/docs/usuario/dashboard/).

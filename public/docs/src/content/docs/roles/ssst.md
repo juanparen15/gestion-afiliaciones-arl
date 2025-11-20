@@ -339,12 +339,12 @@ Sí, tienes permiso de creación. Útil para casos especiales.
 ## Soporte
 
 Para problemas técnicos:
-1. Revisa [Solución de Problemas](/referencia/troubleshooting/)
+1. Revisa [Solución de Problemas](/docs/referencia/troubleshooting/)
 2. Contacta al administrador del sistema
 
 ---
 
 ## Próximos Pasos
 
-- [Validación y Rechazo detallado](/usuario/validacion/)
-- [Importar/Exportar Excel](/usuario/excel/)
+- [Validación y Rechazo detallado](/docs/usuario/validacion/)
+- [Importar/Exportar Excel](/docs/usuario/excel/)
