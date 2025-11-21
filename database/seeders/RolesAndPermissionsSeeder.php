@@ -92,13 +92,13 @@ class RolesAndPermissionsSeeder extends Seeder
         // Crear usuario administrador
         $admin = User::create([
             'name' => 'Administrador del Sistema',
-            'email' => 'admin@arl.gov.co',
-            'correo_institucional' => 'admin@entidad.gov.co',
+            'email' => 'ticsistemasptoboy@gmail.com',
+            'correo_institucional' => 'sistemas@puertoboyaca-boyaca.gov.co',
             'cargo' => 'Administrador de Sistema',
             'dependencia_id' => 1,
             'password' => bcrypt('password123'),
         ]);
-        $admin->assignRole('Administrador');
+        $admin->assignRole('super_admin');
 
         // Usuario SSST de ejemplo
         $sst = User::create([

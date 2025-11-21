@@ -103,7 +103,7 @@ class UserResource extends Resource
                         Forms\Components\Select::make('roles')
                             ->label('Rol del Sistema')
                             ->relationship('roles', 'name')
-                            ->options(Role::all()->pluck('name', 'name'))
+                            ->options(Role::all()->pluck('name', 'id'))
                             ->required()
                             ->searchable()
                             ->preload()
