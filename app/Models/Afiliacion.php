@@ -36,6 +36,18 @@ class Afiliacion extends Model
         'meses_contrato',
         'dias_contrato',
         'supervisor_contrato',
+        'tiene_adicion',
+        'descripcion_adicion',
+        'valor_adicion',
+        'fecha_adicion',
+        'tiene_prorroga',
+        'descripcion_prorroga',
+        'meses_prorroga',
+        'dias_prorroga',
+        'nueva_fecha_fin_prorroga',
+        'tiene_terminacion_anticipada',
+        'fecha_terminacion_anticipada',
+        'motivo_terminacion_anticipada',
         'nombre_arl',
         'tipo_riesgo',
         'numero_afiliacion_arl',
@@ -65,7 +77,29 @@ class Afiliacion extends Model
         'fecha_validacion' => 'datetime',
         'meses_contrato' => 'integer',
         'dias_contrato' => 'integer',
+        'tiene_adicion' => 'boolean',
+        'valor_adicion' => 'decimal:2',
+        'fecha_adicion' => 'date',
+        'tiene_prorroga' => 'boolean',
+        'meses_prorroga' => 'integer',
+        'dias_prorroga' => 'integer',
+        'nueva_fecha_fin_prorroga' => 'date',
+        'tiene_terminacion_anticipada' => 'boolean',
+        'fecha_terminacion_anticipada' => 'date',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Validar que los honorarios mensuales no sean menores al salario mínimo legal
+        static::saving(function ($afiliacion) {
+            $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+            if ($afiliacion->honorarios_mensual && $afiliacion->honorarios_mensual < $salarioMinimo) {
+                throw new \Exception("Los honorarios mensuales no pueden ser menores al salario mínimo legal vigente en Colombia ($" . number_format($salarioMinimo, 0, ',', '.') . ")");
+            }
+        });
+    }
 
     public function getActivitylogOptions(): LogOptions
     {

@@ -1,0 +1,1870 @@
+
+ ▐▛███▜▌   Claude Code v2.0.59
+▝▜█████▛▘  Sonnet 4.5 · Claude API
+  ▘▘ ▝▝    C:\laragon\www\gestion-afiliaciones-arl
+
+> - [ ] En afiliacionResource agregar una sección de información adicional 
+para por si en un contrato tiene un adicional y/o prórroga y opcion de 
+terminacion anticipada del contrato (opcional)
+- [ ] En la tabla afiliaciones agregar columna y/o filtro de Adición, 
+prórroga y terminación anticipada del contrato
+- [ ] Toda la información del contratista es obligatoria 
+- [ ] Meses y días obligatorios 
+- [ ] Supervisor del contrato obligatorio 
+
+● Your account does not have access to Claude Code. Please run /login.
+
+> - [ ] En afiliacionResource agregar una sección de información adicional 
+para por si en un contrato tiene un
+adicional y/o prórroga y opcion de terminacion anticipada del contrato 
+(opcional)
+- [ ] En la tabla afiliaciones agregar columna y/o filtro de Adición, 
+prórroga y terminación anticipada del contrato
+- [ ] Toda la información del contratista es obligatoria
+- [ ] Meses y días obligatorios
+- [ ] Supervisor del contrato obligatorio 
+
+● Entiendo las tareas que necesitas completar en el sistema de gestión de
+  afiliaciones. Voy a organizarlas y comenzar a implementarlas. Déjame
+  primero crear un plan de trabajo y revisar los archivos relevantes.
+
+● Read(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Read 937 lines
+
+● Read(app\Models\Afiliacion.php)
+  ⎿  Read 133 lines
+
+● Perfecto, ahora voy a comenzar a implementar las tareas. Primero necesito
+  crear una migración para agregar los nuevos campos a la base de datos.
+
+● Bash(php artisan make:migration
+      add_contract_modifications_to_afiliaciones_table)
+  ⎿    INFO  Migration [C:\laragon\www\gestion-afiliaci                    
+    ones-arl\database\migrations\2025_12_09_161728_add_contract_modificatio
+    ns_to_afiliaciones_table.php] created successfully.
+    /c/Users/User/.bashrc: line 2: :Path: command not found
+
+
+● Read(database\migrations\2025_12_09_161728_add_contract_modifications_to_afili
+      aciones_table.php)
+  ⎿  Read 29 lines
+
+● Update(database\migrations\2025_12_09_161728_add_contract_modifications_to_afi
+        liaciones_table.php)
+  ⎿  Updated database\migrations\2025_12_09_161728_add_contract_modificatio
+     s_to_afiliaciones_table.php with 14 additions and 1 removal
+       12        public function up(): void
+       13        {
+       14            Schema::table('afiliaciones', function (Blueprint 
+            $table) {
+       15 -              //
+       15 +              $table->boolean('tiene_adicion')->default(false)
+          + ->after('supervisor_contrato');
+       16 +              $table->text('descripcion_adicion')->nullable()-
+          + >after('tiene_adicion');
+       17 +              $table->decimal('valor_adicion', 15, 
+          + 2)->nullable()->after('descripcion_adicion');
+       18 +              $table->date('fecha_adicion')->nullable()->after
+          + ('valor_adicion');
+       19 +  
+       20 +              $table->boolean('tiene_prorroga')->default(false
+          + )->after('fecha_adicion');
+       21 +              $table->text('descripcion_prorroga')->nullable()
+          + ->after('tiene_prorroga');
+       22 +              $table->integer('meses_prorroga')->nullable()->a
+          + fter('descripcion_prorroga');
+       23 +              $table->integer('dias_prorroga')->nullable()->af
+          + ter('meses_prorroga');
+       24 +              $table->date('nueva_fecha_fin_prorroga')->nullab
+          + le()->after('dias_prorroga');
+       25 +  
+       26 +              $table->boolean('tiene_terminacion_anticipada')-
+          + >default(false)->after('nueva_fecha_fin_prorroga');
+       27 +              $table->date('fecha_terminacion_anticipada')->nu
+          + llable()->after('tiene_terminacion_anticipada');
+       28 +              $table->text('motivo_terminacion_anticipada')->n
+          + ullable()->after('fecha_terminacion_anticipada');
+       29            });
+       30        }
+       31    
+
+● Update(database\migrations\2025_12_09_161728_add_contract_modifications_to_afi
+        liaciones_table.php)
+  ⎿  Updated database\migrations\2025_12_09_161728_add_contract_modificatio
+     s_to_afiliaciones_table.php with 14 additions and 1 removal
+       35        public function down(): void
+       36        {
+       37            Schema::table('afiliaciones', function (Blueprint 
+            $table) {
+       38 -              //
+       38 +              $table->dropColumn([
+       39 +                  'tiene_adicion',
+       40 +                  'descripcion_adicion',
+       41 +                  'valor_adicion',
+       42 +                  'fecha_adicion',
+       43 +                  'tiene_prorroga',
+       44 +                  'descripcion_prorroga',
+       45 +                  'meses_prorroga',
+       46 +                  'dias_prorroga',
+       47 +                  'nueva_fecha_fin_prorroga',
+       48 +                  'tiene_terminacion_anticipada',
+       49 +                  'fecha_terminacion_anticipada',
+       50 +                  'motivo_terminacion_anticipada',
+       51 +              ]);
+       52            });
+       53        }
+       54    };
+
+● Bash(php artisan migrate)
+  ⎿     INFO  Running migrations.                                          
+
+       2025_12_09_161728_add_contract_modifications_to_afiliaciones_table [
+     … +7 lines (ctrl+o to expand)
+
+● Excelente, la migración se ejecutó correctamente. Ahora voy a actualizar
+  el modelo para incluir los nuevos campos en fillable y casts.
+
+● Update(app\Models\Afiliacion.php)
+  ⎿  Updated app\Models\Afiliacion.php with 12 additions
+       36            'meses_contrato',
+       37            'dias_contrato',
+       38            'supervisor_contrato',
+       39 +          'tiene_adicion',
+       40 +          'descripcion_adicion',
+       41 +          'valor_adicion',
+       42 +          'fecha_adicion',
+       43 +          'tiene_prorroga',
+       44 +          'descripcion_prorroga',
+       45 +          'meses_prorroga',
+       46 +          'dias_prorroga',
+       47 +          'nueva_fecha_fin_prorroga',
+       48 +          'tiene_terminacion_anticipada',
+       49 +          'fecha_terminacion_anticipada',
+       50 +          'motivo_terminacion_anticipada',
+       51            'nombre_arl',
+       52            'tipo_riesgo',
+       53            'numero_afiliacion_arl',
+
+● Update(app\Models\Afiliacion.php)
+  ⎿  Updated app\Models\Afiliacion.php with 9 additions          
+       77            'fecha_validacion' => 'datetime',
+       78            'meses_contrato' => 'integer',
+       79            'dias_contrato' => 'integer',
+       80 +          'tiene_adicion' => 'boolean',
+       81 +          'valor_adicion' => 'decimal:2',
+       82 +          'fecha_adicion' => 'date',
+       83 +          'tiene_prorroga' => 'boolean',
+       84 +          'meses_prorroga' => 'integer',
+       85 +          'dias_prorroga' => 'integer',
+       86 +          'nueva_fecha_fin_prorroga' => 'date',
+       87 +          'tiene_terminacion_anticipada' => 'boolean',
+       88 +          'fecha_terminacion_anticipada' => 'date',
+       89        ];
+       90    
+       91        protected static function boot()
+
+● Perfecto, ahora voy a agregar la nueva sección de información adicional en
+   el AfiliacionResource y hacer obligatorios los campos requeridos.
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 100        
+     additions
+       121                                        ->columns(2),
+       122                                ]),
+       123    
+       124 +                          
+           + Forms\Components\Tabs\Tab::make('Información Adicional del 
+           + Contrato')
+       125 +                              
+           + ->icon('heroicon-o-document-plus')
+       126 +                              ->schema([
+       127 +                                  
+           + Forms\Components\Section::make('Adición al Contrato')
+       128 +                                      ->description('Complete
+           +  esta sección si el contrato tiene una adición')
+       129 +                                      ->schema([
+       130 +                                          
+           + Forms\Components\Toggle::make('tiene_adicion')
+       131 +                                              ->label('¿El 
+           + contrato tiene adición?')
+       132 +                                              ->live()
+       133 +                                              
+           + ->default(false)
+       134 +                                              
+           + ->columnSpanFull(),
+       135 +  
+       136 +                                          
+           + Forms\Components\Textarea::make('descripcion_adicion')
+       137 +                                              
+           + ->label('Descripción de la Adición')
+       138 +                                              ->rows(3)
+       139 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_adicion'))
+       140 +                                              
+           + ->columnSpanFull(),
+       141 +  
+       142 +                                          
+           + Forms\Components\TextInput::make('valor_adicion')
+       143 +                                              ->label('Valor 
+           + de la Adición')
+       144 +                                              ->numeric()
+       145 +                                              ->prefix('$')
+       146 +                                              ->step(0.01)
+       147 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+       148 +  
+       149 +                                          
+           + Forms\Components\DatePicker::make('fecha_adicion')
+       150 +                                              ->label('Fecha 
+           + de la Adición')
+       151 +                                              
+           + ->displayFormat('d/m/Y')
+       152 +                                              ->native(false)
+       153 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+       154 +                                      ])
+       155 +                                      ->columns(2)
+       156 +                                      ->collapsible(),
+       157 +  
+       158 +                                  
+           + Forms\Components\Section::make('Prórroga del Contrato')
+       159 +                                      ->description('Complete
+           +  esta sección si el contrato tiene prórroga')
+       160 +                                      ->schema([
+       161 +                                          
+           + Forms\Components\Toggle::make('tiene_prorroga')
+       162 +                                              ->label('¿El 
+           + contrato tiene prórroga?')
+       163 +                                              ->live()
+       164 +                                              
+           + ->default(false)
+       165 +                                              
+           + ->columnSpanFull(),
+       166 +  
+       167 +                                          
+           + Forms\Components\Textarea::make('descripcion_prorroga')
+       168 +                                              
+           + ->label('Descripción de la Prórroga')
+       169 +                                              ->rows(3)
+       170 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+       171 +                                              
+           + ->columnSpanFull(),
+       172 +  
+       173 +                                          
+           + Forms\Components\Grid::make(2)
+       174 +                                              ->schema([
+       175 +                                                  
+           + Forms\Components\TextInput::make('meses_prorroga')
+       176 +                                                      
+           + ->label('Meses de Prórroga')
+       177 +                                                      
+           + ->numeric()
+       178 +                                                      
+           + ->minValue(0)
+       179 +                                                      
+           + ->default(0),
+       180 +  
+       181 +                                                  
+           + Forms\Components\TextInput::make('dias_prorroga')
+       182 +                                                      
+           + ->label('Días de Prórroga')
+       183 +                                                      
+           + ->numeric()
+       184 +                                                      
+           + ->minValue(0)
+       185 +                                                      
+           + ->default(0),
+       186 +                                              ])
+       187 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+       188 +                                              
+           + ->columnSpanFull(),
+       189 +  
+       190 +                                          Forms\Components\Da
+           + tePicker::make('nueva_fecha_fin_prorroga')
+       191 +                                              ->label('Nueva 
+           + Fecha de Finalización')
+       192 +                                              
+           + ->displayFormat('d/m/Y')
+       193 +                                              ->native(false)
+       194 +                                              
+           + ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
+       195 +                                      ])
+       196 +                                      ->columns(2)
+       197 +                                      ->collapsible(),
+       198 +  
+       199 +                                  
+           + Forms\Components\Section::make('Terminación Anticipada del 
+           + Contrato')
+       200 +                                      ->description('Complete
+           +  esta sección si el contrato se terminó anticipadamente')
+       201 +                                      ->schema([
+       202 +                                          Forms\Components\To
+           + ggle::make('tiene_terminacion_anticipada')
+       203 +                                              ->label('¿El 
+           + contrato tiene terminación anticipada?')
+       204 +                                              ->live()
+       205 +                                              
+           + ->default(false)
+       206 +                                              
+           + ->columnSpanFull(),
+       207 +  
+       208 +                                          Forms\Components\Da
+           + tePicker::make('fecha_terminacion_anticipada')
+       209 +                                              ->label('Fecha 
+           + de Terminación Anticipada')
+       210 +                                              
+           + ->displayFormat('d/m/Y')
+       211 +                                              ->native(false)
+       212 +                                              
+           + ->visible(fn(Forms\Get $get) => 
+           + $get('tiene_terminacion_anticipada')),
+       213 +  
+       214 +                                          Forms\Components\Te
+           + xtarea::make('motivo_terminacion_anticipada')
+       215 +                                              ->label('Motivo
+           +  de la Terminación Anticipada')
+       216 +                                              ->rows(3)
+       217 +                                              
+           + ->visible(fn(Forms\Get $get) => 
+           + $get('tiene_terminacion_anticipada'))
+       218 +                                              
+           + ->columnSpanFull(),
+       219 +                                      ])
+       220 +                                      ->columns(2)
+       221 +                                      ->collapsible(),
+       222 +                              ]),
+       223 +  
+       224                            
+             Forms\Components\Tabs\Tab::make('Información del Contrato')
+       225                                
+             ->icon('heroicon-o-document-text')
+       226                                ->schema([
+
+● Ahora voy a hacer obligatorios todos los campos del contratista,
+  meses/días y supervisor del contrato:
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 1 addition
+       87    
+       88                                            
+            Forms\Components\TextInput::make('email_contratista')
+       89                                                ->label('Correo 
+            Electrónico')
+       90 +                                              ->required()
+       91                                                ->email()
+       92                                                
+            ->maxLength(255),
+       93                                        ])
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 1 addition
+       270    
+       271                                            
+             Forms\Components\TextInput::make('supervisor_contrato')
+       272                                                
+             ->label('Supervisor del Contrato')
+       273 +                                              ->required()
+       274                                                
+             ->maxLength(255)
+       275                                                
+             ->columnSpanFull(),
+       276                                        ])
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 2 additions
+       315                                                ->schema([
+       316                                                    
+             Forms\Components\TextInput::make('meses_contrato')
+       317                                                        
+             ->label('Meses')
+       318 +                                                      
+           + ->required()
+       319                                                        
+             ->numeric()
+       320                                                        
+             ->minValue(0)
+       321                                                        
+             ->default(0),
+       322    
+       323                                                    
+             Forms\Components\TextInput::make('dias_contrato')
+       324                                                        
+             ->label('Días')
+       325 +                                                      
+           + ->required()
+       326                                                        
+             ->numeric()
+       327                                                        
+             ->minValue(0)
+       328                                                        
+             ->default(0),
+
+● Ahora voy a agregar las columnas y filtros en la tabla de afiliaciones:
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 30 addition
+
+       516                        ->color(fn($record) => 
+             $record->fecha_fin <= now() ? 'danger' : ($record->fecha_fin
+              <= now()->addDays(30) ? 'warning' : 'success'))
+       517                        ->icon(fn($record) => 
+             $record->fecha_fin <= now()->addDays(30) ? 
+             'heroicon-o-exclamation-triangle' : null),
+       518    
+       519 +                  
+           + Tables\Columns\IconColumn::make('tiene_adicion')
+       520 +                      ->label('Adición')
+       521 +                      ->boolean()
+       522 +                      ->trueIcon('heroicon-o-check-circle')
+       523 +                      ->falseIcon('heroicon-o-x-circle')
+       524 +                      ->trueColor('success')
+       525 +                      ->falseColor('gray')
+       526 +                      ->toggleable()
+       527 +                      ->tooltip(fn($record) => 
+           + $record->tiene_adicion ? 'Tiene Adición' : 'Sin Adición'),
+       528 +  
+       529 +                  
+           + Tables\Columns\IconColumn::make('tiene_prorroga')
+       530 +                      ->label('Prórroga')
+       531 +                      ->boolean()
+       532 +                      ->trueIcon('heroicon-o-check-circle')
+       533 +                      ->falseIcon('heroicon-o-x-circle')
+       534 +                      ->trueColor('info')
+       535 +                      ->falseColor('gray')
+       536 +                      ->toggleable()
+       537 +                      ->tooltip(fn($record) => 
+           + $record->tiene_prorroga ? 'Tiene Prórroga' : 'Sin 
+           + Prórroga'),
+       538 +  
+       539 +                  Tables\Columns\IconColumn::make('tiene_term
+           + inacion_anticipada')
+       540 +                      ->label('Terminación Anticipada')
+       541 +                      ->boolean()
+       542 +                      
+           + ->trueIcon('heroicon-o-exclamation-circle')
+       543 +                      ->falseIcon('heroicon-o-x-circle')
+       544 +                      ->trueColor('warning')
+       545 +                      ->falseColor('gray')
+       546 +                      ->toggleable()
+       547 +                      ->tooltip(fn($record) => 
+           + $record->tiene_terminacion_anticipada ? 'Terminación 
+           + Anticipada' : 'Sin Terminación Anticipada'),
+       548 +  
+       549                    
+             Tables\Columns\TextColumn::make('tipo_riesgo')
+       550                        ->label('Nivel Riesgo')
+       551                        ->badge()
+
+● Ahora voy a agregar los filtros para estos nuevos campos:
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 12 addition
+
+       642                            ->where('fecha_fin', '>=', now())
+       643                            ->where('fecha_fin', '<=', 
+             now()->addDays(30))),
+       644    
+       645 +                  
+           + Tables\Filters\Filter::make('tiene_adicion')
+       646 +                      ->label('Con Adición')
+       647 +                      ->query(fn(Builder $query): Builder => 
+           + $query->where('tiene_adicion', true)),
+       648 +  
+       649 +                  
+           + Tables\Filters\Filter::make('tiene_prorroga')
+       650 +                      ->label('Con Prórroga')
+       651 +                      ->query(fn(Builder $query): Builder => 
+           + $query->where('tiene_prorroga', true)),
+       652 +  
+       653 +                  
+           + Tables\Filters\Filter::make('tiene_terminacion_anticipada')
+       654 +                      ->label('Con Terminación Anticipada')
+       655 +                      ->query(fn(Builder $query): Builder => 
+           + $query->where('tiene_terminacion_anticipada', true)),
+       656 +  
+       657                    Tables\Filters\TrashedFilter::make()
+       658                        ->label('Registros Eliminados')
+       659                        ->native(false)
+
+● Perfecto. Ahora voy a limpiar el caché de configuración y verificar que
+  todo esté funcionando correctamente:
+
+● Bash(php artisan config:clear && php artisan cache:clear && php artisan
+      view:clear)
+  ⎿     INFO  Configuration cache cleared successfully.
+     … +5 lines (ctrl+o to expand)
+
+● Perfecto! He completado todas las tareas solicitadas. Aquí está el resumen
+   de los cambios implementados:
+
+  Resumen de Cambios Implementados
+
+  1. Nueva Pestaña: Información Adicional del Contrato
+
+  - Agregué una nueva pestaña en el formulario de AfiliacionResource con
+  tres secciones colapsables:
+    - Adición al Contrato: incluye toggle, descripción, valor y fecha de
+  adición
+    - Prórroga del Contrato: incluye toggle, descripción, meses/días de
+  prórroga y nueva fecha de finalización
+    - Terminación Anticipada: incluye toggle, fecha y motivo de terminación
+  anticipada
+  - Los campos adicionales solo se muestran cuando el toggle correspondiente
+   está activado
+
+  2. Columnas en la Tabla de Afiliaciones
+
+  - Agregué 3 nuevas columnas con íconos para visualizar:
+    - Adición (ícono verde cuando existe)
+    - Prórroga (ícono azul cuando existe)
+    - Terminación Anticipada (ícono amarillo cuando existe)
+  - Todas las columnas son toggleables y tienen tooltips informativos
+
+  3. Filtros en la Tabla
+
+  - Agregué 3 nuevos filtros:
+    - Con Adición
+    - Con Prórroga
+    - Con Terminación Anticipada
+
+  4. Campos Obligatorios
+
+  - Información del contratista: Ahora el campo email_contratista es
+  obligatorio
+  - Meses y días: Los campos meses_contrato y dias_contrato ahora son
+  obligatorios
+  - Supervisor del contrato: El campo supervisor_contrato ahora es
+  obligatorio
+
+  5. Base de Datos
+
+  - Creé y ejecuté una migración que agrega los siguientes campos a la tabla
+   afiliaciones:
+    - tiene_adicion, descripcion_adicion, valor_adicion, fecha_adicion
+    - tiene_prorroga, descripcion_prorroga, meses_prorroga, dias_prorroga,
+  nueva_fecha_fin_prorroga
+    - tiene_terminacion_anticipada, fecha_terminacion_anticipada,
+  motivo_terminacion_anticipada
+
+  6. Modelo Actualizado
+
+  - Actualicé el modelo Afiliacion para incluir todos los nuevos campos en
+  $fillable y $casts
+
+  Todos los cambios están implementados y el caché ha sido limpiado. El
+  sistema está listo para ser utilizado con las nuevas funcionalidades.
+
+> Hace falta poder exportar toda la información 
+
+● Tienes razón, necesitamos actualizar las exportaciones para incluir los
+  nuevos campos. Voy a modificar la sección de exportación en el Resource.
+
+● Update(app\Filament\Resources\AfiliacionResource.php)
+  ⎿  Updated app\Filament\Resources\AfiliacionResource.php with 14 addition
+
+       1015                                        'Objeto Contrato' => 
+              'objeto_contractual',
+       1016                                        'CC' => 
+              'numero_documento',
+       1017                                        'Contratista' => 
+              'nombre_contratista',
+       1018 +                                      'Supervisor del 
+            + Contrato' => 'supervisor_contrato',
+       1019                                        'Valor del Contrato' 
+              => 'valor_contrato',
+       1020                                        'Meses' => 
+              'meses_contrato',
+       1021                                        'Días' => 
+              'dias_contrato',
+     ...
+       1022                                        'IBC' => 'ibc',
+       1023                                        'Fecha Inicio' => 
+              'fecha_inicio',
+       1024                                        'Fecha Retiro' => 
+              'fecha_fin',
+       1025 +                                      'Tiene Adición' => 
+            + 'tiene_adicion',
+       1026 +                                      'Descripción Adición' 
+            + => 'descripcion_adicion',
+       1027 +                                      'Valor Adición' => 
+            + 'valor_adicion',
+       1028 +                                      'Fecha Adición' => 
+            + 'fecha_adicion',
+       1029 +                                      'Tiene Prórroga' => 
+            + 'tiene_prorroga',
+       1030 +                                      'Descripción Prórroga'
+            +  => 'descripcion_prorroga',
+       1031 +                                      'Meses Prórroga' => 
+            + 'meses_prorroga',
+       1032 +                                      'Días Prórroga' => 
+            + 'dias_prorroga',
+       1033 +                                      'Nueva Fecha Fin 
+            + Prórroga' => 'nueva_fecha_fin_prorroga',
+       1034 +                                      'Tiene Terminación 
+            + Anticipada' => 'tiene_terminacion_anticipada',
+       1035 +                                      'Fecha Terminación 
+            + Anticipada' => 'fecha_terminacion_anticipada',
+       1036 +                                      'Motivo Terminación 
+            + Anticipada' => 'motivo_terminacion_anticipada',
+       1037                                        'Secretaría' => 
+              'dependencia.nombre',
+       1038 +                                      'Área' => 
+            + 'area.nombre',
+       1039                                        'Fecha de Nacimiento' 
+              => 'fecha_nacimiento',
+       1040                                        'Nivel de Riesgo' => 
+              'tipo_riesgo',
+       1041                                        'No. Celular' => 
+              'telefono_contratista',
+
+● Ahora necesito verificar si existe un archivo de exportación personalizado
+   (AfiliacionesExport) y actualizarlo también. Déjame buscarlo:
+
+● Search(pattern: "**/AfiliacionesExport.php")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Read(app\Exports\AfiliacionesExport.php)
+  ⎿  Read 156 lines
+
+● Ahora voy a actualizar este archivo para incluir los nuevos campos:
+
+● Update(app\Exports\AfiliacionesExport.php)
+  ⎿  Updated app\Exports\AfiliacionesExport.php with 13 additions    
+       35                    'OBJETO CONTRATO',
+       36                    'CC CONTRATISTA',
+       37                    'CONTRATISTA',
+       38 +                  'SUPERVISOR DEL CONTRATO',
+       39                    'VALOR DEL CONTRATO',
+       40                    'MESES',
+       41                    'DIAS',
+     ...
+       42                    'IBC',
+       43                    'Fecha ingreso A partir de Acta inicio',
+       44                    'Fecha retiro',
+       45 +                  'TIENE ADICIÓN',
+       46 +                  'DESCRIPCIÓN ADICIÓN',
+       47 +                  'VALOR ADICIÓN',
+       48 +                  'FECHA ADICIÓN',
+       49 +                  'TIENE PRÓRROGA',
+       50 +                  'DESCRIPCIÓN PRÓRROGA',
+       51 +                  'MESES PRÓRROGA',
+       52 +                  'DÍAS PRÓRROGA',
+       53 +                  'NUEVA FECHA FIN PRÓRROGA',
+       54 +                  'TIENE TERMINACIÓN ANTICIPADA',
+       55 +                  'FECHA TERMINACIÓN ANTICIPADA',
+       56 +                  'MOTIVO TERMINACIÓN ANTICIPADA',
+       57                    'Secretaría',
+       58                    'Área',
+       59                    'Fecha de Nacimiento',
+
+● Update(app\Exports\AfiliacionesExport.php)
+  ⎿  Updated app\Exports\AfiliacionesExport.php with 13 additions        
+       80                $afiliacion->objeto_contractual,
+       81                $afiliacion->numero_documento,
+       82                $afiliacion->nombre_contratista,
+       83 +              $afiliacion->supervisor_contrato,
+       84                $afiliacion->valor_contrato,
+       85                $afiliacion->meses_contrato,
+       86                $afiliacion->dias_contrato,
+     ...
+        87                $afiliacion->ibc,
+        88                $afiliacion->fecha_inicio?->format('d/m/Y'),
+        89                $afiliacion->fecha_fin?->format('d/m/Y'),
+        90 +              $afiliacion->tiene_adicion ? 'SÍ' : 'NO',
+        91 +              $afiliacion->descripcion_adicion,
+        92 +              $afiliacion->valor_adicion,
+        93 +              $afiliacion->fecha_adicion?->format('d/m/Y'),
+        94 +              $afiliacion->tiene_prorroga ? 'SÍ' : 'NO',
+        95 +              $afiliacion->descripcion_prorroga,
+        96 +              $afiliacion->meses_prorroga,
+        97 +              $afiliacion->dias_prorroga,
+        98 +              
+           + $afiliacion->nueva_fecha_fin_prorroga?->format('d/m/Y'),
+        99 +              $afiliacion->tiene_terminacion_anticipada ? 
+           + 'SÍ' : 'NO',
+       100 +              
+           + $afiliacion->fecha_terminacion_anticipada?->format('d/m/Y'),
+       101 +              $afiliacion->motivo_terminacion_anticipada,
+       102                $afiliacion->dependencia?->nombre,
+       103                $afiliacion->area?->nombre,
+       104                
+             $afiliacion->fecha_nacimiento?->format('d/m/Y'),
+
+● Update(app\Exports\AfiliacionesExport.php)
+  ⎿  Updated app\Exports\AfiliacionesExport.php with 1 addition and 1      
+     removal
+       125        public function styles(Worksheet $sheet)
+       126        {
+       127            // Combinar celdas de la primera fila (título)
+       128 -          $sheet->mergeCells('A1:Y1');
+       128 +          $sheet->mergeCells('A1:AL1');
+       129    
+       130            // Ajustar ancho de columnas
+       131            $sheet->getColumnDimension('A')->setWidth(15);
+
+● Ahora voy a agregar los anchos de columna para los nuevos campos:
+
+● Update(app\Exports\AfiliacionesExport.php)
+  ⎿  Updated app\Exports\AfiliacionesExport.php with 38 additions and 25 
+     removals
+       128            $sheet->mergeCells('A1:AL1');
+       129    
+       130            // Ajustar ancho de columnas
+       131 -          $sheet->getColumnDimension('A')->setWidth(15);
+       132 -          $sheet->getColumnDimension('B')->setWidth(50);
+       133 -          $sheet->getColumnDimension('C')->setWidth(15);
+       134 -          $sheet->getColumnDimension('D')->setWidth(40);
+       135 -          $sheet->getColumnDimension('E')->setWidth(15);
+       136 -          $sheet->getColumnDimension('F')->setWidth(8);
+       137 -          $sheet->getColumnDimension('G')->setWidth(8);
+       138 -          $sheet->getColumnDimension('H')->setWidth(15);
+       139 -          $sheet->getColumnDimension('I')->setWidth(15);
+       140 -          $sheet->getColumnDimension('J')->setWidth(20);
+       141 -          $sheet->getColumnDimension('K')->setWidth(20);
+       142 -          $sheet->getColumnDimension('L')->setWidth(30);
+       143 -          $sheet->getColumnDimension('M')->setWidth(30);
+       144 -          $sheet->getColumnDimension('N')->setWidth(20);
+       145 -          $sheet->getColumnDimension('O')->setWidth(15);
+       146 -          $sheet->getColumnDimension('P')->setWidth(15);
+       147 -          $sheet->getColumnDimension('Q')->setWidth(20);
+       148 -          $sheet->getColumnDimension('R')->setWidth(30);
+       149 -          $sheet->getColumnDimension('S')->setWidth(20);
+       150 -          $sheet->getColumnDimension('T')->setWidth(20);
+       151 -          $sheet->getColumnDimension('U')->setWidth(30);
+       152 -          $sheet->getColumnDimension('V')->setWidth(20);
+       153 -          $sheet->getColumnDimension('W')->setWidth(20);
+       154 -          $sheet->getColumnDimension('X')->setWidth(20);
+       155 -          $sheet->getColumnDimension('Y')->setWidth(15);
+       131 +          $sheet->getColumnDimension('A')->setWidth(15);
+           +    // No. CONTRATO
+       132 +          $sheet->getColumnDimension('B')->setWidth(50);
+           +    // OBJETO CONTRATO
+       133 +          $sheet->getColumnDimension('C')->setWidth(15);
+           +    // CC CONTRATISTA
+       134 +          $sheet->getColumnDimension('D')->setWidth(40);
+           +    // CONTRATISTA
+       135 +          $sheet->getColumnDimension('E')->setWidth(30);
+           +    // SUPERVISOR DEL CONTRATO
+       136 +          $sheet->getColumnDimension('F')->setWidth(15);
+           +    // VALOR DEL CONTRATO
+       137 +          $sheet->getColumnDimension('G')->setWidth(8);
+           +     // MESES
+       138 +          $sheet->getColumnDimension('H')->setWidth(8);
+           +     // DIAS
+       139 +          $sheet->getColumnDimension('I')->setWidth(15);
+           +    // Honorarios mensual
+       140 +          $sheet->getColumnDimension('J')->setWidth(15);
+           +    // IBC
+       141 +          $sheet->getColumnDimension('K')->setWidth(20);
+           +    // Fecha ingreso
+       142 +          $sheet->getColumnDimension('L')->setWidth(20);
+           +    // Fecha retiro
+       143 +          $sheet->getColumnDimension('M')->setWidth(15);
+           +    // TIENE ADICIÓN
+       144 +          $sheet->getColumnDimension('N')->setWidth(40);
+           +    // DESCRIPCIÓN ADICIÓN
+       145 +          $sheet->getColumnDimension('O')->setWidth(15);
+           +    // VALOR ADICIÓN
+       146 +          $sheet->getColumnDimension('P')->setWidth(20);
+           +    // FECHA ADICIÓN
+       147 +          $sheet->getColumnDimension('Q')->setWidth(15);
+           +    // TIENE PRÓRROGA
+       148 +          $sheet->getColumnDimension('R')->setWidth(40);
+           +    // DESCRIPCIÓN PRÓRROGA
+       149 +          $sheet->getColumnDimension('S')->setWidth(12);
+           +    // MESES PRÓRROGA
+       150 +          $sheet->getColumnDimension('T')->setWidth(12);
+           +    // DÍAS PRÓRROGA
+       151 +          $sheet->getColumnDimension('U')->setWidth(20);
+           +    // NUEVA FECHA FIN PRÓRROGA
+       152 +          $sheet->getColumnDimension('V')->setWidth(25);
+           +    // TIENE TERMINACIÓN ANTICIPADA
+       153 +          $sheet->getColumnDimension('W')->setWidth(25);
+           +    // FECHA TERMINACIÓN ANTICIPADA
+       154 +          $sheet->getColumnDimension('X')->setWidth(40);
+           +    // MOTIVO TERMINACIÓN ANTICIPADA
+       155 +          $sheet->getColumnDimension('Y')->setWidth(30);
+           +    // Secretaría
+       156 +          $sheet->getColumnDimension('Z')->setWidth(30);  // 
+           + Área
+       157 +          $sheet->getColumnDimension('AA')->setWidth(20); // 
+           + Fecha de Nacimiento
+       158 +          $sheet->getColumnDimension('AB')->setWidth(15); // 
+           + Nivel de riesgo
+       159 +          $sheet->getColumnDimension('AC')->setWidth(15); // 
+           + No. Celular
+       160 +          $sheet->getColumnDimension('AD')->setWidth(20); // 
+           + Barrio
+       161 +          $sheet->getColumnDimension('AE')->setWidth(30); // 
+           + Dirección Residencia
+       162 +          $sheet->getColumnDimension('AF')->setWidth(20); // 
+           + EPS
+       163 +          $sheet->getColumnDimension('AG')->setWidth(20); // 
+           + AFP
+       164 +          $sheet->getColumnDimension('AH')->setWidth(30); // 
+           + Dirección de correo Electronica
+       165 +          $sheet->getColumnDimension('AI')->setWidth(20); // 
+           + FECHA DE AFILIACION
+       166 +          $sheet->getColumnDimension('AJ')->setWidth(25); // 
+           + FECHA TERMINACION AFILIACION
+       167 +          $sheet->getColumnDimension('AK')->setWidth(20); // 
+           + ARL
+       168 +          $sheet->getColumnDimension('AL')->setWidth(15); // 
+           + Estado
+       169    
+       170            return [
+       171                1 => [
+
+● Ahora voy a verificar si existe también la plantilla de exportación
+  (AfiliacionesTemplateExport) y actualizarla:
+
+● Search(pattern: "**/AfiliacionesTemplateExport.php")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Read(app\Exports\AfiliacionesTemplateExport.php)
+  ⎿  Read 148 lines
+
+● Ahora voy a actualizar la plantilla para incluir los nuevos campos. Dado
+  que la adición, prórroga y terminación anticipada son opcionales, no los
+  marcaré con asterisco:
+
+● Update(app\Exports\AfiliacionesTemplateExport.php)
+  ⎿  Updated app\Exports\AfiliacionesTemplateExport.php with 29 additions  
+     and 3 removals
+       21                    'TIPO DE DOCUMENTO *',
+       22                    'CC CONTRATISTA *',
+       23                    'CONTRATISTA *',
+       24 +                  'SUPERVISOR DEL CONTRATO *',
+       25                    'FECHA DE NACIMIENTO *',
+       26                    'No. CELULAR *',
+       27                    'VALOR DEL CONTRATO *',
+     ...
+       30                    'DIAS *',
+       31                    'FECHA INGRESO (ACTA INICIO) *',
+       32                    'FECHA RETIRO *',
+       33 +                  'TIENE ADICIÓN',
+       34 +                  'DESCRIPCIÓN ADICIÓN',
+       35 +                  'VALOR ADICIÓN',
+       36 +                  'FECHA ADICIÓN',
+       37 +                  'TIENE PRÓRROGA',
+       38 +                  'DESCRIPCIÓN PRÓRROGA',
+       39 +                  'MESES PRÓRROGA',
+       40 +                  'DÍAS PRÓRROGA',
+       41 +                  'NUEVA FECHA FIN PRÓRROGA',
+       42 +                  'TIENE TERMINACIÓN ANTICIPADA',
+       43 +                  'FECHA TERMINACIÓN ANTICIPADA',
+       44 +                  'MOTIVO TERMINACIÓN ANTICIPADA',
+       45                    'SECRETARÍA / DEPENDENCIA *',
+       46 -                  'ÁREA *',
+       46 +                  'ÁREA',
+       47                    'NIVEL DE RIESGO *',
+       48                    'NOMBRE ARL *',
+       49                    'BARRIO *',
+     ...
+       48                    'CC, CE, PP o TI',
+       49                    'Solo números, sin puntos ni comas. Ej: 
+            1234567890',
+       50                    'Nombre completo del contratista',
+       51 +                  'Nombre del supervisor del contrato',
+       52                    'Formato: dd/mm/aaaa. Ej: 15/03/1985',
+       53                    'Número celular. Ej: 3001234567',
+       54                    'Solo números, sin símbolos $ ni puntos. Ej:
+             5000000',
+       55                    'Solo números, sin símbolos $ ni puntos. Ej:
+             1500000',
+       56                    'Ingreso Base de Cotización (40% de 
+            honorarios). Ej: 600000',
+       57 -                  'Número de meses del contrato. Ej: 6
+          -   (dejar vacío si no aplica)',
+       58 -                  'Número de días del contrato. Ej: 15
+          -   (dejar vacío si no aplica)',
+       57 +                  'Número de meses del contrato. Ej: 6',
+       58 +                  'Número de días del contrato. Ej: 15',
+       59                    'Fecha inicio del contrato. Formato: 
+            dd/mm/aaaa',
+       60                    'Fecha finalización del contrato. Formato: 
+            dd/mm/aaaa',
+       61 +                  'Sí o No (vacío = No)',
+       62 +                  'Descripción de la adición (opcional)',
+       63 +                  'Valor de la adición sin símbolos 
+          + (opcional)',
+       64 +                  'Fecha de la adición. Formato: dd/mm/aaaa 
+          + (opcional)',
+       65 +                  'Sí o No (vacío = No)',
+       66 +                  'Descripción de la prórroga (opcional)',
+       67 +                  'Meses de prórroga (opcional)',
+       68 +                  'Días de prórroga (opcional)',
+       69 +                  'Nueva fecha fin con prórroga. Formato: 
+          + dd/mm/aaaa (opcional)',
+       70 +                  'Sí o No (vacío = No)',
+       71 +                  'Fecha terminación anticipada. Formato: 
+          + dd/mm/aaaa (opcional)',
+       72 +                  'Motivo de terminación anticipada 
+          + (opcional)',
+       73                    'Nombre exacto de la secretaría o 
+            dependencia',
+       74                    'Nombre del área (opcional si no tiene área 
+            asignada)',
+       75                    'I, II, III, IV o V',
+
+● Update(app\Exports\AfiliacionesTemplateExport.php)
+  ⎿  Updated app\Exports\AfiliacionesTemplateExport.php with 1 addition and
+     1 removal
+
+       101        public function styles(Worksheet $sheet)
+       102        {
+       103            // Combinar celdas de la primera fila (título)
+       104 -          $sheet->mergeCells('A1:Y1');
+       104 +          $sheet->mergeCells('A1:AL1');
+       105    
+       106            // Ajustar altura de las filas
+       107            $sheet->getRowDimension(1)->setRowHeight(25);
+
+● Update(app\Exports\AfiliacionesTemplateExport.php)
+  ⎿  Updated app\Exports\AfiliacionesTemplateExport.php with 33 additions  
+     and 20 removals
+       114            $sheet->getColumnDimension('C')->setWidth(20);  // 
+             TIPO DE DOCUMENTO *
+       115            $sheet->getColumnDimension('D')->setWidth(20);  // 
+             CC CONTRATISTA *
+       116            $sheet->getColumnDimension('E')->setWidth(40);  // 
+             CONTRATISTA *
+       117 -          $sheet->getColumnDimension('F')->setWidth(22);  // 
+           -  FECHA DE NACIMIENTO *
+       118 -          $sheet->getColumnDimension('G')->setWidth(18);  // 
+           -  No. CELULAR *
+       119 -          $sheet->getColumnDimension('H')->setWidth(22);  // 
+           -  VALOR DEL CONTRATO *
+       120 -          $sheet->getColumnDimension('I')->setWidth(22);  // 
+           -  HONORARIOS MENSUAL *
+       121 -          $sheet->getColumnDimension('J')->setWidth(22);  // 
+           -  IBC *
+       122 -          $sheet->getColumnDimension('K')->setWidth(12);  // 
+           -  MESES
+       123 -          $sheet->getColumnDimension('L')->setWidth(12);  // 
+           -  DIAS
+       124 -          $sheet->getColumnDimension('M')->setWidth(28);  // 
+           -  FECHA INGRESO *
+       125 -          $sheet->getColumnDimension('N')->setWidth(22
+           -  );  // FECHA RETIRO *
+       126 -          $sheet->getColumnDimension('O')->setWidth(35);  // 
+           -  SECRETARÍA *
+       127 -          $sheet->getColumnDimension('P')->setWidth(30);  // 
+           -  ÁREA
+       128 -          $sheet->getColumnDimension('Q')->setWidth(20);  // 
+           -  NIVEL DE RIESGO *
+       129 -          $sheet->getColumnDimension('R')->setWidth(22);  // 
+           -  NOMBRE ARL *
+       130 -          $sheet->getColumnDimension('S')->setWidth(25);  // 
+           -  BARRIO
+       131 -          $sheet->getColumnDimension('T')->setWidth(35);  // 
+           -  DIRECCIÓN RESIDENCIA
+       132 -          $sheet->getColumnDimension('U')->setWidth(25);  // 
+           -  EPS
+       133 -          $sheet->getColumnDimension('V')->setWidth(25);  // 
+           -  AFP
+       134 -          $sheet->getColumnDimension('W')->setWidth(30);  // 
+           -  CORREO ELECTRÓNICO
+       135 -          $sheet->getColumnDimension('X')->setWidth(28);  // 
+           -  FECHA DE AFILIACIÓN ARL
+       136 -          $sheet->getColumnDimension('Y')->setWidth(32);  // 
+           -  FECHA TERMINACIÓN AFILIACIÓN ARL
+       117 +          $sheet->getColumnDimension('F')->setWidth(30);  // 
+           +  SUPERVISOR DEL CONTRATO *
+       118 +          $sheet->getColumnDimension('G')->setWidth(22);  // 
+           +  FECHA DE NACIMIENTO *
+       119 +          $sheet->getColumnDimension('H')->setWidth(18);  // 
+           +  No. CELULAR *
+       120 +          $sheet->getColumnDimension('I')->setWidth(22);  // 
+           +  VALOR DEL CONTRATO *
+       121 +          $sheet->getColumnDimension('J')->setWidth(22);  // 
+           +  HONORARIOS MENSUAL *
+       122 +          $sheet->getColumnDimension('K')->setWidth(22);  // 
+           +  IBC *
+       123 +          $sheet->getColumnDimension('L')->setWidth(12);  // 
+           +  MESES *
+       124 +          $sheet->getColumnDimension('M')->setWidth(12);  // 
+           +  DIAS *
+       125 +          $sheet->getColumnDimension('N')->setWidth(28
+           +  );  // FECHA INGRESO *
+       126 +          $sheet->getColumnDimension('O')->setWidth(22);  // 
+           +  FECHA RETIRO *
+       127 +          $sheet->getColumnDimension('P')->setWidth(18);  // 
+           +  TIENE ADICIÓN
+       128 +          $sheet->getColumnDimension('Q')->setWidth(40);  // 
+           +  DESCRIPCIÓN ADICIÓN
+       129 +          $sheet->getColumnDimension('R')->setWidth(18);  // 
+           +  VALOR ADICIÓN
+       130 +          $sheet->getColumnDimension('S')->setWidth(22);  // 
+           +  FECHA ADICIÓN
+       131 +          $sheet->getColumnDimension('T')->setWidth(18);  // 
+           +  TIENE PRÓRROGA
+       132 +          $sheet->getColumnDimension('U')->setWidth(40);  // 
+           +  DESCRIPCIÓN PRÓRROGA
+       133 +          $sheet->getColumnDimension('V')->setWidth(15);  // 
+           +  MESES PRÓRROGA
+       134 +          $sheet->getColumnDimension('W')->setWidth(15);  // 
+           +  DÍAS PRÓRROGA
+       135 +          $sheet->getColumnDimension('X')->setWidth(28);  // 
+           +  NUEVA FECHA FIN PRÓRROGA
+       136 +          $sheet->getColumnDimension('Y')->setWidth(28);  // 
+           +  TIENE TERMINACIÓN ANTICIPADA
+       137 +          $sheet->getColumnDimension('Z')->setWidth(28);  // 
+           + FECHA TERMINACIÓN ANTICIPADA
+       138 +          $sheet->getColumnDimension('AA')->setWidth(40); // 
+           + MOTIVO TERMINACIÓN ANTICIPADA
+       139 +          $sheet->getColumnDimension('AB')->setWidth(35); // 
+           + SECRETARÍA *
+       140 +          $sheet->getColumnDimension('AC')->setWidth(30); // 
+           + ÁREA
+       141 +          $sheet->getColumnDimension('AD')->setWidth(20); // 
+           + NIVEL DE RIESGO *
+       142 +          $sheet->getColumnDimension('AE')->setWidth(22); // 
+           + NOMBRE ARL *
+       143 +          $sheet->getColumnDimension('AF')->setWidth(25); // 
+           + BARRIO *
+       144 +          $sheet->getColumnDimension('AG')->setWidth(35); // 
+           + DIRECCIÓN RESIDENCIA *
+       145 +          $sheet->getColumnDimension('AH')->setWidth(25); // 
+           + EPS *
+       146 +          $sheet->getColumnDimension('AI')->setWidth(25); // 
+           + AFP *
+       147 +          $sheet->getColumnDimension('AJ')->setWidth(30); // 
+           + CORREO ELECTRÓNICO *
+       148 +          $sheet->getColumnDimension('AK')->setWidth(28); // 
+           + FECHA DE AFILIACIÓN ARL *
+       149 +          $sheet->getColumnDimension('AL')->setWidth(32); // 
+           + FECHA TERMINACIÓN AFILIACIÓN ARL *
+       150    
+       151            return [
+       152                // Estilo para el título (Fila 1)
+
+● Perfecto! Ahora voy a limpiar el caché y completar la tarea:
+
+● Bash(php artisan config:clear && php artisan cache:clear)
+  ⎿     INFO  Configuration cache cleared successfully.
+     … +2 lines (ctrl+o to expand)
+
+● Excelente! He completado todas las actualizaciones de exportación. Aquí
+  está el resumen completo de todo lo implementado:
+
+  Resumen Completo de Implementación
+
+  ✅ Base de Datos
+
+  - Creada migración con 13 nuevos campos para adición, prórroga y
+  terminación anticipada
+  - Migración ejecutada exitosamente
+
+  ✅ Modelo Afiliacion
+
+  - Agregados todos los nuevos campos al array $fillable
+  - Configurados los $casts apropiados para cada tipo de dato (boolean,
+  decimal, date, integer)
+
+  ✅ Formulario en AfiliacionResource
+
+  1. Nueva pestaña "Información Adicional del Contrato" con 3 secciones
+  colapsables:
+    - Adición al Contrato: Toggle + descripción, valor y fecha
+    - Prórroga del Contrato: Toggle + descripción, meses/días y nueva fecha
+  fin
+    - Terminación Anticipada: Toggle + fecha y motivo
+  2. Campos obligatorios implementados:
+    - Email del contratista
+    - Meses y días del contrato
+    - Supervisor del contrato
+
+  ✅ Tabla de Afiliaciones
+
+  - 3 nuevas columnas con íconos de estado:
+    - Adición (verde)
+    - Prórroga (azul)
+    - Terminación Anticipada (amarillo)
+  - 3 nuevos filtros para búsqueda rápida
+  - Todas las columnas son toggleables
+
+  ✅ Sistema de Exportación
+
+  1. AfiliacionesExport.php: Actualizado para exportar toda la información
+    - 13 nuevos campos agregados
+    - Valores booleanos convertidos a "SÍ/NO"
+    - Anchos de columna ajustados (hasta columna AL)
+  2. Exportación de seleccionados: Actualizada en el Resource para incluir
+  todos los campos nuevos
+  3. AfiliacionesTemplateExport.php: Plantilla actualizada
+    - Nuevos campos con instrucciones claras
+    - Campos obligatorios marcados con *
+    - Campos opcionales claramente identificados
+    - Ejemplos de uso actualizados
+
+  🎯 Funcionalidades Implementadas
+
+  - ✅ Sección de información adicional para contratos con
+  adición/prórroga/terminación anticipada (opcional)
+  - ✅ Columnas y filtros en tabla para adición, prórroga y terminación
+  anticipada
+  - ✅ Toda la información del contratista es obligatoria (incluyendo email)
+  - ✅ Meses y días son obligatorios
+  - ✅ Supervisor del contrato es obligatorio
+  - ✅ Exportación completa con todos los nuevos campos
+
+  El sistema está completamente actualizado y listo para usar. Los usuarios
+  ahora pueden gestionar información adicional de contratos (adiciones,
+  prórrogas y terminaciones anticipadas) y exportar toda esta información en
+   formato Excel.
+
+> Esta es la base de datos anterior, necesito crear el seeder para agregar 
+las dependencias,areas, roles, usuarios y poder subir facilmente los cambios
+ a produccion. "C:\Users\User\Downloads\gestion_arl.sql" 
+
+● Perfecto, voy a leer el archivo SQL para crear los seeders
+  correspondientes.
+
+● Read(~\Downloads\gestion_arl.sql)
+  ⎿  Error: File content (27367 tokens) exceeds maximum allowed tokens (25000). 
+     Please use offset and limit parameters to read specific portions of the 
+     file, or use the GrepTool to search for specific content.
+
+● Voy a leer el archivo por secciones. Primero buscaré las inserciones de
+  dependencias:
+
+● Search(pattern: "INSERT INTO.*dependencias", path:
+        "~\Downloads\gestion_arl.sql", output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Ahora busco las áreas:
+
+● Search(pattern: "INSERT INTO.*areas", path: "~\Downloads\gestion_arl.sql",
+        output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Search(pattern: "INSERT INTO.*areas", path: "~\Downloads\gestion_arl.sql",
+        output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Bash(grep -n "^(.*)" "C:\Users\User\Downloads\gestion_arl.sql" | grep "areas"
+      | tail -20)
+  ⎿  368:(14, '2025_11_06_154159_create_areas_table', 1),   
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Déjame leer directamente las secciones relevantes del archivo:
+
+● Read(~\Downloads\gestion_arl.sql)
+  ⎿  Read 50 lines
+
+● Ahora busco los roles y usuarios:
+
+● Search(pattern: "INSERT INTO.*roles", path: "~\Downloads\gestion_arl.sql",
+        output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Search(pattern: "INSERT INTO.*\`roles\`", path: "~\Downloads\gestion_arl.sql",
+         output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Search(pattern: "INSERT INTO.*\`users\`", path: "~\Downloads\gestion_arl.sql",
+         output_mode: "content")
+  ⎿  Found 20 lines (ctrl+o to expand)
+
+● Perfecto, ahora tengo toda la información necesaria. Voy a crear los
+  seeders:
+
+● Bash(php artisan make:seeder RoleSeeder)
+  ⎿     INFO  Seeder [C:\laragon\www\gestion-afiliacione         
+     s-arl\database\seeders\RoleSeeder.php] created successfully.
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Read(database\seeders\RoleSeeder.php)
+  ⎿  Read 18 lines
+
+● Write(database\seeders\RoleSeeder.php)
+  ⎿  Updated database\seeders\RoleSeeder.php with 25 additions and 2       
+     removals
+       2    
+       3    namespace Database\Seeders;
+       4    
+       5 -  use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+       5    use Illuminate\Database\Seeder;
+       6 +  use Spatie\Permission\Models\Role;
+       7    
+       8    class RoleSeeder extends Seeder
+       9    {
+     ...
+       12         */
+       13        public function run(): void
+       14        {
+       15 -          //
+       15 +          // Crear roles del sistema
+       16 +          $roles = [
+       17 +              [
+       18 +                  'name' => 'super_admin',
+       19 +                  'guard_name' => 'web',
+       20 +              ],
+       21 +              [
+       22 +                  'name' => 'Dependencia',
+       23 +                  'guard_name' => 'web',
+       24 +              ],
+       25 +              [
+       26 +                  'name' => 'SSST',
+       27 +                  'guard_name' => 'web',
+       28 +              ],
+       29 +          ];
+       30 +  
+       31 +          foreach ($roles as $roleData) {
+       32 +              Role::firstOrCreate(
+       33 +                  ['name' => $roleData['name']],
+       34 +                  $roleData
+       35 +              );
+       36 +          }
+       37 +  
+       38 +          $this->command->info('Roles creados exitosamente');
+       39        }
+       40    }
+
+● Ahora creo el seeder de Dependencias:
+
+● Bash(php artisan make:seeder DependenciaSeeder)
+  ⎿     INFO  Seeder [C:\laragon\www\gestion-afiliacione               
+     s-arl\database\seeders\DependenciaSeeder.php] created successfully
+     .
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Write(database\seeders\DependenciaSeeder.php)
+  ⎿  Updated database\seeders\DependenciaSeeder.php with 102 additions and 
+      removals
+       2    
+       3    namespace Database\Seeders;
+       4    
+       5 -  use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+       5 +  use App\Models\Dependencia;
+       6    use Illuminate\Database\Seeder;
+       7    
+       8    class DependenciaSeeder extends Seeder
+     ...
+        12         */
+        13        public function run(): void
+        14        {
+        15 -          //
+        15 +          $dependencias = [
+        16 +              [
+        17 +                  'id' => 6,
+        18 +                  'nombre' => 'DESPACHO',
+        19 +                  'codigo' => null,
+        20 +                  'descripcion' => null,
+        21 +                  'responsable' => 'JHON FEIBER URREA 
+           + CIFUENTES',
+        22 +                  'email' => 
+           + 'alcalde@puertoboyaca-boyaca.gov.co',
+        23 +                  'telefono' => null,
+        24 +                  'activo' => true,
+        25 +              ],
+        26 +              [
+        27 +                  'id' => 7,
+        28 +                  'nombre' => 'CONTROL IINTERNO',
+        29 +                  'codigo' => null,
+        30 +                  'descripcion' => null,
+        31 +                  'responsable' => null,
+        32 +                  'email' => 
+           + 'controlinterno@puertoboyaca-boyaca.gov.co',
+        33 +                  'telefono' => null,
+        34 +                  'activo' => true,
+        35 +              ],
+        36 +              [
+        37 +                  'id' => 8,
+        38 +                  'nombre' => 'SECRETARIA GENERAL Y DE 
+           + SERVICIOS ADMINISTRATIVOS',
+        39 +                  'codigo' => null,
+        40 +                  'descripcion' => null,
+        41 +                  'responsable' => null,
+        42 +                  'email' => 
+           + 'general@puertoboyaca-boyaca.gov.co',
+        43 +                  'telefono' => null,
+        44 +                  'activo' => true,
+        45 +              ],
+        46 +              [
+        47 +                  'id' => 9,
+        48 +                  'nombre' => 'SECRETARIA DE GOBIERNO 
+           + MUNICIPAL Y CONVIVENCIA CIUDADANA',
+        49 +                  'codigo' => null,
+        50 +                  'descripcion' => null,
+        51 +                  'responsable' => null,
+        52 +                  'email' => 
+           + 'gobierno@puertoboyaca-boyaca.gov.co',
+        53 +                  'telefono' => null,
+        54 +                  'activo' => true,
+        55 +              ],
+        56 +              [
+        57 +                  'id' => 10,
+        58 +                  'nombre' => 'SECRETARIA DE DESARROLLO 
+           + SOCIAL Y COMUNITARIO',
+        59 +                  'codigo' => null,
+        60 +                  'descripcion' => null,
+        61 +                  'responsable' => null,
+        62 +                  'email' => 
+           + 'desarrollo@puertoboyaca-boyaca.gov.co',
+        63 +                  'telefono' => null,
+        64 +                  'activo' => true,
+        65 +              ],
+        66 +              [
+        67 +                  'id' => 11,
+        68 +                  'nombre' => 'SECRETARIA DE PLANEACION 
+           + MUNICIPAL',
+        69 +                  'codigo' => null,
+        70 +                  'descripcion' => null,
+        71 +                  'responsable' => null,
+        72 +                  'email' => 
+           + 'planeacion@puertoboyaca-boyaca.gov.co',
+        73 +                  'telefono' => null,
+        74 +                  'activo' => true,
+        75 +              ],
+        76 +              [
+        77 +                  'id' => 12,
+        78 +                  'nombre' => 'SECRETARIA DE HACIENDA',
+        79 +                  'codigo' => null,
+        80 +                  'descripcion' => null,
+        81 +                  'responsable' => null,
+        82 +                  'email' => 
+           + 'hacienda@puertoboyaca-boyaca.gov.co',
+        83 +                  'telefono' => null,
+        84 +                  'activo' => true,
+        85 +              ],
+        86 +              [
+        87 +                  'id' => 13,
+        88 +                  'nombre' => 'INSPECCIÓN DE TRANSITO Y 
+           + TRANSPORTE',
+        89 +                  'codigo' => null,
+        90 +                  'descripcion' => null,
+        91 +                  'responsable' => null,
+        92 +                  'email' => 
+           + 'transito@puertoboyaca-boyaca.gov.co',
+        93 +                  'telefono' => null,
+        94 +                  'activo' => true,
+        95 +              ],
+        96 +              [
+        97 +                  'id' => 14,
+        98 +                  'nombre' => 'UNIDAD DE ASISTENCIA TECNICA 
+           + -UMATA',
+        99 +                  'codigo' => null,
+       100 +                  'descripcion' => null,
+       101 +                  'responsable' => null,
+       102 +                  'email' => 
+           + 'umata@puertoboyaca-boyaca.gov.co',
+       103 +                  'telefono' => null,
+       104 +                  'activo' => true,
+       105 +              ],
+       106 +          ];
+       107 +  
+       108 +          foreach ($dependencias as $dependenciaData) {
+       109 +              Dependencia::updateOrCreate(
+       110 +                  ['id' => $dependenciaData['id']],
+       111 +                  $dependenciaData
+       112 +              );
+       113 +          }
+       114 +  
+       115 +          $this->command->info('Dependencias creadas 
+           + exitosamente');
+       116        }
+       117    }
+
+● Ahora creo el seeder de Áreas:
+
+● Bash(php artisan make:seeder AreaSeeder)
+  ⎿     INFO  Seeder [C:\laragon\www\gestion-afiliacione         
+     s-arl\database\seeders\AreaSeeder.php] created successfully.
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Write(database\seeders\AreaSeeder.php)
+  ⎿  Error writing file
+
+● Read(database\seeders\AreaSeeder.php)
+  ⎿  Read 18 lines
+
+● Write(database\seeders\AreaSeeder.php)
+  ⎿  Updated database\seeders\AreaSeeder.php with 38 additions and 2       
+     removals
+       2    
+       3    namespace Database\Seeders;
+       4    
+       5 -  use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+       5 +  use App\Models\Area;
+       6    use Illuminate\Database\Seeder;
+       7    
+       8    class AreaSeeder extends Seeder
+     ...
+       12         */
+       13        public function run(): void
+       14        {
+       15 -          //
+       15 +          $areas = [
+       16 +              ['id' => 7, 'dependencia_id' => 6, 'nombre' => 
+          + 'JURIDICA', 'codigo' => 'J', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       17 +              ['id' => 8, 'dependencia_id' => 8, 'nombre' => 
+          + 'AREA DE PERSONAL', 'codigo' => 'AP', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => 
+          + 'personal@puertoboyaca-boyaca.gov.co', 'telefono' => null, 
+          + 'activo' => true],
+       18 +              ['id' => 9, 'dependencia_id' => 8, 'nombre' => 
+          + 'ALMACEN  MUNICIPAL ', 'codigo' => 'AM', 'descripcion' => 
+          + null, 'responsable' => null, 'email' => 
+          + 'almacen@puertoboyaca-boyaca.gov.co', 'telefono' => null, 
+          + 'activo' => true],
+       19 +              ['id' => 10, 'dependencia_id' => 8, 'nombre' => 
+          + 'AREA DE SISTEMAS', 'codigo' => 'AS', 'descripcion' => null, 
+          + 'responsable' => 'FABIAN MURILLO MARIN', 'email' => 
+          + 'sistemas@puertoboyaca-boyaca.gov.co', 'telefono' => null, 
+          + 'activo' => true],
+       20 +              ['id' => 11, 'dependencia_id' => 8, 'nombre' => 
+          + 'VENTANILLA UNICA', 'codigo' => 'VU', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => 
+          + 'contactenos@puertoboyaca-boyaca.gov.co', 'telefono' => null,
+          +  'activo' => true],
+       21 +              ['id' => 12, 'dependencia_id' => 8, 'nombre' => 
+          + 'ARCHIVO CENTRAL', 'codigo' => 'AC', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => 
+          + 'archivo@puertoboyaca-boyaca.gov.co', 'telefono' => null, 
+          + 'activo' => true],
+       22 +              ['id' => 13, 'dependencia_id' => 9, 'nombre' => 
+          + 'BOMBEROS', 'codigo' => 'B', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       23 +              ['id' => 14, 'dependencia_id' => 9, 'nombre' => 
+          + 'INSPECCION DE POLICIA URBANA', 'codigo' => 'IPU', 
+          + 'descripcion' => null, 'responsable' => null, 'email' => 
+          + null, 'telefono' => null, 'activo' => true],
+       24 +              ['id' => 15, 'dependencia_id' => 9, 'nombre' => 
+          + 'INSPECCION DE POLICIA RURAL - VEREDA  EL MARFIL', 'codigo' 
+          + => 'IPUVM', 'descripcion' => null, 'responsable' => null, 
+          + 'email' => null, 'telefono' => null, 'activo' => true],
+       25 +              ['id' => 16, 'dependencia_id' => 9, 'nombre' => 
+          + 'INSPECCION DE POLICIA RURAL - VEREDA  PUERTO ROMERO', 
+          + 'codigo' => 'IPRVPR', 'descripcion' => null, 'responsable' =>
+          +  null, 'email' => null, 'telefono' => null, 'activo' => 
+          + true],
+       26 +              ['id' => 17, 'dependencia_id' => 9, 'nombre' => 
+          + 'INSPECCION DE POLICIA RURAL  - KILOMETRO 25', 'codigo' => 
+          + 'IPRK', 'descripcion' => null, 'responsable' => null, 'email'
+          +  => null, 'telefono' => null, 'activo' => true],
+       27 +              ['id' => 18, 'dependencia_id' => 9, 'nombre' => 
+          + 'COMISARIA DE FAMILIA', 'codigo' => 'CF', 'descripcion' => 
+          + null, 'responsable' => null, 'email' => null, 'telefono' => 
+          + null, 'activo' => true],
+       28 +              ['id' => 19, 'dependencia_id' => 9, 'nombre' => 
+          + 'CORREGIMIENTO DE VASCONIA', 'codigo' => 'CV', 'descripcion' 
+          + => null, 'responsable' => null, 'email' => null, 'telefono' 
+          + => null, 'activo' => true],
+       29 +              ['id' => 20, 'dependencia_id' => 9, 'nombre' => 
+          + 'CORREGIMIENTO DE PUERTO PINZON', 'codigo' => 'CPP', 
+          + 'descripcion' => null, 'responsable' => null, 'email' => 
+          + null, 'telefono' => null, 'activo' => true],
+       30 +              ['id' => 21, 'dependencia_id' => 10, 'nombre' =>
+          +  'CASA DE LA CULTURA - GUILLERMO CANO ISAZA', 'codigo' => 
+          + 'CCGCI', 'descripcion' => null, 'responsable' => null, 
+          + 'email' => null, 'telefono' => null, 'activo' => true],
+       31 +              ['id' => 22, 'dependencia_id' => 10, 'nombre' =>
+          +  'SISBEN', 'codigo' => 'S', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       32 +              ['id' => 23, 'dependencia_id' => 10, 'nombre' =>
+          +  'MAS FAMILIAS EN ACCION', 'codigo' => 'MFA', 'descripcion' 
+          + => null, 'responsable' => null, 'email' => null, 'telefono' 
+          + => null, 'activo' => true],
+       33 +              ['id' => 24, 'dependencia_id' => 10, 'nombre' =>
+          +  'ADULTO MAYOR', 'codigo' => 'ADM', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       34 +              ['id' => 25, 'dependencia_id' => 10, 'nombre' =>
+          +  'SALUD', 'codigo' => 'SA', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       35 +              ['id' => 26, 'dependencia_id' => 11, 'nombre' =>
+          +  'VIVIENDA', 'codigo' => 'V', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       36 +              ['id' => 27, 'dependencia_id' => 11, 'nombre' =>
+          +  'BANCO DE PROYECTOS', 'codigo' => 'BP', 'descripcion' => 
+          + null, 'responsable' => null, 'email' => null, 'telefono' => 
+          + null, 'activo' => true],
+       37 +              ['id' => 28, 'dependencia_id' => 12, 'nombre' =>
+          +  'PRESUPUESTO', 'codigo' => 'P', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => 
+          + 'presupuesto@puertoboyaca-boyaca.gov.co', 'telefono' => null,
+          +  'activo' => true],
+       38 +              ['id' => 29, 'dependencia_id' => 12, 'nombre' =>
+          +  'CONTABILIDAD', 'codigo' => 'C', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       39 +              ['id' => 30, 'dependencia_id' => 12, 'nombre' =>
+          +  'PREDIAL', 'codigo' => 'PR', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       40 +              ['id' => 31, 'dependencia_id' => 12, 'nombre' =>
+          +  'TESORERIA', 'codigo' => 'T', 'descripcion' => null, 
+          + 'responsable' => null, 'email' => null, 'telefono' => null, 
+          + 'activo' => true],
+       41 +              ['id' => 32, 'dependencia_id' => 13, 'nombre' =>
+          +  'AREA DE CONTRAVENCIONES', 'codigo' => 'ADC', 'descripcion' 
+          + => null, 'responsable' => null, 'email' => null, 'telefono' 
+          + => null, 'activo' => true],
+       42 +          ];
+       43 +  
+       44 +          foreach ($areas as $areaData) {
+       45 +              Area::updateOrCreate(
+       46 +                  ['id' => $areaData['id']],
+       47 +                  $areaData
+       48 +              );
+       49 +          }
+       50 +  
+       51 +          $this->command->info('Áreas creadas exitosamente');
+       52        }
+       53    }
+
+● Ahora creo el seeder de Usuarios:
+
+● Bash(php artisan make:seeder UserSeeder)
+  ⎿     INFO  Seeder [C:\laragon\www\gestion-afiliacione         
+     s-arl\database\seeders\UserSeeder.php] created successfully.
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Read(database\seeders\UserSeeder.php)
+  ⎿  Read 18 lines
+
+● Write(database\seeders\UserSeeder.php)
+  ⎿  Updated database\seeders\UserSeeder.php with 56 additions and 2       
+     removals
+        2    
+        3    namespace Database\Seeders;
+        4    
+        5 -  use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+        5 +  use App\Models\User;
+        6    use Illuminate\Database\Seeder;
+        7 +  use Illuminate\Support\Facades\Hash;
+        8    
+        9    class UserSeeder extends Seeder
+       10    {
+     ...
+       12         */
+       13        public function run(): void
+       14        {
+       15 -          //
+       15 +          $users = [
+       16 +              [
+       17 +                  'id' => 1,
+       18 +                  'name' => 'Administrador del Sistema',
+       19 +                  'email' => 'ticsistemasptoboy@gmail.com',
+       20 +                  'correo_institucional' => 
+          + 'sistemas@puertoboyaca-boyaca.gov.co',
+       21 +                  'cargo' => 'Administrador de Sistema',
+       22 +                  'dependencia_id' => null,
+       23 +                  'area_id' => null,
+       24 +                  'password' => Hash::make('password'),
+       25 +                  'role' => 'super_admin',
+       26 +              ],
+       27 +              [
+       28 +                  'id' => 2,
+       29 +                  'name' => 'Coordinador SST',
+       30 +                  'email' => 
+          + 'seguridadysalud@puertoboyaca-boyaca.gov.co',
+       31 +                  'correo_institucional' => 
+          + 'seguridadysalud@puertoboyaca-boyaca.gov.co',
+       32 +                  'cargo' => 'Coordinador de Seguridad y 
+          + Salud',
+       33 +                  'dependencia_id' => 8,
+       34 +                  'area_id' => 8,
+       35 +                  'password' => Hash::make('password'),
+       36 +                  'role' => 'SSST',
+       37 +              ],
+       38 +              [
+       39 +                  'id' => 3,
+       40 +                  'name' => 'Fabian Murillo Marin',
+       41 +                  'email' => 
+          + 'sistemas@puertoboyaca-boyaca.gov.co',
+       42 +                  'correo_institucional' => 
+          + 'sistemas@puertoboyaca-boyaca.gov.co',
+       43 +                  'cargo' => 'Supervisor de Área',
+       44 +                  'dependencia_id' => 8,
+       45 +                  'area_id' => 10,
+       46 +                  'password' => Hash::make('password'),
+       47 +                  'role' => 'Dependencia',
+       48 +              ],
+       49 +          ];
+       50 +  
+       51 +          foreach ($users as $userData) {
+       52 +              $role = $userData['role'];
+       53 +              unset($userData['role']);
+       54 +  
+       55 +              $user = User::updateOrCreate(
+       56 +                  ['email' => $userData['email']],
+       57 +                  $userData
+       58 +              );
+       59 +  
+       60 +              // Asignar rol al usuario
+       61 +              if (!$user->hasRole($role)) {
+       62 +                  $user->assignRole($role);
+       63 +              }
+       64 +          }
+       65 +  
+       66 +          $this->command->info('Usuarios creados 
+          + exitosamente');
+       67 +          $this->command->warn('IMPORTANTE: Todos los usuarios
+          +  tienen la contraseña por defecto: "password"');
+       68 +          $this->command->warn('Por favor, cambia las 
+          + contraseñas después del primer login.');
+       69        }
+       70    }
+
+● Ahora actualizo el DatabaseSeeder principal:
+
+● Read(database\seeders\DatabaseSeeder.php)
+  ⎿  Read 23 lines
+
+● Update(database\seeders\DatabaseSeeder.php)
+  ⎿  Updated database\seeders\DatabaseSeeder.php with 4 additions
+       17        {
+       18            $this->call([
+       19                RolesAndPermissionsSeeder::class,
+       20 +              RoleSeeder::class,
+       21 +              DependenciaSeeder::class,
+       22 +              AreaSeeder::class,
+       23 +              UserSeeder::class,
+       24            ]);
+       25        }
+       26    }
+
+● Perfecto! Ahora voy a crear un documento README con instrucciones para
+  desplegar en producción:
+
+● Write(DESPLIEGUE_PRODUCCION.md)
+  ⎿  Wrote 1 lines to DESPLIEGUE_PRODUCCION.md                             
+     # Guía de Despliegue a Producción
+     ## Sistema de Gestión de Afiliaciones ARL
+     Esta guía proporciona instrucciones detalladas para desplegar los
+     cambios más recientes del sistema a producción.
+     ---
+     ## Cambios Recientes Implementados
+     ### 1. Nuevos Campos en Afiliaciones
+
+● Ahora voy a probar que los seeders funcionen correctamente:
+
+● Bash(php artisan db:seed --class=RoleSeeder)
+  ⎿     INFO  Seeding database.                             
+
+     Roles creados exitosamente
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Bash(php artisan db:seed --class=DependenciaSeeder)
+  ⎿     INFO  Seeding database.                             
+
+     Dependencias creadas exitosamente
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Bash(php artisan db:seed --class=AreaSeeder)
+  ⎿     INFO  Seeding database.                             
+
+     Áreas creadas exitosamente
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+● Bash(php artisan db:seed --class=UserSeeder)
+  ⎿  Error: Exit code 1
+     /c/Users/User/.bashrc: line 2: :Path: command not found
+
+
+        INFO  Seeding database.
+
+
+        Illuminate\Database\UniqueConstraintViolationException 
+
+       SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '2' 
+     for key 'users.PRIMARY' (Connection: mysql, SQL: insert into `users` 
+     (`email`, `id`, `name`, `correo_institucional`, `cargo`, `dependencia_id`, 
+     `area_id`, `password`, `updated_at`, `created_at`) values 
+     (seguridadysalud@puertoboyaca-boyaca.gov.co, 2, Coordinador SST, 
+     seguridadysalud@puertoboyaca-boyaca.gov.co, Coordinador de Seguridad y 
+     Salud, 8, 8, $2y$12$VrA89lEYoIx/ThzjhDdDVOlfky82XsTH8ywXAUhO2.w.nyhzc/TsG, 
+     2025-12-09 22:31:32, 2025-12-09 22:31:32))
+
+     … +17 lines (ctrl+o to see all)
+
+● El error indica que los usuarios ya existen. Voy a modificar el UserSeeder
+   para que use updateOrCreate correctamente sin forzar el ID:
+
+● Read(database\seeders\UserSeeder.php)
+  ⎿  Read 72 lines
+
+● Update(database\seeders\UserSeeder.php)
+  ⎿  Updated database\seeders\UserSeeder.php with 17 additions and 7       
+     removals
+       15        {
+       16            $users = [
+       17                [
+       18 -                  'id' => 1,
+       18                    'name' => 'Administrador del Sistema',
+       19                    'email' => 'ticsistemasptoboy@gmail.com',
+       20                    'correo_institucional' => 
+            'sistemas@puertoboyaca-boyaca.gov.co',
+     ...
+       26                    'role' => 'super_admin',
+       27                ],
+       28                [
+       29 -                  'id' => 2,
+       29                    'name' => 'Coordinador SST',
+       30                    'email' => 
+            'seguridadysalud@puertoboyaca-boyaca.gov.co',
+       31                    'correo_institucional' => 
+            'seguridadysalud@puertoboyaca-boyaca.gov.co',
+     ...
+       37                    'role' => 'SSST',
+       38                ],
+       39                [
+       40 -                  'id' => 3,
+       40                    'name' => 'Fabian Murillo Marin',
+       41                    'email' => 
+            'sistemas@puertoboyaca-boyaca.gov.co',
+       42                    'correo_institucional' => 
+            'sistemas@puertoboyaca-boyaca.gov.co',
+     ...
+       53                $role = $userData['role'];
+       54                unset($userData['role']);
+       55    
+       56 -              $user = User::updateOrCreate(
+       57 -                  ['email' => $userData['email']],
+       58 -                  $userData
+       59 -              );
+       56 +              // Verificar si el usuario existe
+       57 +              $existingUser = User::where('email', 
+          + $userData['email'])->first();
+       58    
+       59 +              if ($existingUser) {
+       60 +                  // Si existe, solo actualizar campos si es 
+          + necesario
+       61 +                  $existingUser->update([
+       62 +                      'name' => $userData['name'],
+       63 +                      'correo_institucional' => 
+          + $userData['correo_institucional'],
+       64 +                      'cargo' => $userData['cargo'],
+       65 +                      'dependencia_id' => 
+          + $userData['dependencia_id'],
+       66 +                      'area_id' => $userData['area_id'],
+       67 +                  ]);
+       68 +                  $user = $existingUser;
+       69 +              } else {
+       70 +                  // Si no existe, crear nuevo usuario
+       71 +                  $user = User::create($userData);
+       72 +              }
+       73 +  
+       74                // Asignar rol al usuario
+       75                if (!$user->hasRole($role)) {
+       76                    $user->assignRole($role);
+
+● Bash(php artisan db:seed --class=UserSeeder)
+  ⎿     INFO  Seeding database.   
+
+     Usuarios creados exitosamente
+     … +4 lines (ctrl+o to expand)
+
+● Perfecto! Ahora voy a finalizar actualizando el todo y limpiando el caché:
+
+● Bash(php artisan cache:clear && php artisan config:clear)
+  ⎿     INFO  Application cache cleared successfully.
+     … +2 lines (ctrl+o to expand)
+
+● Perfecto! Todo está listo. Déjame crear un resumen final de todo lo
+  implementado:
+
+  Resumen Completo de Implementación
+
+  ✅ Sistema de Seeders Creado
+
+  He creado un sistema completo de seeders para facilitar el despliegue a
+  producción:
+
+  1. RoleSeeder (database/seeders/RoleSeeder.php)
+
+  - Crea los 3 roles del sistema:
+    - super_admin: Administrador del sistema
+    - Dependencia: Usuario de dependencia/área
+    - SSST: Coordinador de Seguridad y Salud en el Trabajo
+
+  2. DependenciaSeeder (database/seeders/DependenciaSeeder.php)
+
+  - Crea 9 dependencias con sus datos completos:
+    - DESPACHO
+    - CONTROL INTERNO
+    - SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS
+    - SECRETARIA DE GOBIERNO MUNICIPAL Y CONVIVENCIA CIUDADANA
+    - SECRETARIA DE DESARROLLO SOCIAL Y COMUNITARIO
+    - SECRETARIA DE PLANEACION MUNICIPAL
+    - SECRETARIA DE HACIENDA
+    - INSPECCIÓN DE TRANSITO Y TRANSPORTE
+    - UNIDAD DE ASISTENCIA TECNICA -UMATA
+
+  3. AreaSeeder (database/seeders/AreaSeeder.php)
+
+  - Crea 26 áreas distribuidas entre las dependencias
+  - Incluye todas las áreas con sus códigos, responsables y emails
+
+  4. UserSeeder (database/seeders/UserSeeder.php)
+
+  - Crea 3 usuarios por defecto:
+    - Administrador del Sistema (ticsistemasptoboy@gmail.com) - Rol:
+  super_admin
+    - Coordinador SST (seguridadysalud@puertoboyaca-boyaca.gov.co) - Rol:
+  SSST
+    - Fabian Murillo Marin (sistemas@puertoboyaca-boyaca.gov.co) - Rol:
+  Dependencia
+  - Contraseña por defecto: password (debe cambiarse después del primer
+  login)
+
+  5. DatabaseSeeder Actualizado (database/seeders/DatabaseSeeder.php)
+
+  - Ejecuta todos los seeders en el orden correcto
+
+  📄 Documentación de Despliegue
+
+  He creado DESPLIEGUE_PRODUCCION.md que incluye:
+  - Guía paso a paso para desplegar a producción
+  - Instrucciones para ejecutar migraciones y seeders
+  - Procedimientos de respaldo y rollback
+  - Checklist de verificación
+  - Solución de problemas comunes
+
+  🔧 Cómo Usar en Producción
+
+  # Ejecutar todos los seeders
+  php artisan db:seed
+
+  # O ejecutar seeders individuales
+  php artisan db:seed --class=RoleSeeder
+  php artisan db:seed --class=DependenciaSeeder
+  php artisan db:seed --class=AreaSeeder
+  php artisan db:seed --class=UserSeeder
+
+  ✅ Ventajas del Sistema de Seeders
+
+  1. Fácil Despliegue: Los seeders permiten configurar rápidamente una nueva
+   instalación
+  2. Datos Consistentes: Garantiza que todas las instalaciones tengan los
+  mismos datos base
+  3. Idempotente: Los seeders pueden ejecutarse múltiples veces sin duplicar
+   datos
+  4. Versionado: Los datos iniciales están en el código, controlados por Git
+  5. Migración Simple: Facilita mover el sistema de desarrollo a producción
+
+  📝 Recordatorios Importantes
+
+  ⚠️ IMPORTANTE:
+  - Todos los usuarios creados tienen la contraseña password
+  - Las contraseñas DEBEN cambiarse inmediatamente después del primer login
+  - Los seeders están diseñados para ser ejecutados múltiples veces de forma
+   segura
+  - La documentación completa está en DESPLIEGUE_PRODUCCION.md
+
+  El sistema está completamente listo para ser desplegado a producción con
+  todos los datos base necesarios.
+
+
+

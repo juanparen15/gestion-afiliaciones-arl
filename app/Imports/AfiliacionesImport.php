@@ -128,6 +128,8 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
     public function rules(): array
     {
+        $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+
         return [
             // Campos obligatorios del contrato
             'no_contrato' => 'required',
@@ -147,7 +149,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'fecha_retiro' => 'required',
 
             // Campos obligatorios financieros
-            'honorarios_mensual' => 'required|numeric|min:0',
+            'honorarios_mensual' => "required|numeric|min:{$salarioMinimo}",
             'ibc' => 'required|numeric|min:0',
 
             // Campos obligatorios de ARL
@@ -170,6 +172,9 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
     public function customValidationMessages(): array
     {
+        $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+        $salarioMinimoFormateado = '$' . number_format($salarioMinimo, 0, ',', '.');
+
         return [
             // Mensajes para campos del contrato
             'no_contrato.required' => 'El número de contrato es obligatorio',
@@ -194,7 +199,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             // Mensajes para campos financieros
             'honorarios_mensual.required' => 'Los honorarios mensuales son obligatorios',
             'honorarios_mensual.numeric' => 'Los honorarios deben ser un número válido',
-            'honorarios_mensual.min' => 'Los honorarios deben ser mayores a 0',
+            'honorarios_mensual.min' => "Los honorarios deben ser como mínimo el salario mínimo legal vigente ({$salarioMinimoFormateado})",
             'ibc.required' => 'El IBC (Ingreso Base de Cotización) es obligatorio',
             'ibc.numeric' => 'El IBC debe ser un número válido',
             'ibc.min' => 'El IBC debe ser mayor a 0',

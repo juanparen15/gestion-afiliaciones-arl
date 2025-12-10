@@ -87,6 +87,7 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('email_contratista')
                                             ->label('Correo Electrónico')
+                                            ->required()
                                             ->email()
                                             ->maxLength(255),
                                     ])
@@ -120,7 +121,6 @@ class AfiliacionResource extends Resource
                                     ])
                                     ->columns(2),
                             ]),
-
                         Forms\Components\Tabs\Tab::make('Información del Contrato')
                             ->icon('heroicon-o-document-text')
                             ->schema([
@@ -169,6 +169,7 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('supervisor_contrato')
                                             ->label('Supervisor del Contrato')
+                                            ->required()
                                             ->maxLength(255)
                                             ->columnSpanFull(),
                                     ])
@@ -189,6 +190,8 @@ class AfiliacionResource extends Resource
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
+                                            ->minValue(fn() => config('constants.salario_minimo_legal', 1423500))
+                                            ->helperText('El valor mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1423500), 0, ',', '.') . ')')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                                 // Calcular IBC como 40% de los honorarios mensuales
@@ -211,12 +214,14 @@ class AfiliacionResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('meses_contrato')
                                                     ->label('Meses')
+                                                    ->required()
                                                     ->numeric()
                                                     ->minValue(0)
                                                     ->default(0),
 
                                                 Forms\Components\TextInput::make('dias_contrato')
                                                     ->label('Días')
+                                                    ->required()
                                                     ->numeric()
                                                     ->minValue(0)
                                                     ->default(0),
@@ -248,6 +253,106 @@ class AfiliacionResource extends Resource
                                             ->helperText('Suba el contrato en formato PDF o Word (máximo 10MB)'),
                                     ])
                                     ->columns(3),
+                            ]),
+
+                        Forms\Components\Tabs\Tab::make('Información Adicional del Contrato')
+                            ->icon('heroicon-o-document-plus')
+                            ->schema([
+                                Forms\Components\Section::make('Adición al Contrato')
+                                    ->description('Complete esta sección si el contrato tiene una adición')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('tiene_adicion')
+                                            ->label('¿El contrato tiene adición?')
+                                            ->live()
+                                            ->default(false)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Textarea::make('descripcion_adicion')
+                                            ->label('Descripción de la Adición')
+                                            ->rows(3)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion'))
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\TextInput::make('valor_adicion')
+                                            ->label('Valor de la Adición')
+                                            ->numeric()
+                                            ->prefix('$')
+                                            ->step(0.01)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+
+                                        Forms\Components\DatePicker::make('fecha_adicion')
+                                            ->label('Fecha de la Adición')
+                                            ->displayFormat('d/m/Y')
+                                            ->native(false)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+                                    ])
+                                    ->columns(2)
+                                    ->collapsible(),
+
+                                Forms\Components\Section::make('Prórroga del Contrato')
+                                    ->description('Complete esta sección si el contrato tiene prórroga')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('tiene_prorroga')
+                                            ->label('¿El contrato tiene prórroga?')
+                                            ->live()
+                                            ->default(false)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Textarea::make('descripcion_prorroga')
+                                            ->label('Descripción de la Prórroga')
+                                            ->rows(3)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Grid::make(2)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('meses_prorroga')
+                                                    ->label('Meses de Prórroga')
+                                                    ->numeric()
+                                                    ->minValue(0)
+                                                    ->default(0),
+
+                                                Forms\Components\TextInput::make('dias_prorroga')
+                                                    ->label('Días de Prórroga')
+                                                    ->numeric()
+                                                    ->minValue(0)
+                                                    ->default(0),
+                                            ])
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\DatePicker::make('nueva_fecha_fin_prorroga')
+                                            ->label('Nueva Fecha de Finalización')
+                                            ->displayFormat('d/m/Y')
+                                            ->native(false)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
+                                    ])
+                                    ->columns(2)
+                                    ->collapsible(),
+
+                                Forms\Components\Section::make('Terminación Anticipada del Contrato')
+                                    ->description('Complete esta sección si el contrato se terminó anticipadamente')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('tiene_terminacion_anticipada')
+                                            ->label('¿El contrato tiene terminación anticipada?')
+                                            ->live()
+                                            ->default(false)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\DatePicker::make('fecha_terminacion_anticipada')
+                                            ->label('Fecha de Terminación Anticipada')
+                                            ->displayFormat('d/m/Y')
+                                            ->native(false)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada')),
+
+                                        Forms\Components\Textarea::make('motivo_terminacion_anticipada')
+                                            ->label('Motivo de la Terminación Anticipada')
+                                            ->rows(3)
+                                            ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada'))
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->collapsible(),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('Información ARL')
@@ -410,6 +515,36 @@ class AfiliacionResource extends Resource
                     ->color(fn($record) => $record->fecha_fin <= now() ? 'danger' : ($record->fecha_fin <= now()->addDays(30) ? 'warning' : 'success'))
                     ->icon(fn($record) => $record->fecha_fin <= now()->addDays(30) ? 'heroicon-o-exclamation-triangle' : null),
 
+                Tables\Columns\IconColumn::make('tiene_adicion')
+                    ->label('Adición')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->toggleable()
+                    ->tooltip(fn($record) => $record->tiene_adicion ? 'Tiene Adición' : 'Sin Adición'),
+
+                Tables\Columns\IconColumn::make('tiene_prorroga')
+                    ->label('Prórroga')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('info')
+                    ->falseColor('gray')
+                    ->toggleable()
+                    ->tooltip(fn($record) => $record->tiene_prorroga ? 'Tiene Prórroga' : 'Sin Prórroga'),
+
+                Tables\Columns\IconColumn::make('tiene_terminacion_anticipada')
+                    ->label('Terminación Anticipada')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('warning')
+                    ->falseColor('gray')
+                    ->toggleable()
+                    ->tooltip(fn($record) => $record->tiene_terminacion_anticipada ? 'Terminación Anticipada' : 'Sin Terminación Anticipada'),
+
                 Tables\Columns\TextColumn::make('tipo_riesgo')
                     ->label('Nivel Riesgo')
                     ->badge()
@@ -505,6 +640,18 @@ class AfiliacionResource extends Resource
                     ->query(fn(Builder $query): Builder => $query
                         ->where('fecha_fin', '>=', now())
                         ->where('fecha_fin', '<=', now()->addDays(30))),
+
+                Tables\Filters\Filter::make('tiene_adicion')
+                    ->label('Con Adición')
+                    ->query(fn(Builder $query): Builder => $query->where('tiene_adicion', true)),
+
+                Tables\Filters\Filter::make('tiene_prorroga')
+                    ->label('Con Prórroga')
+                    ->query(fn(Builder $query): Builder => $query->where('tiene_prorroga', true)),
+
+                Tables\Filters\Filter::make('tiene_terminacion_anticipada')
+                    ->label('Con Terminación Anticipada')
+                    ->query(fn(Builder $query): Builder => $query->where('tiene_terminacion_anticipada', true)),
 
                 Tables\Filters\TrashedFilter::make()
                     ->label('Registros Eliminados')
@@ -868,6 +1015,7 @@ class AfiliacionResource extends Resource
                                     'Objeto Contrato' => 'objeto_contractual',
                                     'CC' => 'numero_documento',
                                     'Contratista' => 'nombre_contratista',
+                                    'Supervisor del Contrato' => 'supervisor_contrato',
                                     'Valor del Contrato' => 'valor_contrato',
                                     'Meses' => 'meses_contrato',
                                     'Días' => 'dias_contrato',
@@ -875,7 +1023,20 @@ class AfiliacionResource extends Resource
                                     'IBC' => 'ibc',
                                     'Fecha Inicio' => 'fecha_inicio',
                                     'Fecha Retiro' => 'fecha_fin',
+                                    'Tiene Adición' => 'tiene_adicion',
+                                    'Descripción Adición' => 'descripcion_adicion',
+                                    'Valor Adición' => 'valor_adicion',
+                                    'Fecha Adición' => 'fecha_adicion',
+                                    'Tiene Prórroga' => 'tiene_prorroga',
+                                    'Descripción Prórroga' => 'descripcion_prorroga',
+                                    'Meses Prórroga' => 'meses_prorroga',
+                                    'Días Prórroga' => 'dias_prorroga',
+                                    'Nueva Fecha Fin Prórroga' => 'nueva_fecha_fin_prorroga',
+                                    'Tiene Terminación Anticipada' => 'tiene_terminacion_anticipada',
+                                    'Fecha Terminación Anticipada' => 'fecha_terminacion_anticipada',
+                                    'Motivo Terminación Anticipada' => 'motivo_terminacion_anticipada',
                                     'Secretaría' => 'dependencia.nombre',
+                                    'Área' => 'area.nombre',
                                     'Fecha de Nacimiento' => 'fecha_nacimiento',
                                     'Nivel de Riesgo' => 'tipo_riesgo',
                                     'No. Celular' => 'telefono_contratista',

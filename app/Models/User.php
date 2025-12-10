@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -61,5 +62,16 @@ class User extends Authenticatable implements FilamentUser
     public function afiliacionesValidadas(): HasMany
     {
         return $this->hasMany(Afiliacion::class, 'validated_by');
+    }
+
+    /**
+     * Enviar la notificación de restablecimiento de contraseña.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
