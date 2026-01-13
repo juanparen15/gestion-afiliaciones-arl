@@ -19,6 +19,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
 
     public $registrosCreados = 0;
     public $registrosActualizados = 0;
+    public $registrosAjustadosIBC = 0;
 
     public function model(array $row)
     {
@@ -59,6 +60,13 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         $ibc_excel = $this->limpiarValor($row['ibc'] ?? 0);
         $ibc = $ibc_excel > 0 ? $ibc_excel : ($honorarios * 0.40);
 
+        // Verificar que el IBC no sea menor al salario mínimo legal vigente
+        $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+        if ($ibc < $salarioMinimo) {
+            $ibc = $salarioMinimo;
+            $this->registrosAjustadosIBC++;
+        }
+
         // Procesar meses y días (si están vacíos, poner 0 por defecto)
         $meses = !empty($row['meses']) && is_numeric($row['meses']) ? intval($row['meses']) : 0;
         $dias = !empty($row['dias']) && is_numeric($row['dias']) ? intval($row['dias']) : 0;
@@ -87,6 +95,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'fecha_fin' => $this->transformDate($row['fecha_retiro'] ?? null),
             'tipo_riesgo' => $nivel_riesgo,
             'nombre_arl' => $nombre_arl,
+            'observaciones_arl' => trim($row['observaciones_arl'] ?? ''),
             'barrio' => trim($row['barrio'] ?? ''),
             'direccion_residencia' => trim($row['direccion_residencia'] ?? ''),
             'eps' => trim($row['eps'] ?? ''),

@@ -49,6 +49,7 @@ class Afiliacion extends Model
         'fecha_terminacion_anticipada',
         'motivo_terminacion_anticipada',
         'nombre_arl',
+        'observaciones_arl',
         'tipo_riesgo',
         'numero_afiliacion_arl',
         'fecha_afiliacion_arl',

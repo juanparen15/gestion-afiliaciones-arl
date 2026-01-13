@@ -182,7 +182,13 @@ class AfiliacionResource extends Resource
                                             ->required()
                                             ->numeric()
                                             ->prefix('$')
-                                            ->step(0.01),
+                                            ->step(0.01)
+                                            ->inputMode('decimal')
+                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                                $money($input, '.', ',', 0)
+                                            JS))
+                                            ->stripCharacters('.')
+                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
 
                                         Forms\Components\TextInput::make('honorarios_mensual')
                                             ->label('Honorarios Mensuales')
@@ -190,16 +196,39 @@ class AfiliacionResource extends Resource
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
-                                            ->minValue(fn() => config('constants.salario_minimo_legal', 1423500))
-                                            ->helperText('El valor mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1423500), 0, ',', '.') . ')')
+                                            ->minValue(fn() => config('constants.salario_minimo_legal', 1750905))
+                                            ->inputMode('decimal')
+                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                                $money($input, '.', ',', 0)
+                                            JS))
+                                            ->stripCharacters('.')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                                // Limpiar el valor de separadores para cálculo
+                                                $valorLimpio = floatval(str_replace('.', '', $state ?? 0));
+
                                                 // Calcular IBC como 40% de los honorarios mensuales
-                                                if ($state) {
-                                                    $ibc = $state * 0.40;
-                                                    $set('ibc', number_format($ibc, 2, '.', ''));
+                                                if ($valorLimpio) {
+                                                    $ibc = $valorLimpio * 0.40;
+                                                    $salarioMinimo = config('constants.salario_minimo_legal', 1750905);
+
+                                                    // Verificar si el IBC calculado es menor al salario mínimo legal vigente
+                                                    if ($ibc < $salarioMinimo) {
+                                                        $ibc = $salarioMinimo;
+
+                                                        // Notificar al usuario del ajuste
+                                                        Notification::make()
+                                                            ->warning()
+                                                            ->title('IBC ajustado al mínimo legal')
+                                                            ->body("El IBC calculado (40% de honorarios) era menor al salario mínimo legal vigente ($" . number_format($salarioMinimo, 0, ',', '.') . "). Se ha ajustado automáticamente al mínimo legal.")
+                                                            ->duration(8000)
+                                                            ->send();
+                                                    }
+
+                                                    $set('ibc', $ibc);
                                                 }
-                                            }),
+                                            })
+                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
 
                                         Forms\Components\TextInput::make('ibc')
                                             ->label('IBC (Ingreso Base de Cotización)')
@@ -207,8 +236,14 @@ class AfiliacionResource extends Resource
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
-                                            ->helperText('Se calcula automáticamente como 40% de los honorarios mensuales (editable)')
-                                            ->placeholder('Se calculará automáticamente'),
+                                            ->inputMode('decimal')
+                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                                $money($input, '.', ',', 0)
+                                            JS))
+                                            ->stripCharacters('.')
+                                            ->helperText('El IBC mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1423500), 0, ',', '.') . ')')
+                                            ->placeholder('Se calculará automáticamente')
+                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
 
                                         Forms\Components\Grid::make(2)
                                             ->schema([
@@ -217,32 +252,74 @@ class AfiliacionResource extends Resource
                                                     ->required()
                                                     ->numeric()
                                                     ->minValue(0)
-                                                    ->default(0),
+                                                    ->default(0)
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                        $fechaInicio = $get('fecha_inicio');
+                                                        $meses = intval($state ?? 0);
+                                                        $dias = intval($get('dias_contrato') ?? 0);
+
+                                                        if ($fechaInicio) {
+                                                            $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                                ->addMonths($meses)
+                                                                ->addDays($dias);
+                                                            $set('fecha_fin', $fechaFin->format('Y-m-d'));
+                                                        }
+                                                    }),
 
                                                 Forms\Components\TextInput::make('dias_contrato')
                                                     ->label('Días')
                                                     ->required()
                                                     ->numeric()
                                                     ->minValue(0)
-                                                    ->default(0),
+                                                    ->default(0)
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                        $fechaInicio = $get('fecha_inicio');
+                                                        $meses = intval($get('meses_contrato') ?? 0);
+                                                        $dias = intval($state ?? 0);
+
+                                                        if ($fechaInicio) {
+                                                            $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                                ->addMonths($meses)
+                                                                ->addDays($dias);
+                                                            $set('fecha_fin', $fechaFin->format('Y-m-d'));
+                                                        }
+                                                    }),
                                             ])
                                             ->columnSpanFull(),
 
                                         Forms\Components\DatePicker::make('fecha_inicio')
                                             ->label('Fecha de Inicio')
                                             ->required()
+                                            ->maxDate(now()->subDay())
                                             ->displayFormat('d/m/Y')
-                                            ->native(false),
+                                            ->native(false)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                $fechaInicio = $state;
+                                                $meses = intval($get('meses_contrato') ?? 0);
+                                                $dias = intval($get('dias_contrato') ?? 0);
+
+                                                if ($fechaInicio) {
+                                                    $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                        ->addMonths($meses)
+                                                        ->addDays($dias);
+                                                    $set('fecha_fin', $fechaFin->format('Y-m-d'));
+                                                }
+                                            }),
 
                                         Forms\Components\DatePicker::make('fecha_fin')
                                             ->label('Fecha de Finalización')
                                             ->required()
+                                            ->minDate(now()->addDay())
                                             ->displayFormat('d/m/Y')
                                             ->native(false)
-                                            ->after('fecha_inicio'),
+                                            ->after('fecha_inicio')
+                                            ->helperText('Se calcula automáticamente según fecha de inicio + meses + días (editable)'),
 
                                         Forms\Components\FileUpload::make('contrato_pdf_o_word')
-                                            ->label('Cargar Contrato en PDF o Word')
+                                            ->label('Cargar Estudio Previo en PDF o Word')
                                             ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                                             ->maxSize(10240) // 10MB
                                             ->directory('afiliaciones/contratos-pdf-word')
@@ -250,7 +327,7 @@ class AfiliacionResource extends Resource
                                             ->openable()
                                             ->previewable()
                                             ->required()
-                                            ->helperText('Suba el contrato en formato PDF o Word (máximo 10MB)'),
+                                            ->helperText('Suba el Estudio Previo en formato PDF o Word (máximo 10MB)'),
                                     ])
                                     ->columns(3),
                             ]),
@@ -278,6 +355,12 @@ class AfiliacionResource extends Resource
                                             ->numeric()
                                             ->prefix('$')
                                             ->step(0.01)
+                                            ->inputMode('decimal')
+                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                                $money($input, '.', ',', 0)
+                                            JS))
+                                            ->stripCharacters('.')
+                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0)))
                                             ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
 
                                         Forms\Components\DatePicker::make('fecha_adicion')
@@ -364,7 +447,16 @@ class AfiliacionResource extends Resource
                                             ->label('Nombre de la ARL')
                                             ->required()
                                             ->default('ARL SURA')
-                                            ->maxLength(255),
+                                            ->maxLength(255)
+                                            ->live(onBlur: true),
+
+                                        Forms\Components\Textarea::make('observaciones_arl')
+                                            ->label('Observaciones sobre la ARL')
+                                            ->rows(3)
+                                            ->placeholder('Ingrese observaciones adicionales sobre esta ARL...')
+                                            ->helperText('Campo para documentar información adicional cuando se usa una ARL diferente a ARL SURA')
+                                            ->visible(fn(Forms\Get $get) => $get('nombre_arl') && strtoupper(trim($get('nombre_arl'))) !== 'ARL SURA')
+                                            ->columnSpanFull(),
 
                                         Forms\Components\Select::make('tipo_riesgo')
                                             ->label('Nivel de Riesgo')
@@ -713,6 +805,25 @@ class AfiliacionResource extends Resource
                             ->helperText('Formatos aceptados: .xlsx, .xls, .csv (Máximo 10MB)'),
                     ])
                     ->action(function (array $data): void {
+                        // Verificar horario permitido antes de importar
+                        $horaActual = \Carbon\Carbon::now();
+                        $hora = $horaActual->hour;
+                        $minuto = $horaActual->minute;
+
+                        // No permitir importaciones después de las 5:00 PM
+                        if ($hora >= 17 || ($hora === 0 && $minuto === 0)) {
+                            $horaFormateada = $horaActual->format('h:i A');
+
+                            Notification::make()
+                                ->danger()
+                                ->title('Importación no disponible')
+                                ->body("La importación de afiliaciones no está disponible después de las 5:00 PM. Hora actual: {$horaFormateada}. Por favor, intente nuevamente desde las 12:01 AM del día siguiente. Esta restricción permite contar con un día hábil para registrar la afiliación en el sistema externo de ARL.")
+                                ->persistent()
+                                ->send();
+
+                            return;
+                        }
+
                         try {
                             // Obtener la ruta completa del archivo usando Storage
                             $filePath = Storage::disk('local')->path($data['archivo']);
@@ -830,11 +941,18 @@ class AfiliacionResource extends Resource
                                 // Obtener estadísticas de la importación
                                 $creados = $import->registrosCreados;
                                 $actualizados = $import->registrosActualizados;
+                                $ajustadosIBC = $import->registrosAjustadosIBC;
                                 $total = $creados + $actualizados;
 
                                 $mensaje = "Total procesados: {$total} registros\n";
                                 $mensaje .= "• Nuevos creados: {$creados}\n";
                                 $mensaje .= "• Actualizados: {$actualizados}";
+
+                                if ($ajustadosIBC > 0) {
+                                    $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+                                    $mensaje .= "\n• IBC ajustados al mínimo legal: {$ajustadosIBC}\n";
+                                    $mensaje .= "  (El IBC calculado era menor al salario mínimo legal vigente de $" . number_format($salarioMinimo, 0, ',', '.') . ")";
+                                }
 
                                 Notification::make()
                                     ->success()
@@ -907,7 +1025,7 @@ class AfiliacionResource extends Resource
                             ->body('La afiliación ha sido validada exitosamente y el PDF ha sido guardado.')
                             ->send();
                     })
-                    ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole('SSST')),
+                    ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole(['SSST', 'super_admin'])),
 
                 Action::make('rechazar')
                     ->label('Rechazar')
@@ -936,7 +1054,7 @@ class AfiliacionResource extends Resource
                             ->body('La afiliación ha sido rechazada.')
                             ->send();
                     })
-                    ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole('SSST')),
+                    ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole(['SSST', 'super_admin'])),
 
                 Tables\Actions\RestoreAction::make()
                     ->label('Restaurar')
