@@ -15,7 +15,7 @@ class AfiliacionesStatsOverview extends BaseWidget
     {
         $user = Auth::user();
 
-        // Filtrar por dependencia si no es super_admin o SSST
+        // Filtrar por dependencia si no es super_admin o SST
         $query = Afiliacion::query();
         if (!$user->hasRole(['super_admin', 'SSST'])) {
             if ($user->area_id) {
@@ -43,13 +43,13 @@ class AfiliacionesStatsOverview extends BaseWidget
                 ->chart([7, 12, 15, 18, 22, 25, $total]),
 
             Stat::make('Pendientes de Validación', $pendientes)
-                ->description('Requieren revisión SSST')
+                ->description('Requieren revisión SST')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning')
                 ->chart([5, 8, 12, 15, 18, 20, $pendientes]),
 
             Stat::make('Afiliaciones Validadas', $validadas)
-                ->description('Aprobadas por SSST')
+                ->description('Aprobadas por SST')
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success')
                 ->chart([3, 5, 8, 12, 15, 18, $validadas]),

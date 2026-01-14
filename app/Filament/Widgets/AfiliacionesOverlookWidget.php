@@ -28,7 +28,7 @@ class AfiliacionesOverlookWidget extends OverlookWidget
     {
         $user = Auth::user();
 
-        // Filtrar por dependencia si no es super_admin o SSST
+        // Filtrar por dependencia si no es super_admin o SST
         $query = Afiliacion::query();
         if (!$user->hasRole(['super_admin', 'SSST'])) {
             if ($user->area_id) {
@@ -71,7 +71,7 @@ class AfiliacionesOverlookWidget extends OverlookWidget
                 icon: 'heroicon-o-clock',
                 iconColor: 'text-orange-500',
                 iconSize: 'lg',
-                description: 'Requieren revisión SSST',
+                description: 'Requieren revisión SST',
                 url: '/admin/afiliacions?tableFilters[estado][value]=pendiente'
             ),
 
