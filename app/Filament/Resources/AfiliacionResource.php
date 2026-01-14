@@ -808,7 +808,7 @@ class AfiliacionResource extends Resource
                         $minuto = $horaActual->minute;
 
                         // No permitir importaciones después de las 5:00 PM
-                        if ($hora >= 17 || ($hora === 0 && $minuto === 0) || Auth::user()->hasRole(['super_admin', 'SSST'])) {
+                        if (($hora >= 17 || ($hora === 0 && $minuto === 0) || Auth::user()->hasRole(['super_admin', 'SSST']))) {
                             $horaFormateada = $horaActual->format('h:i A');
 
                             Notification::make()

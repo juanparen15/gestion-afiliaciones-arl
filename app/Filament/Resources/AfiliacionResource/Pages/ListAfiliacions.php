@@ -6,6 +6,7 @@ use App\Filament\Resources\AfiliacionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ListAfiliacions extends ListRecords
 {
@@ -21,6 +22,10 @@ class ListAfiliacions extends ListRecords
         $minuto = $horaActual->minute;
 
         // No permitir registros después de las 5:00 PM (17:00)
+        if (Auth::user()->hasRole(['super_admin', 'SSST'])) {
+            return true;
+        }
+
         if ($hora >= 17) {
             return false;
         }

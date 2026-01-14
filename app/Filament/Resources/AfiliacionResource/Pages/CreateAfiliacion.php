@@ -25,6 +25,10 @@ class CreateAfiliacion extends CreateRecord
 
         // No permitir registros después de las 5:00 PM (17:00)
         // Permitir desde las 12:01 AM (00:01) hasta las 5:00 PM (17:00)
+        if (Auth::user()->hasRole(['super_admin', 'SSST'])) {
+            return true;
+        }
+
         if ($hora >= 17) {
             return false;
         }
