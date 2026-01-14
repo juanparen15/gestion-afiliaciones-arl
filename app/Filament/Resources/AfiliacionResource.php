@@ -180,70 +180,65 @@ class AfiliacionResource extends Resource
                                         Forms\Components\TextInput::make('valor_contrato')
                                             ->label('Valor Total del Contrato')
                                             ->required()
-                                            ->numeric()
                                             ->prefix('$')
-                                            ->step(0.01)
                                             ->inputMode('decimal')
                                             ->mask(\Filament\Support\RawJs::make(<<<'JS'
                                                 $money($input, '.', ',', 0)
                                             JS))
-                                            ->stripCharacters('.')
-                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
+                                            ->stripCharacters('.,')
+                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
 
                                         Forms\Components\TextInput::make('honorarios_mensual')
                                             ->label('Honorarios Mensuales')
                                             ->required()
-                                            ->numeric()
                                             ->prefix('$')
-                                            ->step(0.01)
-                                            ->minValue(fn() => config('constants.salario_minimo_legal', 1750905))
                                             ->inputMode('decimal')
                                             ->mask(\Filament\Support\RawJs::make(<<<'JS'
                                                 $money($input, '.', ',', 0)
                                             JS))
-                                            ->stripCharacters('.')
+                                            ->stripCharacters('.,')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                                // Limpiar el valor de separadores para cálculo
-                                                $valorLimpio = floatval(str_replace('.', '', $state ?? 0));
+                                                // Limpiar el valor de separadores (puntos y comas) para cálculo
+                                                $valorLimpio = floatval(str_replace(['.', ','], '', $state ?? 0));
 
                                                 // Calcular IBC como 40% de los honorarios mensuales
-                                                if ($valorLimpio) {
-                                                    $ibc = $valorLimpio * 0.40;
+                                                if ($valorLimpio > 0) {
+                                                    $ibcCalculado = $valorLimpio * 0.40;
                                                     $salarioMinimo = config('constants.salario_minimo_legal', 1750905);
 
-                                                    // Verificar si el IBC calculado es menor al salario mínimo legal vigente
-                                                    if ($ibc < $salarioMinimo) {
-                                                        $ibc = $salarioMinimo;
+                                                    // Si el IBC calculado es menor al mínimo, usar el mínimo y notificar
+                                                    if ($ibcCalculado < $salarioMinimo) {
+                                                        // Formatear con separadores de miles antes de asignar
+                                                        $set('ibc', number_format($salarioMinimo, 0, ',', '.'));
 
-                                                        // Notificar al usuario del ajuste
+                                                        // Notificar al usuario del ajuste (solo cuando se ajusta)
                                                         Notification::make()
                                                             ->warning()
                                                             ->title('IBC ajustado al mínimo legal')
-                                                            ->body("El IBC calculado (40% de honorarios) era menor al salario mínimo legal vigente ($" . number_format($salarioMinimo, 0, ',', '.') . "). Se ha ajustado automáticamente al mínimo legal.")
+                                                            ->body("El IBC calculado (40% de honorarios = $" . number_format($ibcCalculado, 0, ',', '.') . ") era menor al salario mínimo legal vigente ($" . number_format($salarioMinimo, 0, ',', '.') . "). Se ha ajustado automáticamente al mínimo legal.")
                                                             ->duration(8000)
                                                             ->send();
+                                                    } else {
+                                                        // Si es mayor o igual al mínimo, usar el cálculo del 40% formateado
+                                                        $set('ibc', number_format($ibcCalculado, 0, ',', '.'));
                                                     }
-
-                                                    $set('ibc', $ibc);
                                                 }
                                             })
-                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
+                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
 
                                         Forms\Components\TextInput::make('ibc')
                                             ->label('IBC (Ingreso Base de Cotización)')
                                             ->required()
-                                            ->numeric()
                                             ->prefix('$')
-                                            ->step(0.01)
                                             ->inputMode('decimal')
                                             ->mask(\Filament\Support\RawJs::make(<<<'JS'
                                                 $money($input, '.', ',', 0)
                                             JS))
-                                            ->stripCharacters('.')
-                                            ->helperText('El IBC mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1423500), 0, ',', '.') . ')')
+                                            ->stripCharacters('.,')
+                                            ->helperText('El IBC mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1750905), 0, ',', '.') . '). Se calcula como el 40% de los honorarios.')
                                             ->placeholder('Se calculará automáticamente')
-                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0))),
+                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
 
                                         Forms\Components\Grid::make(2)
                                             ->schema([
@@ -262,7 +257,8 @@ class AfiliacionResource extends Resource
                                                         if ($fechaInicio) {
                                                             $fechaFin = \Carbon\Carbon::parse($fechaInicio)
                                                                 ->addMonths($meses)
-                                                                ->addDays($dias);
+                                                                ->addDays($dias)
+                                                                ->subDay();
                                                             $set('fecha_fin', $fechaFin->format('Y-m-d'));
                                                         }
                                                     }),
@@ -282,7 +278,8 @@ class AfiliacionResource extends Resource
                                                         if ($fechaInicio) {
                                                             $fechaFin = \Carbon\Carbon::parse($fechaInicio)
                                                                 ->addMonths($meses)
-                                                                ->addDays($dias);
+                                                                ->addDays($dias)
+                                                                ->subDay();
                                                             $set('fecha_fin', $fechaFin->format('Y-m-d'));
                                                         }
                                                     }),
@@ -292,7 +289,7 @@ class AfiliacionResource extends Resource
                                         Forms\Components\DatePicker::make('fecha_inicio')
                                             ->label('Fecha de Inicio')
                                             ->required()
-                                            ->maxDate(now()->subDay())
+                                            ->minDate(now()->addDay())
                                             ->displayFormat('d/m/Y')
                                             ->native(false)
                                             ->live(onBlur: true)
@@ -304,7 +301,8 @@ class AfiliacionResource extends Resource
                                                 if ($fechaInicio) {
                                                     $fechaFin = \Carbon\Carbon::parse($fechaInicio)
                                                         ->addMonths($meses)
-                                                        ->addDays($dias);
+                                                        ->addDays($dias)
+                                                        ->subDay();
                                                     $set('fecha_fin', $fechaFin->format('Y-m-d'));
                                                 }
                                             }),
@@ -352,15 +350,13 @@ class AfiliacionResource extends Resource
 
                                         Forms\Components\TextInput::make('valor_adicion')
                                             ->label('Valor de la Adición')
-                                            ->numeric()
                                             ->prefix('$')
-                                            ->step(0.01)
                                             ->inputMode('decimal')
                                             ->mask(\Filament\Support\RawJs::make(<<<'JS'
                                                 $money($input, '.', ',', 0)
                                             JS))
-                                            ->stripCharacters('.')
-                                            ->dehydrateStateUsing(fn ($state) => floatval(str_replace('.', '', $state ?? 0)))
+                                            ->stripCharacters('.,')
+                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
                                             ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
 
                                         Forms\Components\DatePicker::make('fecha_adicion')
@@ -436,7 +432,8 @@ class AfiliacionResource extends Resource
                                     ])
                                     ->columns(2)
                                     ->collapsible(),
-                            ]),
+                            ])
+                            ->visible(fn(Forms\Get $get) => Auth::user()->hasRole(['super_admin', 'SSST'])),
 
                         Forms\Components\Tabs\Tab::make('Información ARL')
                             ->icon('heroicon-o-shield-check')
