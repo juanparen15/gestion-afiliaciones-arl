@@ -84,7 +84,6 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'tipo_documento' => $tipo_documento,
             'numero_documento' => trim($row['cc_contratista'] ?? ''),
             'nombre_contratista' => trim($row['contratista'] ?? ''),
-            'cargo' => trim($row['cargo'] ?? ''),
             'fecha_nacimiento' => $this->transformDate($row['fecha_de_nacimiento'] ?? null),
             'telefono_contratista' => trim($row['no_celular'] ?? ''),
             'valor_contrato' => $valor_contrato,
@@ -151,7 +150,6 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'tipo_de_documento' => 'required|in:CC,CE,PP,TI',
             'cc_contratista' => 'required',
             'contratista' => 'required',
-            'cargo' => 'required',
             'fecha_de_nacimiento' => 'required',
             'no_celular' => 'required',
 
@@ -200,7 +198,6 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
             'tipo_de_documento.in' => 'El tipo de documento debe ser CC, CE, PP o TI',
             'cc_contratista.required' => 'El número de documento del contratista es obligatorio',
             'contratista.required' => 'El nombre completo del contratista es obligatorio',
-            'cargo.required' => 'El cargo del contratista es obligatorio',
             'fecha_de_nacimiento.required' => 'La fecha de nacimiento es obligatoria',
             'no_celular.required' => 'El número de celular es obligatorio',
 

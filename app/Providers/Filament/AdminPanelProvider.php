@@ -72,6 +72,8 @@ class AdminPanelProvider extends PanelProvider
                     ->showBranding(false)
                     ->showName(true)
                     ->showEmail(true)
+                    ->isEmailRequired(true)
+                    ->isNameRequired(true)
                     ->enableScreenshot(true),
             ])
             ->authMiddleware([

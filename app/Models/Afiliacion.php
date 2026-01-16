@@ -17,7 +17,6 @@ class Afiliacion extends Model
 
     protected $fillable = [
         'nombre_contratista',
-        'cargo',
         'tipo_documento',
         'numero_documento',
         'email_contratista',

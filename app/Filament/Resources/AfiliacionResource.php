@@ -54,12 +54,6 @@ class AfiliacionResource extends Resource
                                             ->maxLength(255)
                                             ->columnSpan(2),
 
-                                        Forms\Components\TextInput::make('cargo')
-                                            ->label('Cargo')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->columnSpan(2),
-
                                         Forms\Components\Select::make('tipo_documento')
                                             ->label('Tipo de Documento')
                                             ->options([
@@ -1063,7 +1057,51 @@ class AfiliacionResource extends Resource
                             ->send();
                     })
                     ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole(['SSST', 'super_admin'])),
-                    
+
+                Action::make('cambiar_pdf')
+                    ->label('Cambiar PDF')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->form([
+                        Forms\Components\FileUpload::make('pdf_arl')
+                            ->label('Nuevo PDF del Afiliado en ARL')
+                            ->required()
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(10240) // 10MB
+                            ->directory('afiliaciones/pdfs-arl')
+                            ->helperText('Suba el nuevo PDF para reemplazar el actual (máximo 10MB)')
+                            ->downloadable()
+                            ->previewable(),
+                        Forms\Components\Textarea::make('motivo_cambio_pdf')
+                            ->label('Motivo del cambio')
+                            ->required()
+                            ->rows(3)
+                            ->placeholder('Describa el motivo por el cual se está cambiando el PDF...')
+                    ])
+                    ->modalHeading('Cambiar PDF de Afiliación')
+                    ->modalDescription('Esta acción reemplazará el PDF actual de la afiliación. El archivo anterior será eliminado.')
+                    ->modalSubmitActionLabel('Cambiar PDF')
+                    ->action(function (Afiliacion $record, array $data): void {
+                        // Eliminar el PDF anterior si existe
+                        if ($record->pdf_arl && Storage::exists($record->pdf_arl)) {
+                            Storage::delete($record->pdf_arl);
+                        }
+
+                        // Actualizar con el nuevo PDF
+                        $record->update([
+                            'pdf_arl' => $data['pdf_arl'],
+                            'observaciones' => ($record->observaciones ? $record->observaciones . "\n\n" : '') .
+                                "[" . now()->format('d/m/Y H:i') . "] PDF cambiado por " . Auth::user()->name . ": " . $data['motivo_cambio_pdf'],
+                        ]);
+
+                        Notification::make()
+                            ->success()
+                            ->title('PDF Actualizado')
+                            ->body('El PDF de afiliación ha sido reemplazado exitosamente.')
+                            ->send();
+                    })
+                    ->visible(fn(Afiliacion $record) => $record->estado === 'validado' && $record->pdf_arl && Auth::user()->hasRole(['SSST', 'super_admin'])),
+
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()
                         ->label('Ver'),

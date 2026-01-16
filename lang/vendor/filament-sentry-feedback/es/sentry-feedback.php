@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Traducciones en español para MartinPetricko/FilamentSentryFeedback
 return [
     'widget' => [
-        'trigger_label' => 'Reportar un Error',
+        'trigger_label' => 'Reportar',
         'trigger_aria_label' => 'Reportar un Error',
         'form_title' => 'Reportar un Error',
         'name_label' => 'Nombre',
