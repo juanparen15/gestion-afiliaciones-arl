@@ -677,7 +677,9 @@ class AfiliacionResource extends Resource
                     ->trueColor('success')
                     ->falseColor('gray')
                     ->toggleable()
-                    ->tooltip(fn($record) => $record->pdf_arl ? 'PDF Cargado' : 'Sin PDF'),
+                    ->tooltip(fn($record) => $record->pdf_arl ? 'Clic para descargar PDF' : 'Sin PDF')
+                    ->url(fn($record) => $record->pdf_arl ? Storage::url($record->pdf_arl) : null)
+                    ->openUrlInNewTab(),
 
                 Tables\Columns\TextColumn::make('creador.name')
                     ->label('Creado por')
