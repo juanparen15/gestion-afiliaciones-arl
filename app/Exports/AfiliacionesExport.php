@@ -57,6 +57,7 @@ class AfiliacionesExport implements FromQuery, WithHeadings, WithMapping, WithSt
                 'MOTIVO TERMINACIÓN ANTICIPADA',
                 'Secretaría',
                 'Área',
+                'Cargo',
                 'Fecha de Nacimiento',
                 'Nivel de riesgo',
                 'No. Celular',
@@ -102,6 +103,7 @@ class AfiliacionesExport implements FromQuery, WithHeadings, WithMapping, WithSt
             $afiliacion->motivo_terminacion_anticipada,
             $afiliacion->dependencia?->nombre,
             $afiliacion->area?->nombre,
+            $afiliacion->cargo,
             $afiliacion->fecha_nacimiento?->format('d/m/Y'),
             $afiliacion->tipo_riesgo,
             $afiliacion->telefono_contratista,
@@ -125,7 +127,7 @@ class AfiliacionesExport implements FromQuery, WithHeadings, WithMapping, WithSt
     public function styles(Worksheet $sheet)
     {
         // Combinar celdas de la primera fila (título)
-        $sheet->mergeCells('A1:AL1');
+        $sheet->mergeCells('A1:AM1');
 
         // Ajustar ancho de columnas
         $sheet->getColumnDimension('A')->setWidth(15);  // No. CONTRATO
@@ -154,18 +156,19 @@ class AfiliacionesExport implements FromQuery, WithHeadings, WithMapping, WithSt
         $sheet->getColumnDimension('X')->setWidth(40);  // MOTIVO TERMINACIÓN ANTICIPADA
         $sheet->getColumnDimension('Y')->setWidth(30);  // Secretaría
         $sheet->getColumnDimension('Z')->setWidth(30);  // Área
-        $sheet->getColumnDimension('AA')->setWidth(20); // Fecha de Nacimiento
-        $sheet->getColumnDimension('AB')->setWidth(15); // Nivel de riesgo
-        $sheet->getColumnDimension('AC')->setWidth(15); // No. Celular
-        $sheet->getColumnDimension('AD')->setWidth(20); // Barrio
-        $sheet->getColumnDimension('AE')->setWidth(30); // Dirección Residencia
-        $sheet->getColumnDimension('AF')->setWidth(20); // EPS
-        $sheet->getColumnDimension('AG')->setWidth(20); // AFP
-        $sheet->getColumnDimension('AH')->setWidth(30); // Dirección de correo Electronica
-        $sheet->getColumnDimension('AI')->setWidth(20); // FECHA DE AFILIACION
-        $sheet->getColumnDimension('AJ')->setWidth(25); // FECHA TERMINACION AFILIACION
-        $sheet->getColumnDimension('AK')->setWidth(20); // ARL
-        $sheet->getColumnDimension('AL')->setWidth(15); // Estado
+        $sheet->getColumnDimension('AA')->setWidth(30);  // Cargo
+        $sheet->getColumnDimension('AB')->setWidth(20); // Fecha de Nacimiento
+        $sheet->getColumnDimension('AC')->setWidth(15); // Nivel de riesgo
+        $sheet->getColumnDimension('AD')->setWidth(15); // No. Celular
+        $sheet->getColumnDimension('AE')->setWidth(20); // Barrio
+        $sheet->getColumnDimension('AF')->setWidth(30); // Dirección Residencia
+        $sheet->getColumnDimension('AG')->setWidth(20); // EPS
+        $sheet->getColumnDimension('AH')->setWidth(20); // AFP
+        $sheet->getColumnDimension('AI')->setWidth(30); // Dirección de correo Electronica
+        $sheet->getColumnDimension('AJ')->setWidth(20); // FECHA DE AFILIACION
+        $sheet->getColumnDimension('AK')->setWidth(25); // FECHA TERMINACION AFILIACION
+        $sheet->getColumnDimension('AL')->setWidth(20); // ARL
+        $sheet->getColumnDimension('AM')->setWidth(15); // Estado
 
         return [
             1 => [

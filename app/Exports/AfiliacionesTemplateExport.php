@@ -22,6 +22,7 @@ class AfiliacionesTemplateExport implements WithHeadings, WithStyles, WithTitle
                 'CC CONTRATISTA *',
                 'CONTRATISTA *',
                 'SUPERVISOR DEL CONTRATO *',
+                'CARGO *',
                 'FECHA DE NACIMIENTO *',
                 'No. CELULAR *',
                 'VALOR DEL CONTRATO *',
@@ -62,6 +63,7 @@ class AfiliacionesTemplateExport implements WithHeadings, WithStyles, WithTitle
                 'Solo números, sin puntos ni comas. Ej: 1234567890',
                 'Nombre completo del contratista',
                 'Nombre del supervisor del contrato',
+                'Cargo del contratista',
                 'Formato: dd/mm/aaaa. Ej: 15/03/1985',
                 'Número celular. Ej: 3001234567',
                 'Solo números, sin símbolos $ ni puntos. Ej: 5000000',
@@ -101,7 +103,7 @@ class AfiliacionesTemplateExport implements WithHeadings, WithStyles, WithTitle
     public function styles(Worksheet $sheet)
     {
         // Combinar celdas de la primera fila (título)
-        $sheet->mergeCells('A1:AL1');
+        $sheet->mergeCells('A1:AM1');
 
         // Ajustar altura de las filas
         $sheet->getRowDimension(1)->setRowHeight(25);
@@ -115,38 +117,39 @@ class AfiliacionesTemplateExport implements WithHeadings, WithStyles, WithTitle
         $sheet->getColumnDimension('D')->setWidth(20);  // CC CONTRATISTA *
         $sheet->getColumnDimension('E')->setWidth(40);  // CONTRATISTA *
         $sheet->getColumnDimension('F')->setWidth(30);  // SUPERVISOR DEL CONTRATO *
-        $sheet->getColumnDimension('G')->setWidth(22);  // FECHA DE NACIMIENTO *
-        $sheet->getColumnDimension('H')->setWidth(18);  // No. CELULAR *
-        $sheet->getColumnDimension('I')->setWidth(22);  // VALOR DEL CONTRATO *
-        $sheet->getColumnDimension('J')->setWidth(22);  // HONORARIOS MENSUAL *
-        $sheet->getColumnDimension('K')->setWidth(22);  // IBC *
-        $sheet->getColumnDimension('L')->setWidth(12);  // MESES *
-        $sheet->getColumnDimension('M')->setWidth(12);  // DIAS *
-        $sheet->getColumnDimension('N')->setWidth(28);  // FECHA INGRESO *
-        $sheet->getColumnDimension('O')->setWidth(22);  // FECHA RETIRO *
-        $sheet->getColumnDimension('P')->setWidth(18);  // TIENE ADICIÓN
-        $sheet->getColumnDimension('Q')->setWidth(40);  // DESCRIPCIÓN ADICIÓN
-        $sheet->getColumnDimension('R')->setWidth(18);  // VALOR ADICIÓN
-        $sheet->getColumnDimension('S')->setWidth(22);  // FECHA ADICIÓN
-        $sheet->getColumnDimension('T')->setWidth(18);  // TIENE PRÓRROGA
-        $sheet->getColumnDimension('U')->setWidth(40);  // DESCRIPCIÓN PRÓRROGA
-        $sheet->getColumnDimension('V')->setWidth(15);  // MESES PRÓRROGA
-        $sheet->getColumnDimension('W')->setWidth(15);  // DÍAS PRÓRROGA
-        $sheet->getColumnDimension('X')->setWidth(28);  // NUEVA FECHA FIN PRÓRROGA
-        $sheet->getColumnDimension('Y')->setWidth(28);  // TIENE TERMINACIÓN ANTICIPADA
-        $sheet->getColumnDimension('Z')->setWidth(28);  // FECHA TERMINACIÓN ANTICIPADA
-        $sheet->getColumnDimension('AA')->setWidth(40); // MOTIVO TERMINACIÓN ANTICIPADA
-        $sheet->getColumnDimension('AB')->setWidth(35); // SECRETARÍA *
-        $sheet->getColumnDimension('AC')->setWidth(30); // ÁREA
-        $sheet->getColumnDimension('AD')->setWidth(20); // NIVEL DE RIESGO *
-        $sheet->getColumnDimension('AE')->setWidth(22); // NOMBRE ARL *
-        $sheet->getColumnDimension('AF')->setWidth(25); // BARRIO *
-        $sheet->getColumnDimension('AG')->setWidth(35); // DIRECCIÓN RESIDENCIA *
-        $sheet->getColumnDimension('AH')->setWidth(25); // EPS *
-        $sheet->getColumnDimension('AI')->setWidth(25); // AFP *
-        $sheet->getColumnDimension('AJ')->setWidth(30); // CORREO ELECTRÓNICO *
-        $sheet->getColumnDimension('AK')->setWidth(28); // FECHA DE AFILIACIÓN ARL *
-        $sheet->getColumnDimension('AL')->setWidth(32); // FECHA TERMINACIÓN AFILIACIÓN ARL *
+        $sheet->getColumnDimension('G')->setWidth(30);  // CARGO *
+        $sheet->getColumnDimension('H')->setWidth(22);  // FECHA DE NACIMIENTO *
+        $sheet->getColumnDimension('I')->setWidth(18);  // No. CELULAR *
+        $sheet->getColumnDimension('J')->setWidth(22);  // VALOR DEL CONTRATO *
+        $sheet->getColumnDimension('K')->setWidth(22);  // HONORARIOS MENSUAL *
+        $sheet->getColumnDimension('L')->setWidth(22);  // IBC *
+        $sheet->getColumnDimension('M')->setWidth(12);  // MESES *
+        $sheet->getColumnDimension('N')->setWidth(12);  // DIAS *
+        $sheet->getColumnDimension('O')->setWidth(28);  // FECHA INGRESO *
+        $sheet->getColumnDimension('P')->setWidth(22);  // FECHA RETIRO *
+        $sheet->getColumnDimension('Q')->setWidth(18);  // TIENE ADICIÓN
+        $sheet->getColumnDimension('R')->setWidth(40);  // DESCRIPCIÓN ADICIÓN
+        $sheet->getColumnDimension('S')->setWidth(18);  // VALOR ADICIÓN
+        $sheet->getColumnDimension('T')->setWidth(22);  // FECHA ADICIÓN
+        $sheet->getColumnDimension('U')->setWidth(18);  // TIENE PRÓRROGA
+        $sheet->getColumnDimension('V')->setWidth(40);  // DESCRIPCIÓN PRÓRROGA
+        $sheet->getColumnDimension('W')->setWidth(15);  // MESES PRÓRROGA
+        $sheet->getColumnDimension('X')->setWidth(15);  // DÍAS PRÓRROGA
+        $sheet->getColumnDimension('Y')->setWidth(28);  // NUEVA FECHA FIN PRÓRROGA
+        $sheet->getColumnDimension('Z')->setWidth(28);  // TIENE TERMINACIÓN ANTICIPADA
+        $sheet->getColumnDimension('AA')->setWidth(28);  // FECHA TERMINACIÓN ANTICIPADA
+        $sheet->getColumnDimension('AB')->setWidth(40); // MOTIVO TERMINACIÓN ANTICIPADA
+        $sheet->getColumnDimension('AC')->setWidth(35); // SECRETARÍA *
+        $sheet->getColumnDimension('AD')->setWidth(30); // ÁREA
+        $sheet->getColumnDimension('AE')->setWidth(20); // NIVEL DE RIESGO *
+        $sheet->getColumnDimension('AF')->setWidth(22); // NOMBRE ARL *
+        $sheet->getColumnDimension('AG')->setWidth(25); // BARRIO *
+        $sheet->getColumnDimension('AH')->setWidth(35); // DIRECCIÓN RESIDENCIA *
+        $sheet->getColumnDimension('AI')->setWidth(25); // EPS *
+        $sheet->getColumnDimension('AJ')->setWidth(25); // AFP *
+        $sheet->getColumnDimension('AK')->setWidth(30); // CORREO ELECTRÓNICO *
+        $sheet->getColumnDimension('AL')->setWidth(28); // FECHA DE AFILIACIÓN ARL *
+        $sheet->getColumnDimension('AM')->setWidth(32); // FECHA TERMINACIÓN AFILIACIÓN ARL *
 
         return [
             // Estilo para el título (Fila 1)

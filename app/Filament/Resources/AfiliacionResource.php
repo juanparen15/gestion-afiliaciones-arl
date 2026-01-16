@@ -54,6 +54,12 @@ class AfiliacionResource extends Resource
                                             ->maxLength(255)
                                             ->columnSpan(2),
 
+                                        Forms\Components\TextInput::make('cargo')
+                                            ->label('Cargo')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpan(2),
+
                                         Forms\Components\Select::make('tipo_documento')
                                             ->label('Tipo de Documento')
                                             ->options([
@@ -771,10 +777,19 @@ class AfiliacionResource extends Resource
                     ->label('Exportar Todo')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
-                    // ->visible(fn() => Auth::user()->hasRole('SSST'))
                     ->action(function () {
                         $query = \App\Models\Afiliacion::query()->with(['dependencia', 'area']);
 
+                        // Aplicar filtro de dependencia/área si no es super_admin o SSST
+                        if (!Auth::user()?->hasRole(['super_admin', 'SSST'])) {
+                            // Si el usuario tiene área, filtrar por área
+                            if (Auth::user()?->area_id) {
+                                $query->where('area_id', Auth::user()->area_id);
+                            } else {
+                                // Si solo tiene dependencia, filtrar por dependencia
+                                $query->where('dependencia_id', Auth::user()->dependencia_id);
+                            }
+                        }
                         return \Maatwebsite\Excel\Facades\Excel::download(
                             new \App\Exports\AfiliacionesExport($query),
                             'afiliaciones_arl_' . date('Y-m-d_H-i-s') . '.xlsx'
@@ -978,12 +993,6 @@ class AfiliacionResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('Ver'),
-
-                Tables\Actions\EditAction::make()
-                    ->label('Editar'),
-
                 Action::make('validar')
                     ->label('Validar')
                     ->icon('heroicon-o-check-circle')
@@ -1052,43 +1061,51 @@ class AfiliacionResource extends Resource
                             ->send();
                     })
                     ->visible(fn(Afiliacion $record) => $record->estado === 'pendiente' && Auth::user()->hasRole(['SSST', 'super_admin'])),
+                    
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->label('Ver'),
 
-                Tables\Actions\RestoreAction::make()
-                    ->label('Restaurar')
-                    ->color('success')
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Afiliación Restaurada')
-                            ->body('El registro ha sido restaurado exitosamente.')
-                    ),
+                    Tables\Actions\EditAction::make()
+                        ->label('Editar'),
 
-                Tables\Actions\DeleteAction::make()
-                    ->label('Eliminar')
-                    ->modalHeading('Eliminar Afiliación')
-                    ->modalDescription('¿Estás seguro de que deseas eliminar esta afiliación? El registro se marcará como eliminado pero podrás restaurarlo después si es necesario.')
-                    ->modalSubmitActionLabel('Sí, eliminar')
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Afiliación Eliminada')
-                            ->body('El registro ha sido eliminado. Puedes restaurarlo usando el filtro "Registros Eliminados".')
-                    ),
+                    Tables\Actions\RestoreAction::make()
+                        ->label('Restaurar')
+                        ->color('success')
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Afiliación Restaurada')
+                                ->body('El registro ha sido restaurado exitosamente.')
+                        ),
 
-                Tables\Actions\ForceDeleteAction::make()
-                    ->label('Eliminar Permanentemente')
-                    ->modalHeading('Eliminar Permanentemente')
-                    ->modalDescription('⚠️ ADVERTENCIA: Esta acción NO se puede deshacer. El registro se eliminará permanentemente de la base de datos y no podrá ser recuperado.')
-                    ->modalSubmitActionLabel('Sí, eliminar permanentemente')
-                    ->requiresConfirmation()
-                    ->color('danger')
-                    ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Registro Eliminado Permanentemente')
-                            ->body('El registro ha sido eliminado de forma permanente y no puede ser recuperado.')
-                    ),
+                    Tables\Actions\DeleteAction::make()
+                        ->label('Eliminar')
+                        ->modalHeading('Eliminar Afiliación')
+                        ->modalDescription('¿Estás seguro de que deseas eliminar esta afiliación? El registro se marcará como eliminado pero podrás restaurarlo después si es necesario.')
+                        ->modalSubmitActionLabel('Sí, eliminar')
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Afiliación Eliminada')
+                                ->body('El registro ha sido eliminado. Puedes restaurarlo usando el filtro "Registros Eliminados".')
+                        ),
+
+                    Tables\Actions\ForceDeleteAction::make()
+                        ->label('Eliminar Permanentemente')
+                        ->modalHeading('Eliminar Permanentemente')
+                        ->modalDescription('⚠️ ADVERTENCIA: Esta acción NO se puede deshacer. El registro se eliminará permanentemente de la base de datos y no podrá ser recuperado.')
+                        ->modalSubmitActionLabel('Sí, eliminar permanentemente')
+                        ->requiresConfirmation()
+                        ->color('danger')
+                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Registro Eliminado Permanentemente')
+                                ->body('El registro ha sido eliminado de forma permanente y no puede ser recuperado.')
+                        ),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
