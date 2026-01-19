@@ -1107,7 +1107,8 @@ class AfiliacionResource extends Resource
                         ->label('Ver'),
 
                     Tables\Actions\EditAction::make()
-                        ->label('Editar'),
+                        ->label('Editar')
+                        ->visible(fn(Afiliacion $record) => $record->estado !== 'validado' || Auth::user()->hasRole(['super_admin', 'SSST'])),
 
                     Tables\Actions\RestoreAction::make()
                         ->label('Restaurar')
