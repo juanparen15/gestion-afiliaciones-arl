@@ -57,7 +57,6 @@ class AfiliacionResource extends Resource
                                         ->placeholder('Ej: Juan Carlos Pérez González')
                                         ->required()
                                         ->maxLength(255)
-                                        ->columnSpan(2)
                                         ->prefixIcon('heroicon-o-user')
                                         ->extraInputAttributes(['data-tour' => 'nombre-contratista']),
 
@@ -72,7 +71,6 @@ class AfiliacionResource extends Resource
                                         ->required()
                                         ->default('CC')
                                         ->native(false)
-                                        ->columnSpan(2)
                                         ->extraAttributes(['data-tour' => 'tipo-documento'])
                                         ->prefixIcon('heroicon-o-document'),
 
@@ -82,7 +80,6 @@ class AfiliacionResource extends Resource
                                         ->required()
                                         ->unique(ignoreRecord: true)
                                         ->maxLength(255)
-                                        ->columnSpan(2)
                                         ->prefixIcon('heroicon-o-hashtag')
                                         ->extraInputAttributes(['data-tour' => 'documento']),
 
@@ -92,7 +89,6 @@ class AfiliacionResource extends Resource
                                         ->displayFormat('d/m/Y')
                                         ->native(false)
                                         ->maxDate(now()->subYears(18))
-                                        ->columnSpan(2)
                                         ->prefixIcon('heroicon-o-calendar')
                                         ->helperText('El contratista debe ser mayor de 18 años')
                                         ->extraAttributes(['data-tour' => 'fecha-nacimiento']),
@@ -103,7 +99,6 @@ class AfiliacionResource extends Resource
                                         ->required()
                                         ->tel()
                                         ->maxLength(255)
-                                        ->columnSpan(2)
                                         ->prefixIcon('heroicon-o-phone')
                                         ->extraInputAttributes(['data-tour' => 'numero-contacto']),
 
@@ -113,7 +108,6 @@ class AfiliacionResource extends Resource
                                         ->required()
                                         ->email()
                                         ->maxLength(255)
-                                        ->columnSpan(2)
                                         ->prefixIcon('heroicon-o-envelope')
                                         ->extraInputAttributes(['data-tour' => 'correo-electronico']),
                                 ])
@@ -216,6 +210,16 @@ class AfiliacionResource extends Resource
                                         ->prefixIcon('heroicon-o-squares-2x2')
                                         ->extraAttributes(['data-tour' => 'area']),
 
+                                    Forms\Components\TextInput::make('numero_registro_presupuestal')
+                                        ->label('Número de Registro Presupuestal')
+                                        ->placeholder('Ej: RP-2024-001')
+                                        ->required()
+                                        ->maxLength(255)
+                                        // ->columnSpanFull()
+                                        ->prefixIcon('heroicon-o-document-currency-dollar')
+                                        ->extraInputAttributes(['data-tour' => 'registro-presupuestal']),
+
+
                                     Forms\Components\Textarea::make('objeto_contractual')
                                         ->label('Objeto del Contrato')
                                         ->placeholder('Describa brevemente el objeto del contrato...')
@@ -232,15 +236,6 @@ class AfiliacionResource extends Resource
                                         ->columnSpanFull()
                                         ->prefixIcon('heroicon-o-user-circle')
                                         ->extraInputAttributes(['data-tour' => 'supervisor-contrato']),
-
-                                    Forms\Components\TextInput::make('numero_registro_presupuestal')
-                                        ->label('Número de Registro Presupuestal')
-                                        ->placeholder('Ej: RP-2024-001')
-                                        ->required()
-                                        ->maxLength(255)
-                                        ->columnSpanFull()
-                                        ->prefixIcon('heroicon-o-document-currency-dollar')
-                                        ->extraInputAttributes(['data-tour' => 'registro-presupuestal']),
                                 ])
                                 ->columns(2),
 
