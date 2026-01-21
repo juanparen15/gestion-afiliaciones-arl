@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Awcodes\Overlook\OverlookPlugin;
@@ -23,9 +24,26 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use MartinPetricko\FilamentSentryFeedback\Entities\SentryUser;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Awcodes\LightSwitch\LightSwitchPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        // Incluir Driver.js para tours de onboarding
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            fn(): string => '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>',
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn(): string => '<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script><script src="' . asset('js/tour-afiliaciones.js') . '"></script>',
+        );
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -40,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -64,6 +82,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
                 OverlookPlugin::make(),
                 FilamentErrorPagesPlugin::make(),
+                LightSwitchPlugin::make(),
                 FilamentSentryFeedbackPlugin::make()
                     // ->sentryUser(function (): ?SentryUser {
                     //     return new SentryUser(auth()->user()->name, auth()->user()->email);

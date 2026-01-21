@@ -38,6 +38,12 @@ class ListAfiliacions extends ListRecords
         return true;
     }
 
+    protected function getCreateAnotherFormAction(): Actions\Action
+    {
+        return parent::getCreateAnotherFormAction()
+            ->hidden();
+    }
+
     protected function getHeaderActions(): array
     {
         $puedeRegistrar = $this->puedeRegistrarAfiliacion();
@@ -47,9 +53,26 @@ class ListAfiliacions extends ListRecords
             Actions\CreateAction::make()
                 ->label('Nueva Afiliación')
                 ->disabled(!$puedeRegistrar)
+                ->extraAttributes(['data-tour' => 'create-button'])
                 ->tooltip($puedeRegistrar
                     ? null
                     : "El registro de afiliaciones no está disponible después de las 5:00 PM. Hora actual: {$horaActual}. Disponible desde las 12:01 AM del día siguiente."),
+
+            Actions\Action::make('importar')
+                ->label('Importar')
+                ->icon('heroicon-o-arrow-up-tray')
+                ->color('gray')
+                ->extraAttributes(['data-tour' => 'import-button'])
+                ->url('#')
+                ->visible(false), // Este es solo para el tour, la acción real está en headerActions de la tabla
+
+            Actions\Action::make('ayuda')
+                ->label('Ayuda')
+                ->icon('heroicon-o-question-mark-circle')
+                ->color('gray')
+                ->extraAttributes(['data-tour' => 'help-button'])
+                ->action(fn() => null)
+                ->after(fn() => $this->js('window.iniciarTour()')),
         ];
     }
 }

@@ -36,6 +36,7 @@ class Afiliacion extends Model
         'meses_contrato',
         'dias_contrato',
         'supervisor_contrato',
+        'numero_registro_presupuestal',
         'tiene_adicion',
         'descripcion_adicion',
         'valor_adicion',

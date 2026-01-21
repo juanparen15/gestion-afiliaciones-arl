@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "alvleont/calendar-input": "*",
+        "awcodes/light-switch": "^1.0",
         "awcodes/overlook": "^2.2",
         "bezhansalleh/filament-shield": "^3.9",
         "cmsmaxinc/filament-error-pages": "^1.0",

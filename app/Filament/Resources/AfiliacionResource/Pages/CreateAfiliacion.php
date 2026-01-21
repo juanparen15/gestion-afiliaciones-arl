@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 
 class CreateAfiliacion extends CreateRecord
 {
@@ -39,6 +40,32 @@ class CreateAfiliacion extends CreateRecord
         }
 
         return true;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('tutorial')
+                ->label('¿Necesitas ayuda?')
+                ->icon('heroicon-o-question-mark-circle')
+                ->color('gray')
+                ->extraAttributes([
+                    'data-tour' => 'help-button-afiliacion-create',
+                    'onclick' => 'window.iniciarTour(); return false;',
+                ]),
+        ];
+    }
+
+    protected function getCreateAnotherFormAction(): Actions\Action
+    {
+        return parent::getCreateAnotherFormAction()
+            ->hidden();
+    }
+
+    protected function getCreateFormAction(): Action
+    {
+        return parent::getCreateFormAction()
+            ->hidden();
     }
 
     /**

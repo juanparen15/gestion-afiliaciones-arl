@@ -41,507 +41,644 @@ class AfiliacionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Tabs::make('Información de la Afiliación')
-                    ->tabs([
-                        Forms\Components\Tabs\Tab::make('Datos del Contratista')
-                            ->icon('heroicon-o-user')
-                            ->schema([
-                                Forms\Components\Section::make('Información Personal')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('nombre_contratista')
-                                            ->label('Nombre Completo del Contratista')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->columnSpan(2),
+                Forms\Components\Wizard::make([
+                    // PASO 1: Datos del Contratista
+                    Forms\Components\Wizard\Step::make('Datos del Contratista')
+                        ->icon('heroicon-o-user')
+                        ->description('Información personal del contratista')
+                        ->completedIcon('heroicon-o-check-circle')
+                        ->schema([
+                            Forms\Components\Section::make('Información Personal')
+                                ->description('Ingrese los datos de identificación del contratista')
+                                ->icon('heroicon-o-identification')
+                                ->schema([
+                                    Forms\Components\TextInput::make('nombre_contratista')
+                                        ->label('Nombre Completo del Contratista')
+                                        ->placeholder('Ej: Juan Carlos Pérez González')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->columnSpan(2)
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->extraInputAttributes(['data-tour' => 'nombre-contratista']),
 
-                                        Forms\Components\Select::make('tipo_documento')
-                                            ->label('Tipo de Documento')
-                                            ->options([
-                                                'CC' => 'Cédula de Ciudadanía',
-                                                'CE' => 'Cédula de Extranjería',
-                                                'PP' => 'Pasaporte',
-                                                'TI' => 'Tarjeta de Identidad',
-                                            ])
-                                            ->required()
-                                            ->default('CC')
-                                            ->native(false),
+                                    Forms\Components\Select::make('tipo_documento')
+                                        ->label('Tipo de Documento')
+                                        ->options([
+                                            'CC' => 'Cédula de Ciudadanía',
+                                            'CE' => 'Cédula de Extranjería',
+                                            'PP' => 'Pasaporte',
+                                            'TI' => 'Tarjeta de Identidad',
+                                        ])
+                                        ->required()
+                                        ->default('CC')
+                                        ->native(false)
+                                        ->columnSpan(2)
+                                        ->extraAttributes(['data-tour' => 'tipo-documento'])
+                                        ->prefixIcon('heroicon-o-document'),
 
-                                        Forms\Components\TextInput::make('numero_documento')
-                                            ->label('Número de Documento')
-                                            ->required()
-                                            ->unique(ignoreRecord: true)
-                                            ->maxLength(255),
+                                    Forms\Components\TextInput::make('numero_documento')
+                                        ->label('Número de Documento')
+                                        ->placeholder('Ej: 1234567890')
+                                        ->required()
+                                        ->unique(ignoreRecord: true)
+                                        ->maxLength(255)
+                                        ->columnSpan(2)
+                                        ->prefixIcon('heroicon-o-hashtag')
+                                        ->extraInputAttributes(['data-tour' => 'documento']),
 
-                                        Forms\Components\DatePicker::make('fecha_nacimiento')
-                                            ->label('Fecha de Nacimiento')
-                                            ->required()
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->maxDate(now()->subYears(18)),
+                                    Forms\Components\DatePicker::make('fecha_nacimiento')
+                                        ->label('Fecha de Nacimiento')
+                                        ->required()
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->maxDate(now()->subYears(18))
+                                        ->columnSpan(2)
+                                        ->prefixIcon('heroicon-o-calendar')
+                                        ->helperText('El contratista debe ser mayor de 18 años')
+                                        ->extraAttributes(['data-tour' => 'fecha-nacimiento']),
 
-                                        Forms\Components\TextInput::make('telefono_contratista')
-                                            ->label('Número de Celular')
-                                            ->required()
-                                            ->tel()
-                                            ->maxLength(255),
+                                    Forms\Components\TextInput::make('telefono_contratista')
+                                        ->label('Número de Celular')
+                                        ->placeholder('Ej: 3001234567')
+                                        ->required()
+                                        ->tel()
+                                        ->maxLength(255)
+                                        ->columnSpan(2)
+                                        ->prefixIcon('heroicon-o-phone')
+                                        ->extraInputAttributes(['data-tour' => 'numero-contacto']),
 
-                                        Forms\Components\TextInput::make('email_contratista')
-                                            ->label('Correo Electrónico')
-                                            ->required()
-                                            ->email()
-                                            ->maxLength(255),
-                                    ])
-                                    ->columns(2),
+                                    Forms\Components\TextInput::make('email_contratista')
+                                        ->label('Correo Electrónico')
+                                        ->placeholder('Ej: correo@ejemplo.com')
+                                        ->required()
+                                        ->email()
+                                        ->maxLength(255)
+                                        ->columnSpan(2)
+                                        ->prefixIcon('heroicon-o-envelope')
+                                        ->extraInputAttributes(['data-tour' => 'correo-electronico']),
+                                ])
+                                ->columns(2),
 
-                                Forms\Components\Section::make('Dirección de Residencia')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('direccion_residencia')
-                                            ->required()
-                                            ->label('Dirección')
-                                            ->maxLength(255),
+                            Forms\Components\Section::make('Dirección de Residencia')
+                                ->description('Ubicación donde reside el contratista')
+                                ->icon('heroicon-o-home')
+                                ->schema([
+                                    Forms\Components\TextInput::make('direccion_residencia')
+                                        ->required()
+                                        ->label('Dirección')
+                                        ->placeholder('Ej: Calle 10 # 20-30')
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-map-pin')
+                                        ->extraInputAttributes(['data-tour' => 'direccion-residencia']),
 
-                                        Forms\Components\TextInput::make('barrio')
-                                            ->label('Barrio')
-                                            ->required()
-                                            ->maxLength(255),
-                                    ])
-                                    ->columns(2),
+                                    Forms\Components\TextInput::make('barrio')
+                                        ->label('Barrio')
+                                        ->placeholder('Ej: Centro')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-building-office')
+                                        ->extraInputAttributes(['data-tour' => 'barrio-residencia']),
+                                ])
+                                ->columns(2),
 
-                                Forms\Components\Section::make('Seguridad Social')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('eps')
-                                            ->label('EPS')
-                                            ->required()
-                                            ->maxLength(255),
+                            Forms\Components\Section::make('Seguridad Social')
+                                ->description('Información de EPS y fondo de pensiones')
+                                ->icon('heroicon-o-heart')
+                                ->schema([
+                                    Forms\Components\TextInput::make('eps')
+                                        ->label('EPS')
+                                        ->placeholder('Ej: Sura, Nueva EPS, Sanitas')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-heart')
+                                        ->extraInputAttributes(['data-tour' => 'eps']),
 
-                                        Forms\Components\TextInput::make('afp')
-                                            ->label('Fondo de Pensiones (AFP)')
-                                            ->required()
-                                            ->maxLength(255),
-                                    ])
-                                    ->columns(2),
-                            ]),
-                        Forms\Components\Tabs\Tab::make('Información del Contrato')
-                            ->icon('heroicon-o-document-text')
-                            ->schema([
-                                Forms\Components\Section::make('Datos del Contrato')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('numero_contrato')
-                                            ->label('Número de Contrato')
-                                            ->required()
-                                            ->maxLength(255),
+                                    Forms\Components\TextInput::make('afp')
+                                        ->label('Fondo de Pensiones (AFP)')
+                                        ->placeholder('Ej: Porvenir, Protección, Colfondos')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-banknotes')
+                                        ->extraInputAttributes(['data-tour' => 'afp']),
+                                ])
+                                ->columns(2),
+                        ]),
 
-                                        Forms\Components\Select::make('dependencia_id')
-                                            ->label('Dependencia / Secretaría')
-                                            ->options(Dependencia::all()->pluck('nombre', 'id'))
-                                            ->required()
-                                            ->searchable()
-                                            ->preload()
-                                            ->native(false)
-                                            ->live()
-                                            ->disabled(fn() => Auth::user()->hasRole('Dependencia'))
-                                            ->afterStateUpdated(function (Forms\Set $set) {
-                                                $set('area_id', null);
-                                            })
-                                            ->default(fn() => Auth::user()?->dependencia_id),
+                    // PASO 2: Información del Contrato
+                    Forms\Components\Wizard\Step::make('Información del Contrato')
+                        ->icon('heroicon-o-document-text')
+                        ->description('Datos y valores del contrato')
+                        ->completedIcon('heroicon-o-check-circle')
+                        ->schema([
+                            Forms\Components\Section::make('Datos del Contrato')
+                                ->description('Información general del contrato')
+                                ->icon('heroicon-o-clipboard-document-list')
+                                ->schema([
+                                    Forms\Components\TextInput::make('numero_contrato')
+                                        ->label('Número de Contrato')
+                                        ->placeholder('Ej: CTO-2024-001')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-document')
+                                        ->extraInputAttributes(['data-tour' => 'numero-contrato']),
 
-                                        Forms\Components\Select::make('area_id')
-                                            ->label('Área')
-                                            ->relationship('area', 'nombre', function ($query, Forms\Get $get) {
-                                                $dependenciaId = $get('dependencia_id');
-                                                if ($dependenciaId) {
-                                                    return $query->where('dependencia_id', $dependenciaId)->where('activo', true);
+                                    Forms\Components\Select::make('dependencia_id')
+                                        ->label('Dependencia / Secretaría')
+                                        ->options(Dependencia::all()->pluck('nombre', 'id'))
+                                        ->required()
+                                        ->searchable()
+                                        ->preload()
+                                        ->native(false)
+                                        ->live()
+                                        ->disabled(fn() => Auth::user()->hasRole('Dependencia'))
+                                        ->afterStateUpdated(function (Forms\Set $set) {
+                                            $set('area_id', null);
+                                        })
+                                        ->default(fn() => Auth::user()?->dependencia_id)
+                                        ->prefixIcon('heroicon-o-building-library')
+                                        ->extraAttributes(['data-tour' => 'dependencia']),
+
+                                    Forms\Components\Select::make('area_id')
+                                        ->label('Área')
+                                        ->relationship('area', 'nombre', function ($query, Forms\Get $get) {
+                                            $dependenciaId = $get('dependencia_id');
+                                            if ($dependenciaId) {
+                                                return $query->where('dependencia_id', $dependenciaId)->where('activo', true);
+                                            }
+                                            return $query->where('activo', true);
+                                        })
+                                        ->searchable()
+                                        ->preload()
+                                        ->native(false)
+                                        ->helperText('Seleccione primero una dependencia')
+                                        ->disabled(fn(Forms\Get $get) => !$get('dependencia_id'))
+                                        ->default(fn() => Auth::user()?->area_id)
+                                        ->prefixIcon('heroicon-o-squares-2x2')
+                                        ->extraAttributes(['data-tour' => 'area']),
+
+                                    Forms\Components\Textarea::make('objeto_contractual')
+                                        ->label('Objeto del Contrato')
+                                        ->placeholder('Describa brevemente el objeto del contrato...')
+                                        ->required()
+                                        ->rows(3)
+                                        ->columnSpanFull()
+                                        ->extraInputAttributes(['data-tour' => 'objeto-contrato']),
+
+                                    Forms\Components\TextInput::make('supervisor_contrato')
+                                        ->label('Supervisor del Contrato')
+                                        ->placeholder('Nombre completo del supervisor')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->columnSpanFull()
+                                        ->prefixIcon('heroicon-o-user-circle')
+                                        ->extraInputAttributes(['data-tour' => 'supervisor-contrato']),
+
+                                    Forms\Components\TextInput::make('numero_registro_presupuestal')
+                                        ->label('Número de Registro Presupuestal')
+                                        ->placeholder('Ej: RP-2024-001')
+                                        ->required()
+                                        ->maxLength(255)
+                                        ->columnSpanFull()
+                                        ->prefixIcon('heroicon-o-document-currency-dollar')
+                                        ->extraInputAttributes(['data-tour' => 'registro-presupuestal']),
+                                ])
+                                ->columns(2),
+
+                            Forms\Components\Section::make('Valores del Contrato')
+                                ->description('Ingrese los valores económicos')
+                                ->icon('heroicon-o-currency-dollar')
+                                ->extraAttributes(['data-tour' => 'valor-contrato'])
+                                ->schema([
+                                    Forms\Components\TextInput::make('valor_contrato')
+                                        ->label('Valor Total del Contrato')
+                                        ->required()
+                                        ->prefix('$')
+                                        ->inputMode('decimal')
+                                        ->placeholder('0')
+                                        ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                            $money($input, '.', ',', 0)
+                                        JS))
+                                        ->stripCharacters('.,')
+                                        ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
+                                        ->extraInputAttributes(['data-tour' => 'valor-total-contrato']),
+
+                                    Forms\Components\TextInput::make('honorarios_mensual')
+                                        ->label('Honorarios Mensuales')
+                                        ->required()
+                                        ->prefix('$')
+                                        ->inputMode('decimal')
+                                        ->placeholder('0')
+                                        ->helperText('El IBC se calculará automáticamente (40% de honorarios)')
+                                        ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                            $money($input, '.', ',', 0)
+                                        JS))
+                                        ->stripCharacters('.,')
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                            // Limpiar el valor de separadores (puntos y comas) para cálculo
+                                            $valorLimpio = floatval(str_replace(['.', ','], '', $state ?? 0));
+
+                                            // Calcular IBC como 40% de los honorarios mensuales
+                                            if ($valorLimpio > 0) {
+                                                $ibcCalculado = $valorLimpio * 0.40;
+                                                $salarioMinimo = config('constants.salario_minimo_legal', 1750905);
+
+                                                // Si el IBC calculado es menor al mínimo, usar el mínimo y notificar
+                                                if ($ibcCalculado < $salarioMinimo) {
+                                                    // Formatear con separadores de miles antes de asignar
+                                                    $set('ibc', number_format($salarioMinimo, 0, ',', '.'));
+
+                                                    // Notificar al usuario del ajuste (solo cuando se ajusta)
+                                                    Notification::make()
+                                                        ->warning()
+                                                        ->title('IBC ajustado al mínimo legal')
+                                                        ->body("El IBC calculado (40% de honorarios = $" . number_format($ibcCalculado, 0, ',', '.') . ") era menor al salario mínimo legal vigente ($" . number_format($salarioMinimo, 0, ',', '.') . "). Se ha ajustado automáticamente al mínimo legal.")
+                                                        ->duration(8000)
+                                                        ->send();
+                                                } else {
+                                                    // Si es mayor o igual al mínimo, usar el cálculo del 40% formateado
+                                                    $set('ibc', number_format($ibcCalculado, 0, ',', '.'));
                                                 }
-                                                return $query->where('activo', true);
-                                            })
-                                            ->searchable()
-                                            ->preload()
-                                            ->native(false)
-                                            ->helperText('Seleccione primero una dependencia')
-                                            ->disabled(fn(Forms\Get $get) => !$get('dependencia_id'))
-                                            ->default(fn() => Auth::user()?->area_id),
+                                            }
+                                        })
+                                        ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
+                                        ->extraInputAttributes(['data-tour' => 'honorarios-mensuales']),
 
-                                        Forms\Components\Textarea::make('objeto_contractual')
-                                            ->label('Objeto del Contrato')
-                                            ->required()
-                                            ->rows(3)
-                                            ->columnSpanFull(),
+                                    Forms\Components\TextInput::make('ibc')
+                                        ->label('IBC (Ingreso Base de Cotización)')
+                                        ->required()
+                                        ->prefix('$')
+                                        ->inputMode('decimal')
+                                        ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                            $money($input, '.', ',', 0)
+                                        JS))
+                                        ->stripCharacters('.,')
+                                        ->helperText('Mínimo: $' . number_format(config('constants.salario_minimo_legal', 1750905), 0, ',', '.') . ' (SMLV)')
+                                        ->placeholder('Se calculará automáticamente')
+                                        ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
+                                        ->extraInputAttributes(['data-tour' => 'ibc']),
+                                ])
+                                ->columns(3),
 
-                                        Forms\Components\TextInput::make('supervisor_contrato')
-                                            ->label('Supervisor del Contrato')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2),
+                            Forms\Components\Section::make('Duración del Contrato')
+                                ->description('Defina el período de ejecución')
+                                ->icon('heroicon-o-calendar-days')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('meses_contrato')
+                                                ->label('Meses')
+                                                ->required()
+                                                ->numeric()
+                                                ->minValue(0)
+                                                ->default(0)
+                                                ->prefixIcon('heroicon-o-calendar')
+                                                ->live(onBlur: true)
+                                                ->extraInputAttributes(['data-tour' => 'meses-contrato'])
+                                                ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                    $fechaInicio = $get('fecha_inicio');
+                                                    $meses = intval($state ?? 0);
+                                                    $dias = intval($get('dias_contrato') ?? 0);
 
-                                Forms\Components\Section::make('Valores y Duración')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('valor_contrato')
-                                            ->label('Valor Total del Contrato')
-                                            ->required()
-                                            ->prefix('$')
-                                            ->inputMode('decimal')
-                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
-                                                $money($input, '.', ',', 0)
-                                            JS))
-                                            ->stripCharacters('.,')
-                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
-
-                                        Forms\Components\TextInput::make('honorarios_mensual')
-                                            ->label('Honorarios Mensuales')
-                                            ->required()
-                                            ->prefix('$')
-                                            ->inputMode('decimal')
-                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
-                                                $money($input, '.', ',', 0)
-                                            JS))
-                                            ->stripCharacters('.,')
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                                // Limpiar el valor de separadores (puntos y comas) para cálculo
-                                                $valorLimpio = floatval(str_replace(['.', ','], '', $state ?? 0));
-
-                                                // Calcular IBC como 40% de los honorarios mensuales
-                                                if ($valorLimpio > 0) {
-                                                    $ibcCalculado = $valorLimpio * 0.40;
-                                                    $salarioMinimo = config('constants.salario_minimo_legal', 1750905);
-
-                                                    // Si el IBC calculado es menor al mínimo, usar el mínimo y notificar
-                                                    if ($ibcCalculado < $salarioMinimo) {
-                                                        // Formatear con separadores de miles antes de asignar
-                                                        $set('ibc', number_format($salarioMinimo, 0, ',', '.'));
-
-                                                        // Notificar al usuario del ajuste (solo cuando se ajusta)
-                                                        Notification::make()
-                                                            ->warning()
-                                                            ->title('IBC ajustado al mínimo legal')
-                                                            ->body("El IBC calculado (40% de honorarios = $" . number_format($ibcCalculado, 0, ',', '.') . ") era menor al salario mínimo legal vigente ($" . number_format($salarioMinimo, 0, ',', '.') . "). Se ha ajustado automáticamente al mínimo legal.")
-                                                            ->duration(8000)
-                                                            ->send();
-                                                    } else {
-                                                        // Si es mayor o igual al mínimo, usar el cálculo del 40% formateado
-                                                        $set('ibc', number_format($ibcCalculado, 0, ',', '.'));
+                                                    if ($fechaInicio) {
+                                                        $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                            ->addMonths($meses)
+                                                            ->addDays($dias)
+                                                            ->subDay();
+                                                        $set('fecha_fin', $fechaFin->format('Y-m-d'));
                                                     }
-                                                }
-                                            })
-                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
+                                                }),
 
-                                        Forms\Components\TextInput::make('ibc')
-                                            ->label('IBC (Ingreso Base de Cotización)')
-                                            ->required()
-                                            ->prefix('$')
-                                            ->inputMode('decimal')
-                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
-                                                $money($input, '.', ',', 0)
-                                            JS))
-                                            ->stripCharacters('.,')
-                                            ->helperText('El IBC mínimo debe ser el salario mínimo legal vigente en Colombia ($' . number_format(config('constants.salario_minimo_legal', 1750905), 0, ',', '.') . '). Se calcula como el 40% de los honorarios.')
-                                            ->placeholder('Se calculará automáticamente')
-                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0))),
+                                            Forms\Components\TextInput::make('dias_contrato')
+                                                ->label('Días')
+                                                ->required()
+                                                ->numeric()
+                                                ->minValue(0)
+                                                ->default(0)
+                                                ->prefixIcon('heroicon-o-clock')
+                                                ->live(onBlur: true)
+                                                ->extraInputAttributes(['data-tour' => 'dias-contrato'])
+                                                ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                                    $fechaInicio = $get('fecha_inicio');
+                                                    $meses = intval($get('meses_contrato') ?? 0);
+                                                    $dias = intval($state ?? 0);
 
-                                        Forms\Components\Grid::make(2)
-                                            ->schema([
-                                                Forms\Components\TextInput::make('meses_contrato')
-                                                    ->label('Meses')
-                                                    ->required()
-                                                    ->numeric()
-                                                    ->minValue(0)
-                                                    ->default(0)
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                                        $fechaInicio = $get('fecha_inicio');
-                                                        $meses = intval($state ?? 0);
-                                                        $dias = intval($get('dias_contrato') ?? 0);
+                                                    if ($fechaInicio) {
+                                                        $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                            ->addMonths($meses)
+                                                            ->addDays($dias)
+                                                            ->subDay();
+                                                        $set('fecha_fin', $fechaFin->format('Y-m-d'));
+                                                    }
+                                                }),
+                                        ]),
 
-                                                        if ($fechaInicio) {
-                                                            $fechaFin = \Carbon\Carbon::parse($fechaInicio)
-                                                                ->addMonths($meses)
-                                                                ->addDays($dias)
-                                                                ->subDay();
-                                                            $set('fecha_fin', $fechaFin->format('Y-m-d'));
-                                                        }
-                                                    }),
+                                    Forms\Components\DatePicker::make('fecha_inicio')
+                                        ->label('Fecha de Inicio')
+                                        ->required()
+                                        ->minDate(now()->addDay()->startOfDay())
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-play')
+                                        ->live(onBlur: true)
+                                        ->extraAttributes(['data-tour' => 'fecha-inicio'])
+                                        ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                            $fechaInicio = $state;
+                                            $meses = intval($get('meses_contrato') ?? 0);
+                                            $dias = intval($get('dias_contrato') ?? 0);
 
-                                                Forms\Components\TextInput::make('dias_contrato')
-                                                    ->label('Días')
-                                                    ->required()
-                                                    ->numeric()
-                                                    ->minValue(0)
-                                                    ->default(0)
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                                        $fechaInicio = $get('fecha_inicio');
-                                                        $meses = intval($get('meses_contrato') ?? 0);
-                                                        $dias = intval($state ?? 0);
+                                            if ($fechaInicio) {
+                                                $fechaFin = \Carbon\Carbon::parse($fechaInicio)
+                                                    ->addMonths($meses)
+                                                    ->addDays($dias)
+                                                    ->subDay();
+                                                $set('fecha_fin', $fechaFin->format('Y-m-d'));
+                                            }
+                                        }),
 
-                                                        if ($fechaInicio) {
-                                                            $fechaFin = \Carbon\Carbon::parse($fechaInicio)
-                                                                ->addMonths($meses)
-                                                                ->addDays($dias)
-                                                                ->subDay();
-                                                            $set('fecha_fin', $fechaFin->format('Y-m-d'));
-                                                        }
-                                                    }),
-                                            ])
-                                            ->columnSpanFull(),
+                                    Forms\Components\DatePicker::make('fecha_fin')
+                                        ->label('Fecha de Finalización')
+                                        ->required()
+                                        ->minDate(now()->addDay(2)->startOfDay())
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-stop')
+                                        ->after('fecha_inicio')
+                                        ->helperText('Se calcula automáticamente (editable)')
+                                        ->extraAttributes(['data-tour' => 'fecha-fin']),
+                                ])
+                                ->columns(2),
 
-                                        Forms\Components\DatePicker::make('fecha_inicio')
-                                            ->label('Fecha de Inicio')
-                                            ->required()
-                                            ->minDate(now()->addDay()->startOfDay())
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                                $fechaInicio = $state;
-                                                $meses = intval($get('meses_contrato') ?? 0);
-                                                $dias = intval($get('dias_contrato') ?? 0);
+                            Forms\Components\Section::make('Documento del Contrato')
+                                ->description('Cargue el estudio previo')
+                                ->icon('heroicon-o-paper-clip')
+                                ->schema([
+                                    Forms\Components\FileUpload::make('contrato_pdf_o_word')
+                                        ->label('Cargar Estudio Previo en PDF o Word')
+                                        ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                        ->maxSize(10240) // 10MB
+                                        ->directory('afiliaciones/contratos-pdf-word')
+                                        ->downloadable()
+                                        ->openable()
+                                        ->previewable()
+                                        ->required()
+                                        ->helperText('Formatos: PDF o Word (máximo 10MB)')
+                                        ->columnSpanFull()
+                                        ->extraAttributes(['data-tour' => 'documento-contrato']),
+                                ]),
+                        ]),
 
-                                                if ($fechaInicio) {
-                                                    $fechaFin = \Carbon\Carbon::parse($fechaInicio)
-                                                        ->addMonths($meses)
-                                                        ->addDays($dias)
-                                                        ->subDay();
-                                                    $set('fecha_fin', $fechaFin->format('Y-m-d'));
-                                                }
-                                            }),
+                    // PASO 3: Información ARL
+                    Forms\Components\Wizard\Step::make('Información ARL')
+                        ->icon('heroicon-o-shield-check')
+                        ->description('Datos de la Administradora de Riesgos Laborales')
+                        ->completedIcon('heroicon-o-check-circle')
+                        ->schema([
+                            Forms\Components\Section::make('Datos de la ARL')
+                                ->description('Configure la información de riesgos laborales')
+                                ->icon('heroicon-o-shield-exclamation')
+                                ->schema([
+                                    Forms\Components\TextInput::make('nombre_arl')
+                                        ->label('Nombre de la ARL')
+                                        ->required()
+                                        ->default('ARL SURA')
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-building-office-2')
+                                        ->live(onBlur: true)
+                                        ->extraInputAttributes(['data-tour' => 'nombre-arl']),
 
-                                        Forms\Components\DatePicker::make('fecha_fin')
-                                            ->label('Fecha de Finalización')
-                                            ->required()
-                                            ->minDate(now()->addDay(2)->startOfDay())
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->after('fecha_inicio')
-                                            ->helperText('Se calcula automáticamente según fecha de inicio + meses + días (editable)'),
+                                    Forms\Components\Textarea::make('observaciones_arl')
+                                        ->label('Observaciones sobre la ARL')
+                                        ->rows(3)
+                                        ->placeholder('Ingrese observaciones adicionales sobre esta ARL...')
+                                        ->helperText('Campo para documentar información adicional cuando se usa una ARL diferente a ARL SURA')
+                                        ->visible(fn(Forms\Get $get) => $get('nombre_arl') && strtoupper(trim($get('nombre_arl'))) !== 'ARL SURA')
+                                        ->columnSpanFull()
+                                        ->extraInputAttributes(['data-tour' => 'observaciones-arl']),
 
-                                        Forms\Components\FileUpload::make('contrato_pdf_o_word')
-                                            ->label('Cargar Estudio Previo en PDF o Word')
-                                            ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                                            ->maxSize(10240) // 10MB
-                                            ->directory('afiliaciones/contratos-pdf-word')
-                                            ->downloadable()
-                                            ->openable()
-                                            ->previewable()
-                                            ->required()
-                                            ->helperText('Suba el Estudio Previo en formato PDF o Word (máximo 10MB)'),
-                                    ])
-                                    ->columns(3),
-                            ]),
+                                    Forms\Components\Select::make('tipo_riesgo')
+                                        ->label('Nivel de Riesgo')
+                                        ->options([
+                                            'I' => 'Nivel I - Riesgo Mínimo',
+                                            'II' => 'Nivel II - Riesgo Bajo',
+                                            'III' => 'Nivel III - Riesgo Medio',
+                                            'IV' => 'Nivel IV - Riesgo Alto',
+                                            'V' => 'Nivel V - Riesgo Máximo',
+                                        ])
+                                        ->required()
+                                        ->default('I')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-exclamation-triangle')
+                                        ->helperText('Seleccione según la actividad económica del contrato')
+                                        ->extraAttributes(['data-tour' => 'nivel-riesgo']),
 
-                        Forms\Components\Tabs\Tab::make('Información Adicional del Contrato')
-                            ->icon('heroicon-o-document-plus')
-                            ->schema([
-                                Forms\Components\Section::make('Adición al Contrato')
-                                    ->description('Complete esta sección si el contrato tiene una adición')
-                                    ->schema([
-                                        Forms\Components\Toggle::make('tiene_adicion')
-                                            ->label('¿El contrato tiene adición?')
-                                            ->live()
-                                            ->default(false)
-                                            ->columnSpanFull(),
+                                    Forms\Components\TextInput::make('numero_afiliacion_arl')
+                                        ->label('Número de Afiliación ARL')
+                                        ->placeholder('Se asignará después de la validación')
+                                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                        ->maxLength(255)
+                                        ->prefixIcon('heroicon-o-hashtag'),
 
-                                        Forms\Components\Textarea::make('descripcion_adicion')
-                                            ->label('Descripción de la Adición')
-                                            ->rows(3)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion'))
-                                            ->columnSpanFull(),
+                                    Forms\Components\DatePicker::make('fecha_afiliacion_arl')
+                                        ->label('Fecha de Afiliación ARL')
+                                        ->displayFormat('d/m/Y')
+                                        ->minDate(now()->addDay())
+                                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-calendar'),
 
-                                        Forms\Components\TextInput::make('valor_adicion')
-                                            ->label('Valor de la Adición')
-                                            ->prefix('$')
-                                            ->inputMode('decimal')
-                                            ->mask(\Filament\Support\RawJs::make(<<<'JS'
-                                                $money($input, '.', ',', 0)
-                                            JS))
-                                            ->stripCharacters('.,')
-                                            ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+                                    Forms\Components\DatePicker::make('fecha_terminacion_afiliacion')
+                                        ->label('Fecha de Terminación de Afiliación ARL')
+                                        ->displayFormat('d/m/Y')
+                                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-calendar-days'),
 
-                                        Forms\Components\DatePicker::make('fecha_adicion')
-                                            ->label('Fecha de la Adición')
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible(),
+                                    Forms\Components\FileUpload::make('pdf_arl')
+                                        ->label('PDF del Afiliado en Sistema ARL')
+                                        ->acceptedFileTypes(['application/pdf'])
+                                        ->maxSize(10240) // 10MB
+                                        ->directory('afiliaciones/pdfs-arl')
+                                        ->downloadable()
+                                        ->openable()
+                                        ->previewable()
+                                        ->helperText('PDF generado en el sistema de ARL del afiliado')
+                                        ->visible(fn($record) => $record && $record->estado === 'validado')
+                                        ->disabled()
+                                        ->columnSpanFull(),
+                                ])
+                                ->columns(2),
+                        ]),
 
-                                Forms\Components\Section::make('Prórroga del Contrato')
-                                    ->description('Complete esta sección si el contrato tiene prórroga')
-                                    ->schema([
-                                        Forms\Components\Toggle::make('tiene_prorroga')
-                                            ->label('¿El contrato tiene prórroga?')
-                                            ->live()
-                                            ->default(false)
-                                            ->columnSpanFull(),
+                    // PASO 4: Información Adicional (Solo para admins)
+                    Forms\Components\Wizard\Step::make('Información Adicional')
+                        ->icon('heroicon-o-document-plus')
+                        ->description('Adiciones, prórrogas y terminaciones')
+                        ->completedIcon('heroicon-o-check-circle')
+                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                        ->schema([
+                            Forms\Components\Section::make('Adición al Contrato')
+                                ->description('Complete si el contrato tiene una adición')
+                                ->icon('heroicon-o-plus-circle')
+                                ->schema([
+                                    Forms\Components\Toggle::make('tiene_adicion')
+                                        ->label('¿El contrato tiene adición?')
+                                        ->live()
+                                        ->default(false)
+                                        ->onIcon('heroicon-o-check')
+                                        ->offIcon('heroicon-o-x-mark')
+                                        ->onColor('success')
+                                        ->columnSpanFull(),
 
-                                        Forms\Components\Textarea::make('descripcion_prorroga')
-                                            ->label('Descripción de la Prórroga')
-                                            ->rows(3)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
-                                            ->columnSpanFull(),
+                                    Forms\Components\Textarea::make('descripcion_adicion')
+                                        ->label('Descripción de la Adición')
+                                        ->placeholder('Describa los detalles de la adición...')
+                                        ->rows(3)
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_adicion'))
+                                        ->columnSpanFull(),
 
-                                        Forms\Components\Grid::make(2)
-                                            ->schema([
-                                                Forms\Components\TextInput::make('meses_prorroga')
-                                                    ->label('Meses de Prórroga')
-                                                    ->numeric()
-                                                    ->minValue(0)
-                                                    ->default(0),
+                                    Forms\Components\TextInput::make('valor_adicion')
+                                        ->label('Valor de la Adición')
+                                        ->prefix('$')
+                                        ->inputMode('decimal')
+                                        ->placeholder('0')
+                                        ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                            $money($input, '.', ',', 0)
+                                        JS))
+                                        ->stripCharacters('.,')
+                                        ->dehydrateStateUsing(fn($state) => floatval(str_replace(['.', ','], '', $state ?? 0)))
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
 
-                                                Forms\Components\TextInput::make('dias_prorroga')
-                                                    ->label('Días de Prórroga')
-                                                    ->numeric()
-                                                    ->minValue(0)
-                                                    ->default(0),
-                                            ])
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
-                                            ->columnSpanFull(),
+                                    Forms\Components\DatePicker::make('fecha_adicion')
+                                        ->label('Fecha de la Adición')
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-calendar')
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+                                ])
+                                ->columns(2)
+                                ->collapsible()
+                                ->collapsed(),
 
-                                        Forms\Components\DatePicker::make('nueva_fecha_fin_prorroga')
-                                            ->label('Nueva Fecha de Finalización')
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible(),
+                            Forms\Components\Section::make('Prórroga del Contrato')
+                                ->description('Complete si el contrato tiene prórroga')
+                                ->icon('heroicon-o-arrow-path')
+                                ->schema([
+                                    Forms\Components\Toggle::make('tiene_prorroga')
+                                        ->label('¿El contrato tiene prórroga?')
+                                        ->live()
+                                        ->default(false)
+                                        ->onIcon('heroicon-o-check')
+                                        ->offIcon('heroicon-o-x-mark')
+                                        ->onColor('success')
+                                        ->columnSpanFull(),
 
-                                Forms\Components\Section::make('Terminación Anticipada del Contrato')
-                                    ->description('Complete esta sección si el contrato se terminó anticipadamente')
-                                    ->schema([
-                                        Forms\Components\Toggle::make('tiene_terminacion_anticipada')
-                                            ->label('¿El contrato tiene terminación anticipada?')
-                                            ->live()
-                                            ->default(false)
-                                            ->columnSpanFull(),
+                                    Forms\Components\Textarea::make('descripcion_prorroga')
+                                        ->label('Descripción de la Prórroga')
+                                        ->placeholder('Describa los detalles de la prórroga...')
+                                        ->rows(3)
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                        ->columnSpanFull(),
 
-                                        Forms\Components\DatePicker::make('fecha_terminacion_anticipada')
-                                            ->label('Fecha de Terminación Anticipada')
-                                            ->displayFormat('d/m/Y')
-                                            ->native(false)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada')),
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('meses_prorroga')
+                                                ->label('Meses de Prórroga')
+                                                ->numeric()
+                                                ->minValue(0)
+                                                ->default(0)
+                                                ->prefixIcon('heroicon-o-calendar'),
 
-                                        Forms\Components\Textarea::make('motivo_terminacion_anticipada')
-                                            ->label('Motivo de la Terminación Anticipada')
-                                            ->rows(3)
-                                            ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada'))
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2)
-                                    ->collapsible(),
-                            ])
-                            ->visible(fn(Forms\Get $get) => Auth::user()->hasRole(['super_admin', 'SSST'])),
+                                            Forms\Components\TextInput::make('dias_prorroga')
+                                                ->label('Días de Prórroga')
+                                                ->numeric()
+                                                ->minValue(0)
+                                                ->default(0)
+                                                ->prefixIcon('heroicon-o-clock'),
+                                        ])
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                        ->columnSpanFull(),
 
-                        Forms\Components\Tabs\Tab::make('Información ARL')
-                            ->icon('heroicon-o-shield-check')
-                            ->schema([
-                                Forms\Components\Section::make('Datos de la ARL')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('nombre_arl')
-                                            ->label('Nombre de la ARL')
-                                            ->required()
-                                            ->default('ARL SURA')
-                                            ->maxLength(255)
-                                            ->live(onBlur: true),
+                                    Forms\Components\DatePicker::make('nueva_fecha_fin_prorroga')
+                                        ->label('Nueva Fecha de Finalización')
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-calendar-days')
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
+                                ])
+                                ->columns(2)
+                                ->collapsible()
+                                ->collapsed(),
 
-                                        Forms\Components\Textarea::make('observaciones_arl')
-                                            ->label('Observaciones sobre la ARL')
-                                            ->rows(3)
-                                            ->placeholder('Ingrese observaciones adicionales sobre esta ARL...')
-                                            ->helperText('Campo para documentar información adicional cuando se usa una ARL diferente a ARL SURA')
-                                            ->visible(fn(Forms\Get $get) => $get('nombre_arl') && strtoupper(trim($get('nombre_arl'))) !== 'ARL SURA')
-                                            ->columnSpanFull(),
+                            Forms\Components\Section::make('Terminación Anticipada')
+                                ->description('Complete si el contrato se terminó anticipadamente')
+                                ->icon('heroicon-o-x-circle')
+                                ->schema([
+                                    Forms\Components\Toggle::make('tiene_terminacion_anticipada')
+                                        ->label('¿El contrato tiene terminación anticipada?')
+                                        ->live()
+                                        ->default(false)
+                                        ->onIcon('heroicon-o-check')
+                                        ->offIcon('heroicon-o-x-mark')
+                                        ->onColor('danger')
+                                        ->columnSpanFull(),
 
-                                        Forms\Components\Select::make('tipo_riesgo')
-                                            ->label('Nivel de Riesgo')
-                                            ->options([
-                                                'I' => 'Nivel I - Riesgo Mínimo',
-                                                'II' => 'Nivel II - Riesgo Bajo',
-                                                'III' => 'Nivel III - Riesgo Medio',
-                                                'IV' => 'Nivel IV - Riesgo Alto',
-                                                'V' => 'Nivel V - Riesgo Máximo',
-                                            ])
-                                            ->required()
-                                            ->default('I')
-                                            ->native(false),
+                                    Forms\Components\DatePicker::make('fecha_terminacion_anticipada')
+                                        ->label('Fecha de Terminación Anticipada')
+                                        ->displayFormat('d/m/Y')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-calendar')
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada')),
 
-                                        Forms\Components\TextInput::make('numero_afiliacion_arl')
-                                            ->label('Número de Afiliación ARL')
-                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
-                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->maxLength(255),
+                                    Forms\Components\Textarea::make('motivo_terminacion_anticipada')
+                                        ->label('Motivo de la Terminación Anticipada')
+                                        ->placeholder('Describa el motivo de la terminación...')
+                                        ->rows(3)
+                                        ->visible(fn(Forms\Get $get) => $get('tiene_terminacion_anticipada'))
+                                        ->columnSpanFull(),
+                                ])
+                                ->columns(2)
+                                ->collapsible()
+                                ->collapsed(),
 
-                                        Forms\Components\DatePicker::make('fecha_afiliacion_arl')
-                                            ->label('Fecha de Afiliación ARL')
-                                            ->displayFormat('d/m/Y')
-                                            ->minDate(now()->addDay())
-                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
-                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->native(false),
+                            Forms\Components\Section::make('Estado de la Afiliación')
+                                ->description('Gestión del estado y observaciones')
+                                ->icon('heroicon-o-clipboard-document-check')
+                                ->schema([
+                                    Forms\Components\Select::make('estado')
+                                        ->label('Estado')
+                                        ->options([
+                                            'pendiente' => 'Pendiente de Validación',
+                                            'validado' => 'Validado',
+                                            'rechazado' => 'Rechazado',
+                                        ])
+                                        ->required(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                                        ->default('pendiente')
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-flag')
+                                        ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
 
-                                        Forms\Components\DatePicker::make('fecha_terminacion_afiliacion')
-                                            ->label('Fecha de Terminación de Afiliación ARL')
-                                            ->displayFormat('d/m/Y')
-                                            // ->visible(fn($record) => $record && $record->estado === 'pendiente')
-                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->native(false),
+                                    Forms\Components\Textarea::make('observaciones')
+                                        ->label('Observaciones')
+                                        ->placeholder('Agregue observaciones generales...')
+                                        ->rows(3)
+                                        ->columnSpanFull()
+                                        ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
 
-                                        Forms\Components\FileUpload::make('pdf_arl')
-                                            ->label('PDF del Afiliado en Sistema ARL')
-                                            ->acceptedFileTypes(['application/pdf'])
-                                            ->maxSize(10240) // 10MB
-                                            ->directory('afiliaciones/pdfs-arl')
-                                            ->downloadable()
-                                            ->openable()
-                                            ->previewable()
-                                            ->helperText('PDF generado en el sistema de ARL del afiliado')
-                                            ->visible(fn($record) => $record && $record->estado === 'validado')
-                                            ->disabled()
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2),
-                            ]),
-
-                        Forms\Components\Tabs\Tab::make('Estado y Observaciones')
-                            ->icon('heroicon-o-clipboard-document-check')
-                            ->schema([
-                                Forms\Components\Section::make('Estado de la Afiliación')
-                                    ->schema([
-                                        Forms\Components\Select::make('estado')
-                                            ->label('Estado')
-                                            ->options([
-                                                'pendiente' => 'Pendiente de Validación',
-                                                'validado' => 'Validado',
-                                                'rechazado' => 'Rechazado',
-                                            ])
-                                            ->required(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->default('pendiente')
-                                            ->native(false)
-                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
-
-                                        Forms\Components\Textarea::make('observaciones')
-                                            ->label('Observaciones')
-                                            ->rows(3)
-                                            ->columnSpanFull()
-                                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
-
-                                        Forms\Components\Textarea::make('motivo_rechazo')
-                                            ->label('Motivo de Rechazo')
-                                            ->rows(3)
-                                            ->columnSpanFull()
-                                            ->visible(fn($get) => $get('estado') === 'rechazado' && Auth::user()->hasRole(['super_admin', 'SSST']))
-                                            ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
-                                    ])
-                                    ->columns(2)
-                                    ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST'])),
-                            ])
-                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST'])),
-                    ])
+                                    Forms\Components\Textarea::make('motivo_rechazo')
+                                        ->label('Motivo de Rechazo')
+                                        ->placeholder('Especifique el motivo del rechazo...')
+                                        ->rows(3)
+                                        ->columnSpanFull()
+                                        ->visible(fn($get) => $get('estado') === 'rechazado')
+                                        ->disabled(fn() => !Auth::user()->hasRole(['super_admin', 'SSST'])),
+                                ])
+                                ->columns(2),
+                        ]),
+                ])
+                    ->skippable(true)
+                    ->persistStepInQueryString('paso')
+                    ->submitAction(new \Illuminate\Support\HtmlString('<button type="submit" class="fi-btn fi-btn-size-md relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-custom fi-btn-color-primary fi-color-primary fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-primary-600 text-white hover:bg-primary-500 focus-visible:ring-primary-500/50 dark:bg-primary-500 dark:hover:bg-primary-400 dark:focus-visible:ring-primary-400/50"><span class="fi-btn-label">Guardar Afiliación</span></button>'))
                     ->columnSpanFull(),
             ]);
     }
