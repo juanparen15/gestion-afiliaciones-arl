@@ -689,6 +689,12 @@ class AfiliacionResource extends Resource
                     ->copyable()
                     ->weight('bold'),
 
+                Tables\Columns\TextColumn::make('numero_registro_presupuestal')
+                    ->label('No. Registro Presupuestal')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 Tables\Columns\TextColumn::make('nombre_contratista')
                     ->label('Contratista')
                     ->searchable()
@@ -1317,6 +1323,7 @@ class AfiliacionResource extends Resource
                                 ->withFilename('afiliaciones_' . date('Y-m-d_H-i-s'))
                                 ->withColumns([
                                     'No. Contrato' => 'numero_contrato',
+                                    'No. Registro Presupuestal' => 'numero_registro_presupuestal',
                                     'Objeto Contrato' => 'objeto_contractual',
                                     'CC' => 'numero_documento',
                                     'Contratista' => 'nombre_contratista',

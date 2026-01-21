@@ -80,6 +80,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         // Preparar datos para insertar/actualizar
         $datos = [
             'numero_contrato' => trim($row['no_contrato'] ?? ''),
+            'numero_registro_presupuestal' => trim($row['no_registro_presupuestal'] ?? ''),
             'objeto_contractual' => trim($row['objeto_contrato'] ?? ''),
             'tipo_documento' => $tipo_documento,
             'numero_documento' => trim($row['cc_contratista'] ?? ''),
@@ -142,6 +143,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         return [
             // Campos obligatorios del contrato
             'no_contrato' => 'required',
+            'no_registro_presupuestal' => 'required',
             'objeto_contrato' => 'required',
             'secretaria_dependencia' => 'required',
             'valor_del_contrato' => 'required|numeric|min:0',
@@ -187,6 +189,7 @@ class AfiliacionesImport implements ToModel, WithHeadingRow, WithValidation, Ski
         return [
             // Mensajes para campos del contrato
             'no_contrato.required' => 'El número de contrato es obligatorio',
+            'no_registro_presupuestal.required' => 'El número de registro presupuestal es obligatorio',
             'objeto_contrato.required' => 'El objeto del contrato es obligatorio',
             'secretaria_dependencia.required' => 'La secretaría/dependencia es obligatoria',
             'valor_del_contrato.required' => 'El valor del contrato es obligatorio',
