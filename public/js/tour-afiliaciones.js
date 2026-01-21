@@ -450,6 +450,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     },
                 },
                 {
+                    element: '[data-tour="registro-presupuestal"]',
+                    popover: {
+                        title: "Número de Registro Presupuestal",
+                        description:
+                            "Ingresa el número de registro presupuestal asociado al contrato.",
+                        side: "top",
+                    },  
+                },
+                {
                     element: '[data-tour="objeto-contrato"]',
                     popover: {
                         title: "Objeto del Contrato",
