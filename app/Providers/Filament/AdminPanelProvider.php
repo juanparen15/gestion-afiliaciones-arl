@@ -82,7 +82,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
                 OverlookPlugin::make(),
                 FilamentErrorPagesPlugin::make(),
-                LightSwitchPlugin::make(),
+                // LightSwitchPlugin::make(),
                 FilamentSentryFeedbackPlugin::make()
                     // ->sentryUser(function (): ?SentryUser {
                     //     return new SentryUser(auth()->user()->name, auth()->user()->email);
