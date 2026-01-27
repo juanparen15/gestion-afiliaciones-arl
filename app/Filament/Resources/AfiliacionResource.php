@@ -411,7 +411,14 @@ class AfiliacionResource extends Resource
                                 ->schema([
                                     FileUpload::make('contrato_pdf_o_word')
                                         ->label('Cargar Estudio Previo en PDF o Word')
-                                        ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                        ->acceptedFileTypes([
+                                            'application/pdf',
+                                            'application/msword',
+                                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                            'application/octet-stream',
+                                            'application/x-pdf',
+                                            'application/x-download',
+                                        ])
                                         ->maxSize(10240)
                                         ->directory('afiliaciones/contratos-pdf-word')
                                         ->disk('public')
