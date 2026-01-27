@@ -17,9 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if (app()->environment('production')) {
-            URL::forceScheme('https');
-        }
+        //
     }
 
     /**
@@ -27,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        URL::forceScheme('https');
+
         // Registrar observer para afiliaciones
         Afiliacion::observe(AfiliacionObserver::class);
 
