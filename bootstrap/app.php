@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        h.ealth: '/up',
+        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Configuración importante para Livewire
@@ -38,14 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'livewire/upload-file',
             'livewire/upload-file/*',
         ]);
-
-        // $middleware->trustProxies(at: '*', headers: 
-        //     Request::HEADER_X_FORWARDED_FOR |
-        //     Request::HEADER_X_FORWARDED_HOST |
-        //     Request::HEADER_X_FORWARDED_PORT |
-        //     Request::HEADER_X_FORWARDED_PROTO |
-        //     Request::HEADER_X_FORWARDED_AWS_ELB
-        // );
 
         // Si estás detrás de un proxy/load balancer
         $middleware->trustProxies(at: '*');
