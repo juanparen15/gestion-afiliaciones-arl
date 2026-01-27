@@ -96,7 +96,7 @@ class Afiliacion extends Model
 
         // Validar que los honorarios mensuales no sean menores al salario mínimo legal
         static::saving(function ($afiliacion) {
-            $salarioMinimo = config('constants.salario_minimo_legal', 1423500);
+            $salarioMinimo = config('constants.salario_minimo_legal', 1750905); // Valor por defecto si no está en configuración
             if ($afiliacion->honorarios_mensual && $afiliacion->honorarios_mensual < $salarioMinimo) {
                 throw new \Exception("Los honorarios mensuales no pueden ser menores al salario mínimo legal vigente en Colombia ($" . number_format($salarioMinimo, 0, ',', '.') . ")");
             }
