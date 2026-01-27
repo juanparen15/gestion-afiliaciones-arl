@@ -7,6 +7,7 @@ use App\Models\Afiliacion;
 use App\Models\Dependencia;
 use App\Imports\AfiliacionesImport;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -408,7 +409,7 @@ class AfiliacionResource extends Resource
                                 ->description('Cargue el estudio previo')
                                 ->icon('heroicon-o-paper-clip')
                                 ->schema([
-                                    Forms\Components\FileUpload::make('contrato_pdf_o_word')
+                                    FileUpload::make('contrato_pdf_o_word')
                                         ->label('Cargar Estudio Previo en PDF o Word')
                                         ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                                         ->maxSize(10240)
