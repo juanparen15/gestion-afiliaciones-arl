@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 
 class AfiliacionesOverlookWidget extends OverlookWidget
 {
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 99; // Movido al final
+    protected static bool $isDiscovered = false; // Oculto porque duplica info con StatsOverview
 
     protected static ?string $heading = 'Vista Rápida de Afiliaciones ARL';
 

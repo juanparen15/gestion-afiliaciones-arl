@@ -22,6 +22,8 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+use function Symfony\Component\String\s;
+
 class AfiliacionResource extends Resource
 {
     protected static ?string $model = Afiliacion::class;
@@ -80,9 +82,21 @@ class AfiliacionResource extends Resource
                                         ->placeholder('Ej: 1234567890')
                                         ->required()
                                         ->unique(ignoreRecord: true)
-                                        ->maxLength(255)
+                                        ->minLength(5)
+                                        ->maxLength(15)
+                                        ->regex('/^[0-9]+$/')
+                                        ->validationMessages([
+                                            'regex' => 'El número de documento solo debe contener dígitos numéricos, sin letras, espacios ni caracteres especiales.',
+                                            'min_length' => 'El número de documento debe tener al menos 5 dígitos.',
+                                            'max_length' => 'El número de documento no puede tener más de 15 dígitos.',
+                                        ])
                                         ->prefixIcon('heroicon-o-hashtag')
-                                        ->extraInputAttributes(['data-tour' => 'documento']),
+                                        ->dehydrateStateUsing(fn(?string $state) => $state ? preg_replace('/[^0-9]/', '', $state) : null)
+                                        ->extraInputAttributes([
+                                            'data-tour' => 'documento',
+                                            'inputmode' => 'numeric',
+                                            'pattern' => '[0-9]*',
+                                        ]),
 
                                     Forms\Components\DatePicker::make('fecha_nacimiento')
                                         ->label('Fecha de Nacimiento')

@@ -25,13 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // URL::forceScheme('https');
-
-        // Forzar que todas las URLs generadas (incluidas las de Livewire) usen HTTPS
-        \Illuminate\Support\Facades\URL::forceScheme('https');
-
-        // Si la URL base no coincide con el dominio, fuérzala también
+        // Forzar HTTPS y URL base solo en producción
         if (app()->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
             \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
         }
 

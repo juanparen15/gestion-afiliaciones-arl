@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 class AfiliacionesStatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
+    protected int | string | array $columnSpan = 'full';
+
+    protected function getColumns(): int
+    {
+        return 3; // 3 columnas en desktop
+    }
 
     protected function getStats(): array
     {

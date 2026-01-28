@@ -19,4 +19,16 @@ class Dashboard extends BaseDashboard
                 ->after(fn () => $this->js('window.iniciarTour()')),
         ];
     }
+
+    public function getColumns(): int | string | array
+    {
+        return [
+            'default' => 1,
+            'sm' => 2,
+            'md' => 2,
+            'lg' => 2,
+            'xl' => 3,
+            '2xl' => 3,
+        ];
+    }
 }
