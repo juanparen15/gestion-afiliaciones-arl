@@ -13,6 +13,7 @@
         "bezhansalleh/filament-shield": "^3.9",
         "cmsmaxinc/filament-error-pages": "^1.0",
         "filament/filament": "^3.2",
+        "jeffersongoncalves/filament-whatsapp-widget": "1.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "leandrocfe/filament-apex-charts": "^3.2",

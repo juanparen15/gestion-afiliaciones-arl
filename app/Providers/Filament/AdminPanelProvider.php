@@ -27,6 +27,7 @@ use MartinPetricko\FilamentSentryFeedback\Entities\SentryUser;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Awcodes\LightSwitch\LightSwitchPlugin;
+use JeffersonGoncalves\Filament\WhatsappWidget\WhatsappWidgetPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -94,6 +95,7 @@ class AdminPanelProvider extends PanelProvider
                     ->isEmailRequired(true)
                     ->isNameRequired(true)
                     ->enableScreenshot(true),
+                WhatsappWidgetPlugin::make(),
             ])
             ->authMiddleware([
                 Authenticate::class,
