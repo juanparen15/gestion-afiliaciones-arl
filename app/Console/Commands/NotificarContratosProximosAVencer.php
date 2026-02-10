@@ -23,7 +23,7 @@ class NotificarContratosProximosAVencer extends Command
      *
      * @var string
      */
-    protected $description = 'Notifica por correo los contratos próximos a vencer a los usuarios de la dependencia y usuarios SSST';
+    protected $description = 'Notifica por correo los contratos próximos a vencer a los usuarios de la dependencia y usuarios SST';
 
     /**
      * Execute the console command.
