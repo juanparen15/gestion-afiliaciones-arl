@@ -19,9 +19,9 @@ Artisan::command('inspire', function () {
 |
 */
 
-// Notificar contratos próximos a vencer - Se ejecuta todos los días a las 7:00 AM
+// Notificar contratos próximos a vencer - Se ejecuta cada lunes a las 7:00 AM
 Schedule::command('afiliaciones:notificar-vencimientos --dias=30')
-    ->dailyAt('07:00')
+    ->weeklyOn(1, '07:00')
     ->withoutOverlapping()
     ->runInBackground()
     ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));

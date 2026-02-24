@@ -171,7 +171,7 @@
         @foreach($afiliaciones as $afiliacion)
             @php
                 $fechaVencimiento = $afiliacion->tiene_prorroga ? $afiliacion->nueva_fecha_fin_prorroga : $afiliacion->fecha_fin;
-                $diasRestantes = $fechaVencimiento ? now()->diffInDays($fechaVencimiento, false) : 0;
+                $diasRestantes = $fechaVencimiento ? (int) now()->diffInDays($fechaVencimiento, false) : 0;
 
                 if ($diasRestantes <= 7) {
                     $badgeClass = 'badge-danger';
@@ -241,7 +241,7 @@
                 Ingrese al sistema para gestionar estos contratos y realizar las acciones necesarias
                 (renovación, prórroga o cierre).
             </p>
-            <a href="{{ config('app.url') }}/admin/afiliacions" class="button">
+            <a href="{{ config('app.url') }}/admin/afiliacions" style="display: inline-block; padding: 12px 30px; background-color: #2563eb; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; font-size: 15px;">
                 Ver Contratos en el Sistema
             </a>
         </div>
