@@ -25,3 +25,9 @@ Schedule::command('afiliaciones:notificar-vencimientos --dias=30')
     ->withoutOverlapping()
     ->runInBackground()
     ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));
+
+// Actualizar estado de contratos según fecha de cierre efectiva - diario a las 6:00 AM
+Schedule::command('contratos:actualizar-estados')
+    ->dailyAt('06:00')
+    ->withoutOverlapping()
+    ->runInBackground();

@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Dependencia extends Model
 {
@@ -48,6 +48,11 @@ class Dependencia extends Model
     public function afiliaciones(): HasMany
     {
         return $this->hasMany(Afiliacion::class);
+    }
+
+    public function contratos(): HasMany
+    {
+        return $this->hasMany(Contrato::class);
     }
 
     // Scopes

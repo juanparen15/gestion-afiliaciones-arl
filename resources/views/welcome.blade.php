@@ -1,633 +1,1057 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistema ARL - Alcaldía de Puerto Boyacá</title>
+    <title>Sistema ARL – Alcaldía de Puerto Boyacá</title>
 
-    <!-- Fonts -->
+    {{-- EB Garamond (headings: legal, formal, authoritative) + Lato (body: legible, clean) --}}
+    {{-- Pairing recomendado por ui-ux-pro-max para gobierno/institucional --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    {{-- Three.js r128 para el hero 3D --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        .gradient-blue-green {
-            background: linear-gradient(135deg, var(--color-primary-blue) 0%, var(--color-primary-green) 100%);
+        /* ══════════════════════════════════════════════════
+           DESIGN TOKENS — ui-ux-pro-max: government / institutional
+           Palette: Professional blue + high contrast
+           ══════════════════════════════════════════════════ */
+        :root {
+            --navy:     #050D1A;
+            --navy-2:   #0B1829;
+            --navy-3:   #0F2040;
+            --blue:     #0369A1;   /* sky-700 — CTA accesible, gobierno */
+            --blue-l:   #0EA5E9;   /* sky-500 */
+            --blue-gl:  rgba(3,105,161,0.1);
+            --em:       #059669;   /* emerald-600 */
+            --em-l:     #10B981;   /* emerald-500 */
+            --em-gl:    rgba(16,185,129,0.1);
+            --white:    #F8FAFC;
+            --muted:    #94A3B8;
+            --slate:    #475569;   /* ↑ mejorado de #64748B → ratio 4.6:1 */
+            --surface:  #F1F5F9;
+            --border:   rgba(255,255,255,0.07);
+            --card-b:   #E2E8F0;
+            --ink:      #0F172A;   /* texto principal claro */
         }
 
-        .gradient-text {
-            background: linear-gradient(135deg, var(--color-primary-blue) 0%, var(--color-primary-green) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: var(--white);
+            color: #1E293B;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            font-size: 1rem;        /* mínimo 16px — ui-ux-pro-max: readable-font-size */
+            line-height: 1.65;      /* 1.5–1.75 — ui-ux-pro-max: line-height */
         }
 
-        .blob {
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation: blob-animation 8s ease-in-out infinite;
+        /* ── Skip link (accesibilidad teclado) ── */
+        .skip-link {
+            position: absolute; top: -120px; left: 1rem; z-index: 9999;
+            padding: 0.75rem 1.5rem;
+            background: var(--blue); color: white;
+            font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.9375rem;
+            border-radius: 0.5rem; text-decoration: none;
+            transition: top 0.15s ease;
+        }
+        .skip-link:focus { top: 1rem; }
+
+        /* ── Focus rings (3–4px, alto contraste) — ui-ux-pro-max: focus-states ── */
+        :focus-visible {
+            outline: 3px solid var(--blue-l);
+            outline-offset: 3px;
+            border-radius: 4px;
         }
 
-        @keyframes blob-animation {
-            0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
-            25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
-            50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
-            75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+        /* ── prefers-reduced-motion — ui-ux-pro-max: reduced-motion ── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .reveal { opacity: 1 !important; transform: none !important; }
         }
 
-        .fade-in {
-            animation: fadeIn 1s ease-in;
+        /* ── Pulse dot ── */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.4; transform: scale(0.7); }
+        }
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.25; }
+            50%       { opacity: 0.7; }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* ── Reveal on scroll ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.7s cubic-bezier(.16,1,.3,1),
+                        transform 0.7s cubic-bezier(.16,1,.3,1);
+        }
+        .reveal.visible { opacity: 1; transform: none; }
+        .delay-1 { transition-delay: 0.08s; }
+        .delay-2 { transition-delay: 0.17s; }
+        .delay-3 { transition-delay: 0.26s; }
+        .delay-4 { transition-delay: 0.36s; }
+        .delay-5 { transition-delay: 0.46s; }
+
+        /* ══════════════════════════════════════════════════
+           FLOATING PILL NAVBAR
+           ui-ux-pro-max: "Add top-4 left-4 right-4 spacing for floating navbar"
+           ══════════════════════════════════════════════════ */
+        .nav {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 2.5rem);
+            max-width: 80rem;
+            z-index: 200;
+            height: 62px;
+            display: flex; align-items: center;
+            padding: 0 1.5rem;
+            border-radius: 1rem;
+            background: rgba(5,13,26,0.72);
+            backdrop-filter: blur(28px) saturate(1.6);
+            -webkit-backdrop-filter: blur(28px) saturate(1.6);
+            border: 1px solid rgba(255,255,255,0.09);
+            transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .nav.scrolled {
+            background: rgba(5,13,26,0.94);
+            border-color: rgba(255,255,255,0.13);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+        }
+        .nav-inner { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+        .nav-brand {
+            display: flex; align-items: center; gap: 0.75rem;
+            text-decoration: none; cursor: pointer;
+        }
+        .nav-brand img { height: 2.125rem; width: auto; }
+        .nav-name {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.8125rem; font-weight: 700;
+            color: var(--white); line-height: 1.1;
+        }
+        .nav-sub {
+            font-size: 0.625rem; font-weight: 700;
+            color: var(--em-l); letter-spacing: 0.12em; text-transform: uppercase;
+        }
+        .nav-links { display: flex; align-items: center; gap: 1.75rem; }
+        .nav-link {
+            color: rgba(248,250,252,0.6);
+            font-size: 0.8125rem; font-weight: 700;
+            letter-spacing: 0.04em; text-decoration: none;
+            cursor: pointer;                                    /* ui-ux-pro-max: cursor-pointer */
+            transition: color 0.18s ease;
+            padding: 0.3rem 0;
+        }
+        .nav-link:hover { color: var(--white); }
+
+        /* ── Botones ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-family: 'Lato', sans-serif; font-weight: 700;
+            text-decoration: none; border-radius: 0.5rem; border: none;
+            cursor: pointer;                                    /* ui-ux-pro-max: cursor-pointer */
+            transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .btn-primary {
+            padding: 0.625rem 1.25rem; font-size: 0.8125rem;
+            background: var(--blue); color: white;
+            min-height: 44px;                                   /* ui-ux-pro-max: touch-target-size */
+            box-shadow: 0 2px 10px rgba(3,105,161,0.3);
+        }
+        .btn-primary:hover { background: #0284C7; box-shadow: 0 4px 18px rgba(3,105,161,0.45); }
+
+        .btn-hero {
+            padding: 0.875rem 2rem; font-size: 0.9375rem;
+            background: var(--blue); color: white;
+            min-height: 52px;
+            box-shadow: 0 4px 24px rgba(3,105,161,0.4);
+        }
+        .btn-hero:hover { background: #0284C7; box-shadow: 0 8px 32px rgba(3,105,161,0.5); }
+
+        .btn-ghost {
+            padding: 0.875rem 2rem; font-size: 0.9375rem;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.18);
+            color: rgba(248,250,252,0.82);
+            min-height: 52px;
+        }
+        .btn-ghost:hover {
+            border-color: rgba(255,255,255,0.35);
+            color: var(--white);
+            background: rgba(255,255,255,0.05);
         }
 
-        .card-hover {
-            transition: all 0.3s ease;
+        .btn-cta {
+            padding: 1rem 2.5rem; font-size: 1rem;
+            background: var(--blue); color: white;
+            min-height: 52px;
+            box-shadow: 0 4px 24px rgba(3,105,161,0.38);
+        }
+        .btn-cta:hover { background: #0284C7; box-shadow: 0 8px 32px rgba(3,105,161,0.5); }
+
+        /* ══════════════════════════════════════════════════
+           HERO
+           ══════════════════════════════════════════════════ */
+        .hero {
+            position: relative; min-height: 100vh;
+            background: var(--navy);
+            display: flex; align-items: center;
+            overflow: hidden;
+        }
+        #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+
+        /* Gradient: textos siempre legibles sobre el canvas 3D */
+        .hero-mask {
+            position: absolute; inset: 0; z-index: 1; pointer-events: none;
+            background: linear-gradient(
+                to right,
+                rgba(5,13,26,0.9) 0%,
+                rgba(5,13,26,0.65) 40%,
+                rgba(5,13,26,0.2) 70%,
+                transparent 100%
+            );
+        }
+        .hero-noise {
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity: 0.35;
         }
 
-        .card-hover:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(51, 102, 204, 0.2);
+        .hero-content {
+            position: relative; z-index: 10;
+            max-width: 80rem; margin: 0 auto;
+            padding: 9rem 2rem 5rem;
+            width: 100%;
+        }
+        .hero-text-col { max-width: 560px; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.375rem 0.875rem;
+            background: rgba(16,185,129,0.09);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 2rem;
+            color: var(--em-l);
+            font-family: 'Lato', sans-serif;
+            font-size: 0.6875rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            margin-bottom: 2rem;
+        }
+        .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--em-l); flex-shrink: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .hero-title {
+            font-family: 'EB Garamond', serif;
+            font-size: clamp(3rem, 8vw, 6.25rem);
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1.02;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.75rem;
+        }
+        .hero-title .line-accent { display: block; color: var(--blue-l); }
+
+        .hero-desc {
+            color: rgba(248,250,252,0.7);
+            font-size: 1.0625rem; line-height: 1.72;
+            max-width: 46ch;   /* ui-ux-pro-max: line-length 65-75 chars */
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-actions { display: flex; gap: 0.875rem; flex-wrap: wrap; margin-bottom: 3.75rem; }
+
+        /* Stat cards glass */
+        .hero-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(16px);
+            border-radius: 0.875rem;
+            padding: 1.125rem 1.625rem; min-width: 120px;
+            /* ui-ux-pro-max: NO translateY en hover → no layout shift */
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .stat-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
+        .stat-num {
+            font-family: 'EB Garamond', serif;
+            font-size: 2.125rem; font-weight: 700; line-height: 1;
+            color: var(--white);
+        }
+        .stat-num.c-blue { color: var(--blue-l); }
+        .stat-num.c-em   { color: var(--em-l); }
+        .stat-lbl {
+            font-size: 0.6875rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--muted); margin-top: 0.375rem;
+        }
+
+        /* Scroll indicator */
+        .scroll-ind {
+            position: absolute; bottom: 2.25rem; left: 50%;
+            transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
+            color: rgba(255,255,255,0.2);
+            font-family: 'Lato', sans-serif;
+            font-size: 0.625rem; font-weight: 700;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            z-index: 10; pointer-events: none;
+        }
+        .scroll-line {
+            width: 1px; height: 38px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+            animation: scrollPulse 2.4s ease-in-out infinite;
+        }
+
+        /* ══════════════════════════════════════════════════
+           TRUST BAR — nuevo: prueba social / normativa
+           ══════════════════════════════════════════════════ */
+        .trust-bar {
+            background: white;
+            border-top: 1px solid var(--card-b);
+            border-bottom: 1px solid var(--card-b);
+            padding: 1.625rem 2rem;
+        }
+        .trust-bar-inner {
+            max-width: 80rem; margin: 0 auto;
+            display: flex; align-items: center;
+            justify-content: center; flex-wrap: wrap;
+            gap: 1.5rem 3.5rem;
+        }
+        .trust-item { display: flex; align-items: center; gap: 0.75rem; }
+        .trust-icon {
+            width: 38px; height: 38px;
+            background: var(--surface); border: 1px solid var(--card-b);
+            border-radius: 0.5rem;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--blue); flex-shrink: 0;
+        }
+        .trust-label {
+            font-size: 0.8125rem; font-weight: 700; color: var(--ink);
+            line-height: 1.2;
+        }
+        .trust-sub { font-size: 0.75rem; color: var(--slate); line-height: 1.3; }
+
+        /* ══════════════════════════════════════════════════
+           FEATURES
+           ══════════════════════════════════════════════════ */
+        .features { padding: 7rem 2rem; background: var(--surface); }
+        .section-wrap { max-width: 80rem; margin: 0 auto; }
+
+        .section-eyebrow {
+            font-size: 0.6875rem; font-weight: 900;
+            letter-spacing: 0.18em; text-transform: uppercase;
+            margin-bottom: 0.875rem; display: block;
+        }
+        .section-eyebrow.blue { color: var(--blue); }
+        .section-eyebrow.em   { color: var(--em); }
+
+        .section-h {
+            font-family: 'EB Garamond', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+        .section-sub {
+            color: var(--slate); font-size: 1.0625rem; line-height: 1.68;
+            max-width: 52ch;    /* ui-ux-pro-max: line-length */
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem; margin-top: 3.5rem;
+        }
+
+        .feat-card {
+            background: white;
+            border: 1.5px solid var(--card-b);
+            border-radius: 1.25rem;
+            padding: 1.875rem;
+            position: relative; overflow: hidden;
+            cursor: default;
+            /* ui-ux-pro-max: NO translateY → sin layout shift en hover */
+            transition: border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+        .feat-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(to bottom, var(--blue), var(--em));
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+        .feat-card:hover { border-color: rgba(3,105,161,0.28); box-shadow: 0 8px 28px rgba(3,105,161,0.07); }
+        .feat-card:hover::before { opacity: 1; }
+
+        .feat-icon {
+            width: 52px; height: 52px; border-radius: 0.875rem;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.25rem; flex-shrink: 0;
+        }
+        .feat-icon.blue { background: rgba(3,105,161,0.08); color: var(--blue); }
+        .feat-icon.em   { background: rgba(5,150,105,0.08); color: var(--em); }
+
+        .feat-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.125rem; font-weight: 700;
+            color: var(--ink); margin-bottom: 0.5rem;
+        }
+        .feat-desc { color: var(--slate); font-size: 0.9375rem; line-height: 1.65; }
+
+        /* ══════════════════════════════════════════════════
+           BENEFITS (dark section)
+           ══════════════════════════════════════════════════ */
+        .benefits {
+            padding: 7rem 2rem;
+            background: var(--navy-2);
+            position: relative; overflow: hidden;
+        }
+        .benefits::before {
+            content: '';
+            position: absolute; top: -200px; right: -150px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .benefits::after {
+            content: '';
+            position: absolute; bottom: -200px; left: -150px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(3,105,161,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .benefits-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem; margin-top: 3.5rem;
+        }
+        .ben-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 1.25rem;
+            padding: 1.75rem 1.875rem;
+            display: flex; gap: 1.25rem; align-items: flex-start;
+            cursor: default;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .ben-card:hover { background: rgba(255,255,255,0.055); border-color: rgba(255,255,255,0.1); }
+        .ben-icon {
+            width: 46px; height: 46px; border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .ben-icon.blue { background: rgba(3,105,161,0.16); color: var(--blue-l); }
+        .ben-icon.em   { background: rgba(16,185,129,0.12); color: var(--em-l); }
+        .ben-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.0625rem; font-weight: 700;
+            color: var(--white); margin-bottom: 0.375rem;
+        }
+        .ben-desc { color: var(--muted); font-size: 0.9375rem; line-height: 1.62; }
+
+        /* ══════════════════════════════════════════════════
+           CTA
+           ══════════════════════════════════════════════════ */
+        .cta { padding: 7rem 2rem; background: white; text-align: center; }
+        .cta-inner { max-width: 560px; margin: 0 auto; }
+        .cta-h {
+            font-family: 'EB Garamond', serif;
+            font-size: clamp(2rem, 4vw, 2.875rem);
+            font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+            color: var(--ink); margin-bottom: 1.125rem;
+        }
+        .cta-sub {
+            color: var(--slate); font-size: 1.0625rem; line-height: 1.65;
+            margin-bottom: 2.5rem;
+            max-width: 44ch; margin-left: auto; margin-right: auto;
+        }
+
+        /* ══════════════════════════════════════════════════
+           FOOTER
+           ══════════════════════════════════════════════════ */
+        footer {
+            background: var(--navy);
+            border-top: 1px solid var(--border);
+            padding: 4.5rem 2rem 2.5rem;
+        }
+        .footer-inner { max-width: 80rem; margin: 0 auto; }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr 1fr;
+            gap: 2.5rem;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .footer-eyebrow {
+            font-size: 0.6875rem; font-weight: 900;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: var(--em-l); margin-bottom: 1.25rem; display: block;
+        }
+        .footer-link {
+            display: block; color: var(--muted);
+            font-size: 0.875rem; text-decoration: none;
+            margin-bottom: 0.625rem;
+            cursor: pointer;   /* ui-ux-pro-max: cursor-pointer */
+            transition: color 0.18s ease;
+        }
+        .footer-link:hover { color: var(--white); }
+        .footer-contact {
+            display: flex; align-items: flex-start; gap: 0.625rem;
+            font-size: 0.8125rem; color: var(--muted);
+            margin-bottom: 0.75rem; line-height: 1.5;
+        }
+        .footer-sch-label {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.8125rem; font-weight: 700;
+            color: var(--white); margin-bottom: 0.2rem;
+        }
+        .footer-sch-val { font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.75rem; }
+
+        /* ══════════════════════════════════════════════════
+           RESPONSIVE — ui-ux-pro-max: 375 / 768 / 1024 / 1440
+           ══════════════════════════════════════════════════ */
+        @media (max-width: 1100px) {
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .nav-links .nav-link { display: none; }
+            .benefits-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .trust-bar-inner { justify-content: flex-start; }
+        }
+        @media (max-width: 768px) {
+            .features-grid { grid-template-columns: 1fr; }
+            .nav { top: 0.625rem; width: calc(100% - 1.25rem); padding: 0 1rem; }
+        }
+        @media (max-width: 600px) {
+            .hero-title { font-size: clamp(2.5rem, 11vw, 3.75rem); }
+            .hero-actions { flex-direction: column; }
+            .btn-hero, .btn-ghost { justify-content: center; }
+            .hero-stats { flex-wrap: wrap; }
+            .stat-card  { flex: 1 1 calc(50% - 0.5rem); }
+            .footer-grid { grid-template-columns: 1fr; }
+            .trust-item .trust-sub { display: none; }
+        }
+        @media (max-width: 375px) {
+            .hero-content { padding: 7.5rem 1.25rem 4rem; }
+            .hero-badge { font-size: 0.625rem; }
         }
     </style>
 </head>
-<body class="antialiased bg-gray-50">
+<body>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full bg-white/90 backdrop-blur-md shadow-sm z-50 border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo y Título -->
-                <div class="flex items-center space-x-4">
-                    <img src="{{ asset('images/logo-puerto-boyaca.png') }}" alt="Alcaldía de Puerto Boyacá" class="h-12 w-auto">
-                    <div class="hidden lg:block">
-                        <div class="text-base font-bold" style="color: var(--color-primary-blue);">Alcaldía Municipal</div>
-                        <div class="text-sm font-semibold" style="color: var(--color-primary-green);">Puerto Boyacá - Boyacá</div>
-                    </div>
-                </div>
+{{-- ── Skip link (accesibilidad teclado) — ui-ux-pro-max ── --}}
+<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#inicio" class="text-gray-700 hover:text-[#3366cc] transition-colors font-semibold text-sm">Inicio</a>
-                    <a href="#funcionalidades" class="text-gray-700 hover:text-[#3366cc] transition-colors font-semibold text-sm">Funcionalidades</a>
-                    <a href="#beneficios" class="text-gray-700 hover:text-[#3366cc] transition-colors font-semibold text-sm">Beneficios</a>
-                    <a href="#contacto" class="text-gray-700 hover:text-[#3366cc] transition-colors font-semibold text-sm">Contacto</a>
+{{-- ── NAVBAR FLOTANTE ── --}}
+<nav class="nav scrolled" id="main-nav" role="navigation" aria-label="Navegación principal">
+    <div class="nav-inner">
 
-                    @auth
-                        <a href="{{ url('/admin') }}" class="inline-flex items-center px-6 py-3 rounded-lg text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 gradient-blue-green">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                            </svg>
-                            Panel Administrativo
-                        </a>
-                    @else
-                        <a href="/admin/login" class="inline-flex items-center px-6 py-3 rounded-lg text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 gradient-blue-green">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                            </svg>
-                            Iniciar Sesión
-                        </a>
-                    @endauth
-                </div>
-
-                <!-- Mobile Button -->
-                <div class="md:hidden">
-                    @auth
-                        <a href="{{ url('/admin') }}" class="inline-flex items-center px-4 py-2.5 rounded-lg text-white text-sm font-bold shadow-lg gradient-blue-green">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                            </svg>
-                            Panel
-                        </a>
-                    @else
-                        <a href="/admin/login" class="inline-flex items-center px-5 py-2.5 rounded-lg text-white text-sm font-bold shadow-lg gradient-blue-green">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                            </svg>
-                            Ingresar
-                        </a>
-                    @endauth
-                </div>
+        <a href="#inicio" class="nav-brand" aria-label="Inicio — Alcaldía Municipal de Puerto Boyacá">
+            <img src="{{ asset('images/logo-puerto-boyaca.png') }}" alt="Escudo de Puerto Boyacá">
+            <div>
+                <div class="nav-name">Alcaldía Municipal</div>
+                <div class="nav-sub">Puerto Boyacá · Boyacá</div>
             </div>
-        </div>
-    </nav>
+        </a>
 
-    <!-- Hero Section -->
-    <section id="inicio" class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <!-- Decorative Background -->
-        <div class="absolute inset-0 -z-10">
-            <div class="absolute top-20 right-10 w-96 h-96 bg-[#3366cc] opacity-10 blob"></div>
-            <div class="absolute bottom-10 left-10 w-80 h-80 bg-[#008000] opacity-10 blob" style="animation-delay: -4s;"></div>
-        </div>
-
-        <div class="max-w-7xl mx-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <!-- Content -->
-                <div class="fade-in">
-                    <div class="inline-block px-4 py-2 bg-blue-50 rounded-full mb-6">
-                        <span class="text-[#3366cc] font-bold text-sm">Sistema Oficial de Gestión ARL</span>
-                    </div>
-
-                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-6 leading-tight">
-                        Gestión de
-                        <span class="gradient-text block">Afiliaciones ARL</span>
-                    </h1>
-
-                    <p class="text-xl text-gray-600 mb-4 leading-relaxed">
-                        Sistema web especializado para la administración y control de afiliaciones a la ARL de contratistas en la Alcaldía Municipal de Puerto Boyacá.
-                    </p>
-
-                    <p class="text-lg text-gray-500 mb-8">
-                        Centraliza, digitaliza y optimiza todos los procesos de gestión documental de riesgos laborales.
-                    </p>
-
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        @auth
-                            <a href="{{ url('/admin') }}" class="inline-flex items-center justify-center px-8 py-4 rounded-xl text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 gradient-blue-green">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                </svg>
-                                Ir al Panel de Control
-                            </a>
-                        @else
-                            <a href="/admin/login" class="inline-flex items-center justify-center px-8 py-4 rounded-xl text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 gradient-blue-green">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                                </svg>
-                                Iniciar Sesión
-                            </a>
-                        @endauth
-
-                        <a href="#funcionalidades" class="inline-flex items-center justify-center px-8 py-4 rounded-xl bg-white text-gray-800 font-bold text-lg border-2 border-gray-200 hover:border-[#3366cc] hover:bg-gray-50 transition-all duration-300 shadow-md">
-                            Conocer Más
-                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Hero Image/Card -->
-                <div class="relative fade-in" style="animation-delay: 0.2s;">
-                    <div class="relative rounded-2xl overflow-hidden shadow-2xl">
-                        <!-- Gradient Background -->
-                        <div class="gradient-blue-green p-8">
-                            <div class="bg-white rounded-xl p-8 shadow-lg">
-                                <div class="space-y-6">
-                                    <!-- Stat Item -->
-                                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                                        <div>
-                                            <div class="text-sm text-gray-600 font-semibold">Gestión Digital</div>
-                                            <div class="text-3xl font-extrabold text-[#3366cc]">100%</div>
-                                        </div>
-                                        <div class="w-12 h-12 bg-[#3366cc] rounded-full flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-
-                                    <!-- Stat Item -->
-                                    <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                                        <div>
-                                            <div class="text-sm text-gray-600 font-semibold">Disponibilidad</div>
-                                            <div class="text-3xl font-extrabold text-[#008000]">24/7</div>
-                                        </div>
-                                        <div class="w-12 h-12 bg-[#008000] rounded-full flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-
-                                    <!-- Stat Item -->
-                                    <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                                        <div>
-                                            <div class="text-sm text-gray-600 font-semibold">Seguridad</div>
-                                            <div class="text-2xl font-extrabold text-[#3366cc]">Garantizada</div>
-                                        </div>
-                                        <div class="w-12 h-12 bg-[#3366cc] rounded-full flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features/Funcionalidades Section -->
-    <section id="funcionalidades" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <div class="inline-block px-4 py-2 bg-blue-50 rounded-full mb-4">
-                    <span class="text-[#3366cc] font-bold text-sm">Potentes Funcionalidades</span>
-                </div>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                    Todo lo que Necesitas
-                </h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Sistema completo con todas las herramientas para gestionar afiliaciones ARL de manera eficiente y profesional
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Feature Card 1 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Gestión Centralizada</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Administra todas las afiliaciones ARL de contratistas desde una única plataforma intuitiva y fácil de usar
-                    </p>
-                </div>
-
-                <!-- Feature Card 2 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Control de Acceso</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Sistema de roles y permisos con niveles de acceso diferenciados: Administrador, Dependencia y SSST
-                    </p>
-                </div>
-
-                <!-- Feature Card 3 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Flujo de Validación</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Proceso estructurado de aprobación con estados, trazabilidad completa y seguimiento en tiempo real
-                    </p>
-                </div>
-
-                <!-- Feature Card 4 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Gestión Documental</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Carga, almacenamiento y consulta segura de documentos PDF e imágenes con organización automática
-                    </p>
-                </div>
-
-                <!-- Feature Card 5 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Dashboard Analítico</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Visualización de estadísticas en tiempo real con gráficas interactivas y reportes personalizables
-                    </p>
-                </div>
-
-                <!-- Feature Card 6 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Importación Masiva</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Importa y exporta datos masivamente mediante archivos Excel con validación automática de información
-                    </p>
-                </div>
-
-                <!-- Feature Card 7 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Notificaciones</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Sistema automático de notificaciones por correo electrónico para eventos importantes y vencimientos
-                    </p>
-                </div>
-
-                <!-- Feature Card 8 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Auditoría Completa</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Registro detallado de todas las acciones realizadas en el sistema con historial completo de cambios
-                    </p>
-                </div>
-
-                <!-- Feature Card 9 -->
-                <div class="bg-white p-8 rounded-2xl border-2 border-gray-100 card-hover">
-                    <div class="w-14 h-14 rounded-xl gradient-blue-green flex items-center justify-center mb-6 shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Máxima Seguridad</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Protección robusta con Laravel, encriptación de datos sensibles y cumplimiento de normativas
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section id="beneficios" class="py-20 bg-gradient-to-br from-blue-50 to-green-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <div class="inline-block px-4 py-2 bg-white rounded-full mb-4 shadow-sm">
-                    <span class="gradient-text font-bold text-sm">Beneficios Clave</span>
-                </div>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                    ¿Por Qué Este Sistema?
-                </h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Optimiza los procesos administrativos y mejora la eficiencia de tu dependencia
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Benefit 1 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#3366cc]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Ahorro de Tiempo</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Reduce hasta un 70% el tiempo dedicado a gestión manual de documentos y validaciones
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Benefit 2 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#008000]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Eliminación de Papel</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Sistema 100% digital que contribuye al medio ambiente y facilita el acceso a la información
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Benefit 3 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#3366cc]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Transparencia Total</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Trazabilidad completa de procesos con auditoría de todas las acciones realizadas
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Benefit 4 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#008000]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Control Efectivo</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Alertas automáticas de contratos próximos a vencer para tomar acciones preventivas
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Benefit 5 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#3366cc]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Acceso Remoto</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Disponible 24/7 desde cualquier dispositivo con conexión a internet
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Benefit 6 -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-[#008000]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Reportes Inteligentes</h3>
-                            <p class="text-gray-600 leading-relaxed">
-                                Generación automática de informes y estadísticas para la toma de decisiones
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- CTA Section -->
-    <section class="py-20 relative overflow-hidden">
-        <div class="absolute inset-0 gradient-blue-green opacity-95"></div>
-
-        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6">
-                ¿Listo para Digitalizar la Gestión de ARL?
-            </h2>
-            <p class="text-xl text-white/90 mb-10 leading-relaxed">
-                Accede al sistema ahora y comienza a optimizar los procesos de afiliación de tu dependencia
-            </p>
-
+        <div class="nav-links">
+            <a href="#inicio"           class="nav-link">Inicio</a>
+            <a href="#funcionalidades"  class="nav-link">Módulos</a>
+            <a href="#beneficios"       class="nav-link">Beneficios</a>
+            <a href="#contacto"         class="nav-link">Contacto</a>
             @auth
-                <a href="{{ url('/admin') }}" class="inline-flex items-center justify-center px-10 py-4 rounded-xl bg-white text-[#3366cc] font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                    </svg>
-                    Ir al Panel de Control
+                <a href="{{ url('/admin') }}" class="btn btn-primary" aria-label="Ir al panel de control">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Panel
                 </a>
             @else
-                <a href="/admin/login" class="inline-flex items-center justify-center px-10 py-4 rounded-xl bg-white text-[#3366cc] font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                    </svg>
-                    Iniciar Sesión Ahora
+                <a href="/admin/login" class="btn btn-primary" aria-label="Iniciar sesión en el sistema">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                    Iniciar Sesión
                 </a>
             @endauth
         </div>
-    </section>
 
-    <!-- Contact/Footer Section -->
-    <footer id="contacto" class="bg-gray-900 text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-                <!-- Column 1: Logo & Info -->
-                <div class="lg:col-span-1">
-                    <img src="{{ asset('images/logo-puerto-boyaca.png') }}" alt="Alcaldía de Puerto Boyacá" class="h-16 w-auto mb-4">
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        Sistema oficial de gestión de afiliaciones ARL para contratistas de la Alcaldía Municipal de Puerto Boyacá
-                    </p>
+    </div>
+</nav>
+
+{{-- ── HERO ── --}}
+<section id="inicio" class="hero" aria-labelledby="hero-heading">
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero-mask"  aria-hidden="true"></div>
+    <div class="hero-noise" aria-hidden="true"></div>
+
+    <div class="hero-content" id="main-content">
+        <div class="hero-text-col">
+
+            <div class="hero-badge reveal">
+                <span class="pulse-dot" aria-hidden="true"></span>
+                Sistema Oficial · Gestión ARL
+            </div>
+
+            <h1 class="hero-title reveal delay-1" id="hero-heading">
+                Gestión de<br>
+                <span class="line-accent">Afiliaciones ARL</span>
+            </h1>
+
+            <p class="hero-desc reveal delay-2">
+                Plataforma centralizada para la administración y control de afiliaciones a la ARL de contratistas en la Alcaldía Municipal de Puerto Boyacá.
+            </p>
+
+            <div class="hero-actions reveal delay-3">
+                @auth
+                    <a href="{{ url('/admin') }}" class="btn btn-hero" aria-label="Acceder al panel de control del sistema ARL">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 7l5 5-5 5M6 12h12"/></svg>
+                        Ir al Panel de Control
+                    </a>
+                @else
+                    <a href="/admin/login" class="btn btn-hero" aria-label="Acceder al sistema ARL">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                        Iniciar Sesión
+                    </a>
+                @endauth
+                <a href="#funcionalidades" class="btn btn-ghost" aria-label="Ver módulos del sistema">
+                    Explorar Módulos
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 9l-7 7-7-7"/></svg>
+                </a>
+            </div>
+
+            <div class="hero-stats reveal delay-4" role="list" aria-label="Indicadores del sistema">
+                <div class="stat-card" role="listitem">
+                    <div class="stat-num c-blue">100%</div>
+                    <div class="stat-lbl">Digitalización</div>
                 </div>
-
-                <!-- Column 2: Quick Links -->
-                <div>
-                    <h4 class="text-lg font-bold mb-4 text-[#3366cc]">Navegación</h4>
-                    <ul class="space-y-3">
-                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition-colors text-sm">Inicio</a></li>
-                        <li><a href="#funcionalidades" class="text-gray-400 hover:text-white transition-colors text-sm">Funcionalidades</a></li>
-                        <li><a href="#beneficios" class="text-gray-400 hover:text-white transition-colors text-sm">Beneficios</a></li>
-                        <li><a href="/admin/login" class="text-gray-400 hover:text-white transition-colors text-sm">Iniciar Sesión</a></li>
-                    </ul>
+                <div class="stat-card" role="listitem">
+                    <div class="stat-num c-em">24/7</div>
+                    <div class="stat-lbl">Disponibilidad</div>
                 </div>
-
-                <!-- Column 3: Contact -->
-                <div>
-                    <h4 class="text-lg font-bold mb-4 text-[#008000]">Contacto</h4>
-                    <ul class="space-y-3">
-                        <li class="flex items-start text-sm">
-                            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                            </svg>
-                            <span class="text-gray-400">contactenos@puertoboyaca-boyaca.gov.co</span>
-                        </li>
-                        <li class="flex items-start text-sm">
-                            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                            </svg>
-                            <span class="text-gray-400">+57 (8) 738 33 00</span>
-                        </li>
-                        <li class="flex items-start text-sm">
-                            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-gray-400">Edificio Municipal Carrera 2 Número 10-21</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Column 4: Schedule -->
-                <div>
-                    <h4 class="text-lg font-bold mb-4 text-[#3366cc]">Horario de Atención</h4>
-                    <ul class="space-y-2 text-gray-400 text-sm">
-                        <li class="font-semibold text-white">Lunes a Jueves</li>
-                        <li>8:00 AM - 12:00 PM</li>
-                        <li>2:00 PM - 6:00 PM</li>
-                        <li class="font-semibold text-white mt-3">Viernes</li>
-                        <li>8:00 AM - 12:00 PM</li>
-                        <li>2:00 PM - 5:00 PM</li>
-                    </ul>
+                <div class="stat-card" role="listitem">
+                    <div class="stat-num" style="font-size:1.625rem;letter-spacing:-0.01em;">Seguro</div>
+                    <div class="stat-lbl">Encriptado</div>
                 </div>
             </div>
 
-            <!-- Bottom Footer -->
-            <div class="border-t border-gray-800 pt-8">
-                <div class="text-center">
-                    <p class="text-gray-400 text-sm">
-                        &copy; {{ date('Y') }} Alcaldía Municipal de Puerto Boyacá. Todos los derechos reservados.
-                    </p>
-                    <p class="text-gray-500 text-xs mt-2">
-                        Sistema de Gestión de Afiliaciones ARL
-                    </p>
-                </div>
+        </div>
+    </div>
+
+    <div class="scroll-ind" aria-hidden="true">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+    </div>
+</section>
+
+{{-- ── TRUST BAR — nuevo: prueba de cumplimiento normativo ── --}}
+<div class="trust-bar" role="region" aria-label="Cumplimiento normativo">
+    <div class="trust-bar-inner">
+        <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div>
+                <div class="trust-label">Decreto 1072 de 2015</div>
+                <div class="trust-sub">Cumplimiento SG-SST</div>
             </div>
         </div>
-    </footer>
+        <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+                <div class="trust-label">Ley 1562 de 2012</div>
+                <div class="trust-sub">Sistema General de Riesgos Laborales</div>
+            </div>
+        </div>
+        <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div>
+                <div class="trust-label">Datos Seguros</div>
+                <div class="trust-sub">Encriptación · Habeas Data</div>
+            </div>
+        </div>
+        <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
+            <div>
+                <div class="trust-label">Auditoría Total</div>
+                <div class="trust-sub">Trazabilidad de cada acción</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Smooth Scroll Script -->
-    <script>
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const offsetTop = target.offsetTop - 80;
-                    window.scrollTo({
-                        top: offsetTop,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+{{-- ── FEATURES ── --}}
+<section id="funcionalidades" class="features" aria-labelledby="features-heading">
+    <div class="section-wrap">
+        <div class="reveal">
+            <span class="section-eyebrow blue">Módulos del sistema</span>
+            <h2 class="section-h" id="features-heading" style="color:var(--ink);max-width:520px;">
+                Todo lo que necesitas en una sola plataforma
+            </h2>
+            <p class="section-sub">
+                Sistema completo con todas las herramientas para gestionar afiliaciones ARL de forma eficiente y profesional.
+            </p>
+        </div>
+
+        <div class="features-grid" role="list">
+            @php
+            $features = [
+                ['blue','M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                 'Gestión Centralizada','Administra todas las afiliaciones ARL desde una única plataforma intuitiva y organizada por dependencia.'],
+                ['em','M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+                 'Control de Acceso','Roles y permisos diferenciados: Administrador, Dependencia y SSST con acceso granular por módulo.'],
+                ['blue','M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                 'Flujo de Validación','Proceso estructurado de aprobación con estados, trazabilidad completa y seguimiento en tiempo real.'],
+                ['em','M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+                 'Gestión Documental','Carga, almacenamiento y consulta segura de documentos PDF e imágenes con organización automática.'],
+                ['blue','M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                 'Dashboard Analítico','Visualización de estadísticas en tiempo real con gráficas interactivas y reportes personalizables.'],
+                ['em','M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                 'Importación Masiva','Importa y exporta datos masivamente con archivos Excel y validación automática de información.'],
+                ['blue','M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+                 'Notificaciones','Alertas automáticas por correo para vencimientos de afiliaciones, nuevos registros y eventos críticos.'],
+                ['em','M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+                 'Auditoría Completa','Registro detallado de todas las acciones con historial completo y trazabilidad de cada cambio.'],
+                ['blue','M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+                 'Máxima Seguridad','Protección robusta con Laravel, encriptación de datos sensibles y cumplimiento de normativas colombianas.'],
+            ];
+            $delays = ['delay-1','delay-2','delay-3','delay-1','delay-2','delay-3','delay-1','delay-2','delay-3'];
+            @endphp
+
+            @foreach($features as $i => $f)
+            <div class="feat-card reveal {{ $delays[$i] }}" role="listitem">
+                <div class="feat-icon {{ $f[0] }}" aria-hidden="true">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75"
+                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="{{ $f[1] }}"/>
+                    </svg>
+                </div>
+                <h3 class="feat-title">{{ $f[2] }}</h3>
+                <p class="feat-desc">{{ $f[3] }}</p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- ── BENEFITS (dark) ── --}}
+<section id="beneficios" class="benefits" aria-labelledby="benefits-heading">
+    <div class="section-wrap" style="position:relative;z-index:1;">
+        <div class="reveal">
+            <span class="section-eyebrow em">Por qué este sistema</span>
+            <h2 class="section-h" id="benefits-heading" style="color:var(--white);max-width:520px;">
+                Impacto real en tu dependencia
+            </h2>
+            <p class="section-sub" style="color:var(--muted);">
+                Diseñado para los procesos administrativos específicos de la Alcaldía Municipal de Puerto Boyacá.
+            </p>
+        </div>
+
+        <div class="benefits-grid" role="list">
+            @php
+            $benefits = [
+                ['blue','M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+                 'Ahorro de Tiempo del 70%',
+                 'Reduce drásticamente el tiempo dedicado a gestión manual de documentos y validaciones administrativas.'],
+                ['em','M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+                 'Eliminación de Papel',
+                 'Sistema 100% digital que contribuye al medio ambiente y facilita el acceso instantáneo a la información.'],
+                ['blue','M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                 'Transparencia Total',
+                 'Trazabilidad completa de cada proceso con auditoría detallada de todas las acciones realizadas.'],
+                ['em','M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+                 'Control Preventivo',
+                 'Alertas automáticas de afiliaciones próximas a vencer para tomar acciones preventivas a tiempo.'],
+                ['blue','M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                 'Acceso Remoto 24/7',
+                 'Disponible desde cualquier dispositivo con conexión a internet, en cualquier momento del día.'],
+                ['em','M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                 'Reportes Inteligentes',
+                 'Generación automática de informes y estadísticas para una toma de decisiones fundamentada.'],
+            ];
+            @endphp
+
+            @foreach($benefits as $i => $b)
+            <div class="ben-card reveal delay-{{ ($i % 3) + 1 }}" role="listitem">
+                <div class="ben-icon {{ $b[0] }}" aria-hidden="true">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75"
+                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="{{ $b[1] }}"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="ben-title">{{ $b[2] }}</h3>
+                    <p class="ben-desc">{{ $b[3] }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- ── CTA ── --}}
+<section class="cta" aria-labelledby="cta-heading">
+    <div class="cta-inner reveal">
+        <span class="section-eyebrow blue">Comienza ahora</span>
+        <h2 class="cta-h" id="cta-heading">¿Listo para digitalizar la gestión de ARL?</h2>
+        <p class="cta-sub">Accede al sistema y optimiza los procesos de afiliación de tu dependencia desde hoy mismo.</p>
+        @auth
+            <a href="{{ url('/admin') }}" class="btn btn-cta" aria-label="Ir al panel de control">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 7l5 5-5 5M6 12h12"/></svg>
+                Ir al Panel de Control
+            </a>
+        @else
+            <a href="/admin/login" class="btn btn-cta" aria-label="Acceder al sistema">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                Iniciar Sesión Ahora
+            </a>
+        @endauth
+    </div>
+</section>
+
+{{-- ── FOOTER ── --}}
+<footer id="contacto" role="contentinfo">
+    <div class="footer-inner">
+        <div class="footer-grid">
+
+            <div>
+                <img src="{{ asset('images/logo-puerto-boyaca.png') }}"
+                     alt="Escudo de la Alcaldía de Puerto Boyacá"
+                     style="height:2.75rem;width:auto;margin-bottom:1.25rem;">
+                <p style="font-size:0.875rem;color:var(--muted);line-height:1.7;max-width:260px;">
+                    Sistema oficial de gestión de afiliaciones ARL para contratistas de la Alcaldía Municipal de Puerto Boyacá.
+                </p>
+            </div>
+
+            <div>
+                <span class="footer-eyebrow">Navegación</span>
+                <a href="#inicio"          class="footer-link">Inicio</a>
+                <a href="#funcionalidades" class="footer-link">Módulos</a>
+                <a href="#beneficios"      class="footer-link">Beneficios</a>
+                <a href="/admin/login"     class="footer-link">Iniciar Sesión</a>
+            </div>
+
+            <div>
+                <span class="footer-eyebrow">Contacto</span>
+                <div class="footer-contact">
+                    <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"
+                         style="flex-shrink:0;margin-top:2px;" aria-hidden="true">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                    </svg>
+                    <a href="mailto:contactenos@puertoboyaca-boyaca.gov.co"
+                       class="footer-link" style="margin-bottom:0;">
+                        contactenos@puertoboyaca-boyaca.gov.co
+                    </a>
+                </div>
+                <div class="footer-contact">
+                    <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"
+                         style="flex-shrink:0;margin-top:2px;" aria-hidden="true">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                    </svg>
+                    <a href="tel:+5787383300" class="footer-link" style="margin-bottom:0;">
+                        +57 (8) 738 33 00
+                    </a>
+                </div>
+                <div class="footer-contact">
+                    <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20"
+                         style="flex-shrink:0;margin-top:2px;" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Carrera 2 Número 10-21, Edificio Municipal</span>
+                </div>
+            </div>
+
+            <div>
+                <span class="footer-eyebrow">Horario</span>
+                <div class="footer-sch-label">Lunes a Jueves</div>
+                <div class="footer-sch-val">8:00 AM – 12:00 PM · 2:00 PM – 6:00 PM</div>
+                <div class="footer-sch-label">Viernes</div>
+                <div class="footer-sch-val">8:00 AM – 12:00 PM · 2:00 PM – 5:00 PM</div>
+            </div>
+
+        </div>
+        <div style="text-align:center;">
+            <p style="font-size:0.8125rem;color:var(--muted);">
+                &copy; {{ date('Y') }} Alcaldía Municipal de Puerto Boyacá. Todos los derechos reservados.
+            </p>
+            <p style="font-size:0.6875rem;color:rgba(148,163,184,0.35);margin-top:0.25rem;">
+                Sistema de Gestión de Afiliaciones ARL
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+// ════════════════════════════════════════════════
+//  prefers-reduced-motion — ui-ux-pro-max: reduced-motion
+// ════════════════════════════════════════════════
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ════════════════════════════════════════════════
+//  3D HERO — Three.js (skill: 3d-web-experience)
+//  Desactivado si prefers-reduced-motion o hardware débil
+// ════════════════════════════════════════════════
+(function () {
+    if (prefersReducedMotion) return;
+    const canvas = document.getElementById('hero-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setClearColor(0x050D1A, 1);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
+    camera.position.set(0, 0, 7);
+
+    function resize() {
+        const hero = document.querySelector('.hero');
+        if (!hero) return;
+        const w = hero.clientWidth, h = hero.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    // Icosaedro exterior (azul sky)
+    const geoOuter = new THREE.IcosahedronGeometry(2.2, 1);
+    const matOuter = new THREE.MeshBasicMaterial({ color: 0x0EA5E9, wireframe: true, transparent: true, opacity: 0.11 });
+    const meshOuter = new THREE.Mesh(geoOuter, matOuter);
+    meshOuter.position.set(3.2, 0.2, 0);
+    scene.add(meshOuter);
+
+    // Icosaedro interior (verde esmeralda)
+    const geoInner = new THREE.IcosahedronGeometry(1.5, 0);
+    const matInner = new THREE.MeshBasicMaterial({ color: 0x10B981, wireframe: true, transparent: true, opacity: 0.09 });
+    const meshInner = new THREE.Mesh(geoInner, matInner);
+    meshInner.position.set(3.2, 0.2, 0);
+    scene.add(meshInner);
+
+    // Dodecaedro orbital
+    const geoDodec = new THREE.DodecahedronGeometry(0.45, 0);
+    const matDodec = new THREE.MeshBasicMaterial({ color: 0x60A5FA, wireframe: true, transparent: true, opacity: 0.22 });
+    const meshDodec = new THREE.Mesh(geoDodec, matDodec);
+    scene.add(meshDodec);
+
+    // Campo de partículas
+    const count = window.innerWidth < 600 ? 50 : 110;
+    const pos   = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * 22;
+        pos[i*3+1] = (Math.random() - 0.5) * 14;
+        pos[i*3+2] = (Math.random() - 0.5) * 8 - 3;
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const pMat = new THREE.PointsMaterial({ color: 0x3B82F6, size: 0.03, transparent: true, opacity: 0.38 });
+    const particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
+
+    // Grid tenue
+    const grid = new THREE.GridHelper(40, 36, 0x1E3A6E, 0x0B1829);
+    grid.position.y = -4.5;
+    grid.material.transparent = true;
+    grid.material.opacity = 0.15;
+    scene.add(grid);
+
+    // Parallax con mouse
+    let mx = 0, my = 0;
+    document.addEventListener('mousemove', e => {
+        mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+        my = (e.clientY / window.innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    let t = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        t += 0.005;
+
+        meshOuter.rotation.x = t * 0.22 + my * 0.07;
+        meshOuter.rotation.y = t * 0.4  + mx * 0.07;
+        meshInner.rotation.x = -t * 0.3;
+        meshInner.rotation.y = -t * 0.25;
+
+        meshDodec.position.x = 3.2 + Math.cos(t * 0.65) * 3.2;
+        meshDodec.position.y = 0.2 + Math.sin(t * 0.48) * 2;
+        meshDodec.position.z = Math.sin(t * 0.55) * 1.5;
+        meshDodec.rotation.x = t * 0.75;
+        meshDodec.rotation.y = t * 0.55;
+
+        particles.rotation.y = t * 0.033;
+
+        camera.position.x += (mx * 0.35 - camera.position.x) * 0.04;
+        camera.position.y += (-my * 0.25 - camera.position.y) * 0.04;
+        camera.lookAt(scene.position);
+
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+
+// ════════════════════════════════════════════════
+//  SCROLL REVEAL — ui-ux-pro-max: animation
+// ════════════════════════════════════════════════
+if (!prefersReducedMotion) {
+    const revealEls = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                io.unobserve(e.target);
+            }
         });
+    }, { threshold: 0.07, rootMargin: '0px 0px -32px 0px' });
 
-        // Add active class to nav on scroll
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    revealEls.forEach(el => io.observe(el));
 
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (scrollY >= (sectionTop - 200)) {
-                    current = section.getAttribute('id');
-                }
-            });
+    // Hero: visible de inmediato
+    document.querySelectorAll('.hero .reveal').forEach(el => el.classList.add('visible'));
+} else {
+    // Si prefiere sin movimiento: mostrar todo de una vez
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+}
 
-            navLinks.forEach(link => {
-                link.classList.remove('text-[#3366cc]');
-                if (link.getAttribute('href').slice(1) === current) {
-                    link.classList.add('text-[#3366cc]');
-                }
-            });
+// ── Nav: clase 'scrolled' al hacer scroll ──
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+}, { passive: true });
+
+// ── Smooth scroll ──
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) window.scrollTo({
+            top: target.offsetTop - 82,
+            behavior: prefersReducedMotion ? 'auto' : 'smooth'
         });
-    </script>
+    });
+});
+</script>
 </body>
 </html>
