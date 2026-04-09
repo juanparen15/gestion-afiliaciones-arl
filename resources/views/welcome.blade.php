@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    {{-- Three.js r128 para el hero 3D --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    {{-- Spline viewer web component --}}
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.79/build/spline-viewer.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -184,15 +184,15 @@
 
         .btn-ghost {
             padding: 0.875rem 2rem; font-size: 0.9375rem;
-            background: transparent;
-            border: 1.5px solid rgba(255,255,255,0.18);
-            color: rgba(248,250,252,0.82);
+            background: rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(0,0,0,0.15);
+            color: var(--slate);
             min-height: 52px;
         }
         .btn-ghost:hover {
-            border-color: rgba(255,255,255,0.35);
-            color: var(--white);
-            background: rgba(255,255,255,0.05);
+            border-color: rgba(0,0,0,0.28);
+            color: var(--ink);
+            background: rgba(255,255,255,0.85);
         }
 
         .btn-cta {
@@ -208,44 +208,39 @@
            ══════════════════════════════════════════════════ */
         .hero {
             position: relative; min-height: 100vh;
-            background: var(--navy);
-            display: flex; align-items: center;
+            background: white;
+            display: flex; align-items: flex-end;
             overflow: hidden;
         }
-        #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+        spline-viewer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
 
-        /* Gradient: textos siempre legibles sobre el canvas 3D */
-        .hero-mask {
-            position: absolute; inset: 0; z-index: 1; pointer-events: none;
-            background: linear-gradient(
-                to right,
-                rgba(5,13,26,0.9) 0%,
-                rgba(5,13,26,0.65) 40%,
-                rgba(5,13,26,0.2) 70%,
-                transparent 100%
-            );
-        }
-        .hero-noise {
-            position: absolute; inset: 0; z-index: 2; pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-            opacity: 0.35;
-        }
+        /* Ocultar logo de Spline */
+        spline-viewer::part(logo) { display: none; }
 
-        .hero-content {
-            position: relative; z-index: 10;
-            max-width: 80rem; margin: 0 auto;
-            padding: 9rem 2rem 5rem;
-            width: 100%;
+        .hero-mask  { display: none; }
+        .hero-noise { display: none; }
+
+        /* ══════════════════════════════════════════════════
+           HERO INTRO — sección debajo del Spline
+           ══════════════════════════════════════════════════ */
+        .hero-intro {
+            background: white;
+            padding: 5rem 2rem 4.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--card-b);
         }
-        .hero-text-col { max-width: 560px; }
+        .hero-intro-inner { max-width: 680px; margin: 0 auto; }
+        .hero-actions { justify-content: center; }
+        .hero-stats   { justify-content: center; }
+        .hero-desc    { margin-left: auto; margin-right: auto; }
 
         .hero-badge {
             display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.375rem 0.875rem;
-            background: rgba(16,185,129,0.09);
-            border: 1px solid rgba(16,185,129,0.2);
+            background: rgba(5,150,105,0.08);
+            border: 1px solid rgba(5,150,105,0.25);
             border-radius: 2rem;
-            color: var(--em-l);
+            color: var(--em);
             font-family: 'Lato', sans-serif;
             font-size: 0.6875rem; font-weight: 700;
             letter-spacing: 0.12em; text-transform: uppercase;
@@ -261,38 +256,37 @@
             font-family: 'EB Garamond', serif;
             font-size: clamp(3rem, 8vw, 6.25rem);
             font-weight: 700;
-            color: var(--white);
+            color: var(--ink);
             line-height: 1.02;
             letter-spacing: -0.02em;
             margin-bottom: 1.75rem;
         }
-        .hero-title .line-accent { display: block; color: var(--blue-l); }
+        .hero-title .line-accent { display: block; color: var(--blue); }
 
         .hero-desc {
-            color: rgba(248,250,252,0.7);
+            color: var(--slate);
             font-size: 1.0625rem; line-height: 1.72;
-            max-width: 46ch;   /* ui-ux-pro-max: line-length 65-75 chars */
+            max-width: 46ch;
             margin-bottom: 2.5rem;
         }
 
         .hero-actions { display: flex; gap: 0.875rem; flex-wrap: wrap; margin-bottom: 3.75rem; }
 
-        /* Stat cards glass */
+        /* Stat cards */
         .hero-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
         .stat-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            backdrop-filter: blur(16px);
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(0,0,0,0.08);
+            backdrop-filter: blur(12px);
             border-radius: 0.875rem;
             padding: 1.125rem 1.625rem; min-width: 120px;
-            /* ui-ux-pro-max: NO translateY en hover → no layout shift */
             transition: background 0.2s ease, border-color 0.2s ease;
         }
-        .stat-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
+        .stat-card:hover { background: rgba(255,255,255,0.92); border-color: rgba(0,0,0,0.14); }
         .stat-num {
             font-family: 'EB Garamond', serif;
             font-size: 2.125rem; font-weight: 700; line-height: 1;
-            color: var(--white);
+            color: var(--ink);
         }
         .stat-num.c-blue { color: var(--blue-l); }
         .stat-num.c-em   { color: var(--em-l); }
@@ -307,7 +301,7 @@
             position: absolute; bottom: 2.25rem; left: 50%;
             transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; gap: 0.375rem;
-            color: rgba(255,255,255,0.2);
+            color: var(--slate);
             font-family: 'Lato', sans-serif;
             font-size: 0.625rem; font-weight: 700;
             letter-spacing: 0.2em; text-transform: uppercase;
@@ -315,7 +309,7 @@
         }
         .scroll-line {
             width: 1px; height: 38px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(to bottom, var(--slate), transparent);
             animation: scrollPulse 2.4s ease-in-out infinite;
         }
 
@@ -593,68 +587,66 @@
     </div>
 </nav>
 
-{{-- ── HERO ── --}}
-<section id="inicio" class="hero" aria-labelledby="hero-heading">
-    <canvas id="hero-canvas" aria-hidden="true"></canvas>
-    <div class="hero-mask"  aria-hidden="true"></div>
-    <div class="hero-noise" aria-hidden="true"></div>
-
-    <div class="hero-content" id="main-content">
-        <div class="hero-text-col">
-
-            <div class="hero-badge reveal">
-                <span class="pulse-dot" aria-hidden="true"></span>
-                Sistema Oficial · Gestión ARL
-            </div>
-
-            <h1 class="hero-title reveal delay-1" id="hero-heading">
-                Gestión de<br>
-                <span class="line-accent">Afiliaciones ARL</span>
-            </h1>
-
-            <p class="hero-desc reveal delay-2">
-                Plataforma centralizada para la administración y control de afiliaciones a la ARL de contratistas en la Alcaldía Municipal de Puerto Boyacá.
-            </p>
-
-            <div class="hero-actions reveal delay-3">
-                @auth
-                    <a href="{{ url('/admin') }}" class="btn btn-hero" aria-label="Acceder al panel de control del sistema ARL">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 7l5 5-5 5M6 12h12"/></svg>
-                        Ir al Panel de Control
-                    </a>
-                @else
-                    <a href="/admin/login" class="btn btn-hero" aria-label="Acceder al sistema ARL">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-                        Iniciar Sesión
-                    </a>
-                @endauth
-                <a href="#funcionalidades" class="btn btn-ghost" aria-label="Ver módulos del sistema">
-                    Explorar Módulos
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 9l-7 7-7-7"/></svg>
-                </a>
-            </div>
-
-            <div class="hero-stats reveal delay-4" role="list" aria-label="Indicadores del sistema">
-                <div class="stat-card" role="listitem">
-                    <div class="stat-num c-blue">100%</div>
-                    <div class="stat-lbl">Digitalización</div>
-                </div>
-                <div class="stat-card" role="listitem">
-                    <div class="stat-num c-em">24/7</div>
-                    <div class="stat-lbl">Disponibilidad</div>
-                </div>
-                <div class="stat-card" role="listitem">
-                    <div class="stat-num" style="font-size:1.625rem;letter-spacing:-0.01em;">Seguro</div>
-                    <div class="stat-lbl">Encriptado</div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
+{{-- ── HERO: Spline pantalla completa ── --}}
+<section id="inicio" class="hero">
+    <spline-viewer url="https://prod.spline.design/2xuDQNAsh4BD2R14/scene.splinecode" aria-hidden="true"></spline-viewer>
     <div class="scroll-ind" aria-hidden="true">
         <span>Scroll</span>
         <div class="scroll-line"></div>
+    </div>
+</section>
+
+{{-- ── HERO INTRO: título y acciones ── --}}
+<section class="hero-intro" id="main-content" aria-labelledby="hero-heading">
+    <div class="hero-intro-inner">
+
+        <div class="hero-badge reveal">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            Sistema Oficial · Gestión ARL
+        </div>
+
+        <h1 class="hero-title reveal delay-1" id="hero-heading">
+            Gestión de
+            <span class="line-accent">Afiliaciones ARL</span>
+        </h1>
+
+        <p class="hero-desc reveal delay-2">
+            Plataforma centralizada para la administración y control de afiliaciones a la ARL de contratistas en la Alcaldía Municipal de Puerto Boyacá.
+        </p>
+
+        <div class="hero-actions reveal delay-3">
+            @auth
+                <a href="{{ url('/admin') }}" class="btn btn-hero" aria-label="Acceder al panel de control del sistema ARL">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 7l5 5-5 5M6 12h12"/></svg>
+                    Ir al Panel de Control
+                </a>
+            @else
+                <a href="/admin/login" class="btn btn-hero" aria-label="Acceder al sistema ARL">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                    Iniciar Sesión
+                </a>
+            @endauth
+            <a href="#funcionalidades" class="btn btn-ghost" aria-label="Ver módulos del sistema">
+                Explorar Módulos
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 9l-7 7-7-7"/></svg>
+            </a>
+        </div>
+
+        <div class="hero-stats reveal delay-4" role="list" aria-label="Indicadores del sistema">
+            <div class="stat-card" role="listitem">
+                <div class="stat-num c-blue">100%</div>
+                <div class="stat-lbl">Digitalización</div>
+            </div>
+            <div class="stat-card" role="listitem">
+                <div class="stat-num c-em">24/7</div>
+                <div class="stat-lbl">Disponibilidad</div>
+            </div>
+            <div class="stat-card" role="listitem">
+                <div class="stat-num" style="font-size:1.625rem;letter-spacing:-0.01em;">Seguro</div>
+                <div class="stat-lbl">Encriptado</div>
+            </div>
+        </div>
+
     </div>
 </section>
 
@@ -904,113 +896,28 @@
 
 <script>
 // ════════════════════════════════════════════════
+//  Ocultar logo de Spline (shadow DOM)
+// ════════════════════════════════════════════════
+(function hideSplineLogo() {
+    const viewer = document.querySelector('spline-viewer');
+    if (!viewer) return;
+    const hide = () => {
+        const root = viewer.shadowRoot;
+        if (!root) return;
+        ['#logo','a[href*="spline"]','[class*="logo"]'].forEach(sel => {
+            root.querySelectorAll(sel).forEach(el => el.style.setProperty('display','none','important'));
+        });
+    };
+    viewer.addEventListener('load', hide);
+    // fallback por si ya cargó
+    setTimeout(hide, 1500);
+    setTimeout(hide, 4000);
+})();
+
+// ════════════════════════════════════════════════
 //  prefers-reduced-motion — ui-ux-pro-max: reduced-motion
 // ════════════════════════════════════════════════
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// ════════════════════════════════════════════════
-//  3D HERO — Three.js (skill: 3d-web-experience)
-//  Desactivado si prefers-reduced-motion o hardware débil
-// ════════════════════════════════════════════════
-(function () {
-    if (prefersReducedMotion) return;
-    const canvas = document.getElementById('hero-canvas');
-    if (!canvas || typeof THREE === 'undefined') return;
-    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) return;
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-    renderer.setClearColor(0x050D1A, 1);
-
-    const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
-    camera.position.set(0, 0, 7);
-
-    function resize() {
-        const hero = document.querySelector('.hero');
-        if (!hero) return;
-        const w = hero.clientWidth, h = hero.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-    }
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-
-    // Icosaedro exterior (azul sky)
-    const geoOuter = new THREE.IcosahedronGeometry(2.2, 1);
-    const matOuter = new THREE.MeshBasicMaterial({ color: 0x0EA5E9, wireframe: true, transparent: true, opacity: 0.11 });
-    const meshOuter = new THREE.Mesh(geoOuter, matOuter);
-    meshOuter.position.set(3.2, 0.2, 0);
-    scene.add(meshOuter);
-
-    // Icosaedro interior (verde esmeralda)
-    const geoInner = new THREE.IcosahedronGeometry(1.5, 0);
-    const matInner = new THREE.MeshBasicMaterial({ color: 0x10B981, wireframe: true, transparent: true, opacity: 0.09 });
-    const meshInner = new THREE.Mesh(geoInner, matInner);
-    meshInner.position.set(3.2, 0.2, 0);
-    scene.add(meshInner);
-
-    // Dodecaedro orbital
-    const geoDodec = new THREE.DodecahedronGeometry(0.45, 0);
-    const matDodec = new THREE.MeshBasicMaterial({ color: 0x60A5FA, wireframe: true, transparent: true, opacity: 0.22 });
-    const meshDodec = new THREE.Mesh(geoDodec, matDodec);
-    scene.add(meshDodec);
-
-    // Campo de partículas
-    const count = window.innerWidth < 600 ? 50 : 110;
-    const pos   = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-        pos[i*3]   = (Math.random() - 0.5) * 22;
-        pos[i*3+1] = (Math.random() - 0.5) * 14;
-        pos[i*3+2] = (Math.random() - 0.5) * 8 - 3;
-    }
-    const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0x3B82F6, size: 0.03, transparent: true, opacity: 0.38 });
-    const particles = new THREE.Points(pGeo, pMat);
-    scene.add(particles);
-
-    // Grid tenue
-    const grid = new THREE.GridHelper(40, 36, 0x1E3A6E, 0x0B1829);
-    grid.position.y = -4.5;
-    grid.material.transparent = true;
-    grid.material.opacity = 0.15;
-    scene.add(grid);
-
-    // Parallax con mouse
-    let mx = 0, my = 0;
-    document.addEventListener('mousemove', e => {
-        mx = (e.clientX / window.innerWidth  - 0.5) * 2;
-        my = (e.clientY / window.innerHeight - 0.5) * 2;
-    }, { passive: true });
-
-    let t = 0;
-    function animate() {
-        requestAnimationFrame(animate);
-        t += 0.005;
-
-        meshOuter.rotation.x = t * 0.22 + my * 0.07;
-        meshOuter.rotation.y = t * 0.4  + mx * 0.07;
-        meshInner.rotation.x = -t * 0.3;
-        meshInner.rotation.y = -t * 0.25;
-
-        meshDodec.position.x = 3.2 + Math.cos(t * 0.65) * 3.2;
-        meshDodec.position.y = 0.2 + Math.sin(t * 0.48) * 2;
-        meshDodec.position.z = Math.sin(t * 0.55) * 1.5;
-        meshDodec.rotation.x = t * 0.75;
-        meshDodec.rotation.y = t * 0.55;
-
-        particles.rotation.y = t * 0.033;
-
-        camera.position.x += (mx * 0.35 - camera.position.x) * 0.04;
-        camera.position.y += (-my * 0.25 - camera.position.y) * 0.04;
-        camera.lookAt(scene.position);
-
-        renderer.render(scene, camera);
-    }
-    animate();
-})();
 
 // ════════════════════════════════════════════════
 //  SCROLL REVEAL — ui-ux-pro-max: animation
