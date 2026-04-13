@@ -43,7 +43,13 @@ class AIReportService
         $data = $res->json();
 
         // Si Gemini quiere usar herramientas → ejecutarlas y llamar de nuevo
-        $parts = $data['candidates'][0]['content']['parts'] ?? [];
+        // Nota: PHP decodifica args:{} como [] (array vacío); hay que revertirlo a objeto
+        $parts = array_map(function ($p) {
+            if (isset($p['functionCall']['args']) && $p['functionCall']['args'] === []) {
+                $p['functionCall']['args'] = new \stdClass();
+            }
+            return $p;
+        }, $data['candidates'][0]['content']['parts'] ?? []);
         $functionCalls = array_filter($parts, fn ($p) => isset($p['functionCall']));
 
         if (! empty($functionCalls)) {
