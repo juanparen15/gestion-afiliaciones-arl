@@ -2,21 +2,48 @@
     <div class="space-y-6">
 
         {{-- Ejemplos rápidos --}}
-        <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Preguntas sugeridas:</p>
-            <div class="flex flex-wrap gap-2">
-                @foreach($this->ejemplos() as $ejemplo)
-                    <button
-                        wire:click="usarEjemplo('{{ $ejemplo }}')"
-                        type="button"
-                        class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium
-                               bg-primary-50 text-primary-700 border border-primary-200
-                               hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300
-                               dark:border-primary-700 dark:hover:bg-primary-900/50
-                               transition-colors cursor-pointer">
-                        {{ $ejemplo }}
-                    </button>
-                @endforeach
+        <div class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+            <div class="p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-900/40 flex items-center justify-center flex-shrink-0">
+                        <x-heroicon-m-light-bulb class="w-3.5 h-3.5 text-primary-600 dark:text-primary-400"/>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Preguntas sugeridas</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @php
+                        $iconos = [
+                            'heroicon-o-document-text',
+                            'heroicon-o-building-office-2',
+                            'heroicon-o-clock',
+                            'heroicon-o-banknotes',
+                            'heroicon-o-shield-check',
+                            'heroicon-o-user-group',
+                        ];
+                    @endphp
+                    @foreach($this->ejemplos() as $i => $ejemplo)
+                        <button
+                            wire:click="usarEjemplo('{{ $ejemplo }}')"
+                            type="button"
+                            class="group flex items-start gap-3 w-full text-left rounded-lg px-3.5 py-3
+                                   border border-gray-200 dark:border-white/10
+                                   bg-gray-50 dark:bg-white/5
+                                   hover:bg-primary-50 hover:border-primary-200
+                                   dark:hover:bg-primary-900/20 dark:hover:border-primary-700/50
+                                   transition-all duration-150 cursor-pointer">
+                            <x-dynamic-component
+                                :component="$iconos[$i] ?? 'heroicon-o-chat-bubble-left'"
+                                class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400 dark:text-gray-500
+                                       group-hover:text-primary-500 dark:group-hover:text-primary-400
+                                       transition-colors"/>
+                            <span class="text-xs text-gray-600 dark:text-gray-400
+                                         group-hover:text-primary-700 dark:group-hover:text-primary-300
+                                         transition-colors leading-relaxed">
+                                {{ $ejemplo }}
+                            </span>
+                        </button>
+                    @endforeach
+                </div>
             </div>
         </div>
 

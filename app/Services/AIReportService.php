@@ -71,7 +71,7 @@ class AIReportService
             $res2 = Http::post($url, $payload);
 
             if (! $res2->successful()) {
-                return ['error' => 'Error en segunda llamada a Gemini.'];
+                return ['error' => 'Error en segunda llamada a Gemini: ' . $res2->body()];
             }
 
             $data = $res2->json();
@@ -79,7 +79,7 @@ class AIReportService
 
         // Extraer texto final
         $texto = collect($data['candidates'][0]['content']['parts'] ?? [])
-            ->where('text')
+            ->filter(fn ($p) => isset($p['text']))
             ->pluck('text')
             ->implode('');
 
