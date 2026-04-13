@@ -26,6 +26,13 @@ Schedule::command('afiliaciones:notificar-vencimientos --dias=30')
     ->runInBackground()
     ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));
 
+// Notificar contratos SECOP próximos a vencer - cada lunes a las 7:30 AM
+Schedule::command('contratos:notificar-vencimientos --dias=30')
+    ->weeklyOn(1, '07:30')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));
+
 // Actualizar estado de contratos según fecha de cierre efectiva - diario a las 6:00 AM
 Schedule::command('contratos:actualizar-estados')
     ->dailyAt('06:00')
