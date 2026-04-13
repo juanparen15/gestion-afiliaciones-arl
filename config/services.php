@@ -35,9 +35,9 @@ return [
         ],
     ],
 
-    'anthropic' => [
-        'key'   => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-opus-4-6'),
+    'gemini' => [
+        'key'   => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
     ],
 
 ];

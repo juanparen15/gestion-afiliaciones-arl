@@ -133,14 +133,14 @@
         @endif
 
         {{-- Info configuración --}}
-        @if(empty(config('services.anthropic.key')))
+        @if(empty(config('services.gemini.key')))
             <div class="fi-section rounded-xl bg-warning-50 ring-1 ring-warning-200 dark:bg-warning-900/20 dark:ring-warning-800 p-5">
                 <div class="flex items-start gap-3">
                     <x-heroicon-m-key class="w-5 h-5 text-warning-600 dark:text-warning-400 flex-shrink-0 mt-0.5"/>
                     <div>
                         <p class="text-sm font-semibold text-warning-800 dark:text-warning-300">API Key no configurada</p>
                         <p class="text-sm text-warning-700 dark:text-warning-400 mt-1">
-                            Agrega <code class="bg-warning-100 dark:bg-warning-900/50 px-1 rounded">ANTHROPIC_API_KEY=tu_clave</code>
+                            Agrega <code class="bg-warning-100 dark:bg-warning-900/50 px-1 rounded">GEMINI_API_KEY=tu_clave</code>
                             en el archivo <code class="bg-warning-100 dark:bg-warning-900/50 px-1 rounded">.env</code> del servidor.
                         </p>
                     </div>

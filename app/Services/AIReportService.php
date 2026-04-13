@@ -10,89 +10,83 @@ class AIReportService
 {
     private string $apiKey;
     private string $model;
-    private const API_URL = 'https://api.anthropic.com/v1/messages';
 
     public function __construct()
     {
-        $this->apiKey = config('services.anthropic.key', '');
-        $this->model  = config('services.anthropic.model', 'claude-opus-4-6');
+        $this->apiKey = config('services.gemini.key', '');
+        $this->model  = config('services.gemini.model', 'gemini-2.0-flash');
     }
 
     public function consultar(string $pregunta): array
     {
         if (empty($this->apiKey)) {
-            return ['error' => 'ANTHROPIC_API_KEY no está configurada en el servidor.'];
+            return ['error' => 'GEMINI_API_KEY no está configurada en el servidor.'];
         }
 
-        $messages   = [['role' => 'user', 'content' => $pregunta]];
-        $tools      = $this->tools();
-        $headers    = [
-            'x-api-key'         => $this->apiKey,
-            'anthropic-version' => '2023-06-01',
-            'content-type'      => 'application/json',
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $contents = [['role' => 'user', 'parts' => [['text' => $pregunta]]]];
+
+        $payload = [
+            'system_instruction' => ['parts' => [['text' => $this->systemPrompt()]]],
+            'tools'              => [['function_declarations' => $this->tools()]],
+            'contents'           => $contents,
         ];
 
         // Primera llamada
-        $res = Http::withHeaders($headers)->post(self::API_URL, [
-            'model'      => $this->model,
-            'max_tokens' => 2048,
-            'system'     => $this->systemPrompt(),
-            'tools'      => $tools,
-            'messages'   => $messages,
-        ]);
+        $res = Http::post($url, $payload);
 
         if (! $res->successful()) {
-            return ['error' => 'Error al contactar la IA: ' . $res->body()];
+            return ['error' => 'Error al contactar Gemini: ' . $res->body()];
         }
 
         $data = $res->json();
 
-        // Si Claude quiere usar herramientas → ejecutarlas y llamar de nuevo
-        if (($data['stop_reason'] ?? '') === 'tool_use') {
-            $toolResults = [];
+        // Si Gemini quiere usar herramientas → ejecutarlas y llamar de nuevo
+        $parts = $data['candidates'][0]['content']['parts'] ?? [];
+        $functionCalls = array_filter($parts, fn ($p) => isset($p['functionCall']));
 
-            foreach ($data['content'] as $block) {
-                if ($block['type'] === 'tool_use') {
-                    $resultado = $this->ejecutar($block['name'], $block['input'] ?? []);
-                    $toolResults[] = [
-                        'type'        => 'tool_result',
-                        'tool_use_id' => $block['id'],
-                        'content'     => json_encode($resultado, JSON_UNESCAPED_UNICODE),
-                    ];
-                }
+        if (! empty($functionCalls)) {
+            // Agregar respuesta del modelo al historial
+            $contents[] = ['role' => 'model', 'parts' => $parts];
+
+            // Ejecutar herramientas y construir respuestas
+            $toolResponses = [];
+            foreach ($functionCalls as $part) {
+                $fn     = $part['functionCall'];
+                $result = $this->ejecutar($fn['name'], $fn['args'] ?? []);
+
+                $toolResponses[] = [
+                    'functionResponse' => [
+                        'name'     => $fn['name'],
+                        'response' => ['result' => $result],
+                    ],
+                ];
             }
 
-            $messages[] = ['role' => 'assistant', 'content' => $data['content']];
-            $messages[] = ['role' => 'user',      'content' => $toolResults];
+            $contents[] = ['role' => 'user', 'parts' => $toolResponses];
 
-            $res2 = Http::withHeaders($headers)->post(self::API_URL, [
-                'model'      => $this->model,
-                'max_tokens' => 2048,
-                'system'     => $this->systemPrompt(),
-                'tools'      => $tools,
-                'messages'   => $messages,
-            ]);
+            $payload['contents'] = $contents;
+
+            $res2 = Http::post($url, $payload);
 
             if (! $res2->successful()) {
-                return ['error' => 'Error en segunda llamada a la IA.'];
+                return ['error' => 'Error en segunda llamada a Gemini.'];
             }
 
             $data = $res2->json();
         }
 
         // Extraer texto final
-        $texto = collect($data['content'] ?? [])
-            ->where('type', 'text')
+        $texto = collect($data['candidates'][0]['content']['parts'] ?? [])
+            ->where('text')
             ->pluck('text')
             ->implode('');
 
-        return [
-            'respuesta' => $texto,
-            'tokens'    => $data['usage'] ?? null,
-        ];
+        return ['respuesta' => $texto];
     }
 
-    // ─── System prompt ───────────────────────────────────────────────────────
+    // ─── System prompt ────────────────────────────────────────────────────────
 
     private function systemPrompt(): string
     {
@@ -104,15 +98,15 @@ class AIReportService
                'Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente.';
     }
 
-    // ─── Definición de herramientas ──────────────────────────────────────────
+    // ─── Definición de herramientas (formato Gemini) ──────────────────────────
 
     private function tools(): array
     {
         return [
             [
-                'name'         => 'resumen_contratos',
-                'description'  => 'Resumen general de contratos SECOP: totales, estados y valor. Acepta filtro opcional por vigencia (año).',
-                'input_schema' => [
+                'name'        => 'resumen_contratos',
+                'description' => 'Resumen general de contratos SECOP: totales, estados y valor. Acepta filtro opcional por vigencia (año).',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'vigencia' => ['type' => 'string', 'description' => 'Año, ej: 2024. Opcional.'],
@@ -120,9 +114,9 @@ class AIReportService
                 ],
             ],
             [
-                'name'         => 'contratos_por_dependencia',
-                'description'  => 'Cantidad y valor total de contratos agrupados por dependencia.',
-                'input_schema' => [
+                'name'        => 'contratos_por_dependencia',
+                'description' => 'Cantidad y valor total de contratos agrupados por dependencia.',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'vigencia' => ['type' => 'string', 'description' => 'Año. Opcional.'],
@@ -131,9 +125,9 @@ class AIReportService
                 ],
             ],
             [
-                'name'         => 'contratos_proximos_vencer',
-                'description'  => 'Lista contratos SECOP activos que vencen en los próximos N días (fecha efectiva con adiciones/prórrogas).',
-                'input_schema' => [
+                'name'        => 'contratos_proximos_vencer',
+                'description' => 'Lista contratos SECOP activos que vencen en los próximos N días (fecha efectiva con adiciones/prórrogas).',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'dias' => ['type' => 'integer', 'description' => 'Días de anticipación. Por defecto 30.'],
@@ -141,20 +135,20 @@ class AIReportService
                 ],
             ],
             [
-                'name'         => 'contratos_vencidos',
-                'description'  => 'Contratos en estado TERMINADO, opcionalmente filtrados por vigencia o dependencia.',
-                'input_schema' => [
+                'name'        => 'contratos_vencidos',
+                'description' => 'Contratos en estado TERMINADO, opcionalmente filtrados por vigencia o dependencia.',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
-                        'vigencia'            => ['type' => 'string',  'description' => 'Año. Opcional.'],
-                        'dependencia_nombre'  => ['type' => 'string',  'description' => 'Nombre parcial de la dependencia. Opcional.'],
+                        'vigencia'           => ['type' => 'string', 'description' => 'Año. Opcional.'],
+                        'dependencia_nombre' => ['type' => 'string', 'description' => 'Nombre parcial de la dependencia. Opcional.'],
                     ],
                 ],
             ],
             [
-                'name'         => 'top_contratistas',
-                'description'  => 'Contratistas con más contratos registrados.',
-                'input_schema' => [
+                'name'        => 'top_contratistas',
+                'description' => 'Contratistas con más contratos registrados.',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'limite'   => ['type' => 'integer', 'description' => 'Cantidad de resultados. Por defecto 10.'],
@@ -163,9 +157,9 @@ class AIReportService
                 ],
             ],
             [
-                'name'         => 'resumen_afiliaciones',
-                'description'  => 'Totales de afiliaciones ARL por estado y dependencia.',
-                'input_schema' => [
+                'name'        => 'resumen_afiliaciones',
+                'description' => 'Totales de afiliaciones ARL por estado y dependencia.',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'dependencia_nombre' => ['type' => 'string', 'description' => 'Nombre parcial de la dependencia. Opcional.'],
@@ -173,9 +167,9 @@ class AIReportService
                 ],
             ],
             [
-                'name'         => 'afiliaciones_proximas_vencer',
-                'description'  => 'Afiliaciones ARL validadas próximas a vencer.',
-                'input_schema' => [
+                'name'        => 'afiliaciones_proximas_vencer',
+                'description' => 'Afiliaciones ARL validadas próximas a vencer.',
+                'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
                         'dias' => ['type' => 'integer', 'description' => 'Días de anticipación. Por defecto 30.'],
@@ -206,9 +200,7 @@ class AIReportService
     private function toolResumenContratos(array $input): array
     {
         $q = Contrato::query();
-        if (! empty($input['vigencia'])) {
-            $q->where('vigencia', $input['vigencia']);
-        }
+        if (! empty($input['vigencia'])) $q->where('vigencia', $input['vigencia']);
 
         $total      = (clone $q)->count();
         $valorTotal = (clone $q)->sum('valor_contrato');
