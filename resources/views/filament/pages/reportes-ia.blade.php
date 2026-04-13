@@ -39,12 +39,12 @@
     }
 
     $ejemplosDetalle = [
-        ['n'=>'1','sc'=>'#60a5fa','ib'=>'rgba(96,165,250,.12)','ibc'=>'rgba(96,165,250,.25)','tag'=>'Contratos','title'=>'Contratos activos','body'=>'¿Cuántos contratos hay activos este año?'],
-        ['n'=>'2','sc'=>'#a78bfa','ib'=>'rgba(167,139,250,.12)','ibc'=>'rgba(167,139,250,.25)','tag'=>'Dependencias','title'=>'Por dependencia','body'=>'¿Qué dependencia tiene más contratos en ejecución?'],
-        ['n'=>'3','sc'=>'#f59e0b','ib'=>'rgba(245,158,11,.12)','ibc'=>'rgba(245,158,11,.25)','tag'=>'Vencimientos','title'=>'Próximos a vencer','body'=>'¿Cuáles contratos vencen en los próximos 30 días?'],
-        ['n'=>'4','sc'=>'#34d399','ib'=>'rgba(52,211,153,.12)','ibc'=>'rgba(52,211,153,.25)','tag'=>'Financiero','title'=>'Valor por dependencia','body'=>'¿Cuál es el valor total de contratos por dependencia?'],
-        ['n'=>'5','sc'=>'#f472b6','ib'=>'rgba(244,114,182,.12)','ibc'=>'rgba(244,114,182,.25)','tag'=>'ARL','title'=>'Afiliaciones ARL','body'=>'¿Cuántas afiliaciones ARL están próximas a vencer?'],
-        ['n'=>'6','sc'=>'#fb923c','ib'=>'rgba(251,146,60,.12)','ibc'=>'rgba(251,146,60,.25)','tag'=>'Contratistas','title'=>'Top contratistas','body'=>'¿Quiénes son los 5 contratistas con más contratos?'],
+        ['sc'=>'#60a5fa','body'=>'¿Cuántos contratos hay activos este año?'],
+        ['sc'=>'#a78bfa','body'=>'¿Qué dependencia tiene más contratos en ejecución?'],
+        ['sc'=>'#f59e0b','body'=>'¿Cuáles contratos vencen en los próximos 30 días?'],
+        ['sc'=>'#34d399','body'=>'¿Cuál es el valor total de contratos por dependencia?'],
+        ['sc'=>'#f472b6','body'=>'¿Cuántas afiliaciones ARL están próximas a vencer?'],
+        ['sc'=>'#fb923c','body'=>'¿Quiénes son los 5 contratistas con más contratos?'],
     ];
 @endphp
 
@@ -194,7 +194,8 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
     {{-- ══════════════════ HERO ══════════════════ --}}
     <div class="ia-hero ia-a1" id="{{ $uid }}_hero">
         <canvas id="{{ $uid }}_canvas" class="ia-canvas-el"
-            style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5;"></canvas>
+            oncontextmenu="return false"
+            style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5;-webkit-user-select:none;user-select:none;"></canvas>
 
         <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
             <div class="ia-orb-blue"
@@ -253,13 +254,9 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
                     type="button"
                     wire:click="usarEjemplo('{{ $p['body'] }}')"
                     class="ia-card"
-                    style="--sc:{{ $p['sc'] }};--ib:{{ $p['ib'] }};--ibc:{{ $p['ibc'] }}">
-                    <div class="ia-badge">{{ $p['n'] }}</div>
-                    <div style="min-width:0;">
-                        <p class="ia-card-tag" style="--sc:{{ $p['sc'] }}">{{ $p['tag'] }}</p>
-                        <p class="t-ct">{{ $p['title'] }}</p>
-                        <p class="t-cb">{{ $p['body'] }}</p>
-                    </div>
+                    style="--sc:{{ $p['sc'] }};padding:.875rem 1rem .875rem 1.125rem;align-items:center;">
+                    <div style="width:8px;height:8px;border-radius:50%;background:{{ $p['sc'] }};flex-shrink:0;box-shadow:0 0 6px 2px {{ $p['sc'] }}55;"></div>
+                    <p class="t-cb" style="margin:0;font-size:.82rem;line-height:1.5;flex:1;text-align:left;">{{ $p['body'] }}</p>
                 </button>
             @endforeach
         </div>
