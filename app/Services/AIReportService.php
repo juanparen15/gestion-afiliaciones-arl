@@ -33,8 +33,8 @@ class AIReportService
             'contents'           => $contents,
         ];
 
-        // Primera llamada
-        $res = Http::post($url, $payload);
+        // Primera llamada (con reintentos en 503)
+        $res = $this->postWithRetry($url, $payload);
 
         if (! $res->successful()) {
             return ['error' => 'Error al contactar Gemini: ' . $res->body()];
@@ -74,7 +74,7 @@ class AIReportService
 
             $payload['contents'] = $contents;
 
-            $res2 = Http::post($url, $payload);
+            $res2 = $this->postWithRetry($url, $payload);
 
             if (! $res2->successful()) {
                 return ['error' => 'Error en segunda llamada a Gemini: ' . $res2->body()];
@@ -90,6 +90,25 @@ class AIReportService
             ->implode('');
 
         return ['respuesta' => $texto];
+    }
+
+    // ─── HTTP helper con reintentos para 503 ──────────────────────────────────
+
+    private function postWithRetry(string $url, array $payload, int $maxAttempts = 3): \Illuminate\Http\Client\Response
+    {
+        $attempt = 0;
+        do {
+            $attempt++;
+            $res = Http::timeout(60)->post($url, $payload);
+            if ($res->successful() || $res->status() !== 503) {
+                return $res;
+            }
+            if ($attempt < $maxAttempts) {
+                sleep($attempt * 2); // 2s, 4s antes del siguiente intento
+            }
+        } while ($attempt < $maxAttempts);
+
+        return $res;
     }
 
     // ─── System prompt ────────────────────────────────────────────────────────
