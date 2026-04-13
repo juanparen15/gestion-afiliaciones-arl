@@ -24,7 +24,7 @@ class ReportesIA extends Page
     public static function canAccess(): bool
     {
         $user = Auth::user();
-        return $user && ($user->hasRole('super_admin') || $user->hasRole('SSST'));
+        return $user && $user->hasRole('super_admin');
     }
 
     public function consultar(): void
