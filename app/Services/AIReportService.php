@@ -121,7 +121,16 @@ class AIReportService
                'NUNCA digas que no tienes acceso a información sin intentar consultar la herramienta adecuada primero. ' .
                'Responde siempre en español, de forma clara, concisa y profesional. ' .
                'Cuando presentes listas usa formato estructurado con viñetas o numeración. ' .
-               'Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente.';
+               'Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente. ' .
+               "\n\nCONOCIMIENTO DE LA BASE DE DATOS:" .
+               "\n- La columna 'modalidad' contiene SOLO códigos cortos (CD-CPS, LIC-006, etc.), NO descripciones de tipo de contrato." .
+               "\n- Para filtrar por tipo de contrato usa SIEMPRE el parámetro 'tipo_contrato' o 'tipos_contrato' en contratos_detallado." .
+               "\n- Valores reales de tipo_contrato en la BD:" .
+               "\n  * 'C1 Prestación de Servicios Profesionales' → para contratos de servicios profesionales" .
+               "\n  * 'C2 Prestación de Servicios de Apoyo a la Gestión' → para apoyo a la gestión, apoyo técnico, apoyo tecnológico" .
+               "\n  * 'NO APLICA' → contratos de otro tipo (arrendamiento, obra, suministro, etc.)" .
+               "\n- 'Prestación de servicios de apoyo técnicos y tecnológicos' NO es un tipo separado; se registra como 'C2 Prestación de Servicios de Apoyo a la Gestión'." .
+               "\n- Para preguntas sobre primer trimestre usa trimestre=1 con el año correspondiente.";
     }
 
     // ─── Definición de herramientas (formato Gemini) ──────────────────────────
@@ -235,19 +244,22 @@ class AIReportService
             ],
             [
                 'name'        => 'contratos_detallado',
-                'description' => 'Consulta detallada de contratos con filtros por modalidad, trimestre del año y fuente de financiación. ' .
-                                 'Incluye resumen de prórrogas y adiciones. Úsalo cuando se pregunten por modalidades específicas ' .
-                                 '(apoyo a la gestión, servicios profesionales, apoyo técnico, etc.), trimestres o fuentes de financiación.',
+                'description' => 'Consulta detallada de contratos con filtros por tipo_contrato (descripción del tipo), trimestre y fuente de financiación. ' .
+                                 'IMPORTANTE: usa tipo_contrato para filtrar por "Prestación de Servicios Profesionales" o "Apoyo a la Gestión". ' .
+                                 'Los valores reales en la BD son: "C1 Prestación de Servicios Profesionales" y "C2 Prestación de Servicios de Apoyo a la Gestión". ' .
+                                 'El campo modalidad contiene SOLO códigos (CD-CPS, LIC-006, etc.), NO descripciones. ' .
+                                 'Incluye resumen de prórrogas, adiciones y fuentes de financiación.',
                 'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
-                        'vigencia'   => ['type' => 'string',  'description' => 'Año. Ej: 2026. Opcional.'],
-                        'modalidad'  => ['type' => 'string',  'description' => 'Texto parcial de la modalidad. Ej: "apoyo a la gestión", "servicios profesionales". Opcional.'],
-                        'modalidades'=> ['type' => 'array', 'items' => ['type' => 'string'],
-                                         'description' => 'Lista de modalidades para filtrar simultáneamente. Opcional.'],
-                        'trimestre'  => ['type' => 'integer', 'description' => 'Trimestre: 1=ene-mar, 2=abr-jun, 3=jul-sep, 4=oct-dic. Opcional.'],
-                        'agrupar_por'=> ['type' => 'string',  'description' => 'Agrupar resultados por: "modalidad", "fuente_financiacion", "dependencia". Por defecto "modalidad".'],
-                        'con_detalle'=> ['type' => 'boolean', 'description' => 'Si true devuelve listado de contratos individuales (máx 50). Por defecto false.'],
+                        'vigencia'        => ['type' => 'string',  'description' => 'Año. Ej: "2026". Opcional.'],
+                        'tipo_contrato'   => ['type' => 'string',  'description' => 'Texto parcial del tipo de contrato (columna tipo_contrato). Ej: "Apoyo a la Gestión", "Servicios Profesionales". Hace búsqueda LIKE. Opcional.'],
+                        'tipos_contrato'  => ['type' => 'array', 'items' => ['type' => 'string'],
+                                              'description' => 'Lista de tipos de contrato para filtrar simultáneamente con OR. Ej: ["Apoyo a la Gestión","Servicios Profesionales"]. Opcional.'],
+                        'modalidad'       => ['type' => 'string',  'description' => 'Código de modalidad (NO texto descriptivo). Ej: "CD-CPS". Opcional.'],
+                        'trimestre'       => ['type' => 'integer', 'description' => 'Trimestre por fecha_inicio: 1=ene-mar, 2=abr-jun, 3=jul-sep, 4=oct-dic. Opcional.'],
+                        'agrupar_por'     => ['type' => 'string',  'description' => 'Agrupar por: "tipo_contrato", "fuente_financiacion", "dependencia". Por defecto "tipo_contrato".'],
+                        'con_detalle'     => ['type' => 'boolean', 'description' => 'Si true devuelve listado de contratos individuales (máx 50). Por defecto false.'],
                     ],
                 ],
             ],
@@ -419,17 +431,22 @@ class AIReportService
             $q->where('vigencia', $input['vigencia']);
         }
 
-        // Modalidad (una o varias)
-        $modalidades = $input['modalidades'] ?? [];
-        if (! empty($input['modalidad'])) {
-            $modalidades[] = $input['modalidad'];
+        // Tipo contrato (descripción): una o varias — usa LIKE sobre tipo_contrato
+        $tiposContrato = $input['tipos_contrato'] ?? [];
+        if (! empty($input['tipo_contrato'])) {
+            $tiposContrato[] = $input['tipo_contrato'];
         }
-        if (! empty($modalidades)) {
-            $q->where(function ($sub) use ($modalidades) {
-                foreach ($modalidades as $m) {
-                    $sub->orWhere('modalidad', 'like', "%{$m}%");
+        if (! empty($tiposContrato)) {
+            $q->where(function ($sub) use ($tiposContrato) {
+                foreach ($tiposContrato as $t) {
+                    $sub->orWhere('tipo_contrato', 'like', "%{$t}%");
                 }
             });
+        }
+
+        // Modalidad (código): filtro por código si se proporciona
+        if (! empty($input['modalidad'])) {
+            $q->where('modalidad', 'like', '%' . $input['modalidad'] . '%');
         }
 
         // Trimestre → rango de fecha_inicio
@@ -463,11 +480,12 @@ class AIReportService
         $conAdicion = $contratos->filter(fn ($c) => $c->tieneAdiciones());
 
         // Agrupación
-        $campoAgrupar = $input['agrupar_por'] ?? 'modalidad';
+        $campoAgrupar = $input['agrupar_por'] ?? 'tipo_contrato';
         $agrupacion = $contratos->groupBy(fn ($c) => match ($campoAgrupar) {
             'fuente_financiacion' => $c->fuente_financiacion ?? 'No especificada',
             'dependencia'         => $c->dependencia?->nombre ?? 'Sin dependencia',
-            default               => $c->modalidad ?? 'Sin modalidad',
+            'modalidad'           => $c->modalidad ?? 'Sin modalidad',
+            default               => $c->tipo_contrato ?? 'Sin tipo',
         })->map(fn ($grupo, $key) => [
             $campoAgrupar => $key,
             'cantidad'    => $grupo->count(),
@@ -483,27 +501,28 @@ class AIReportService
             ])->sortByDesc('cantidad')->values()->toArray();
 
         $resultado = [
-            'total_contratos'   => $total,
-            'valor_total'       => '$' . number_format($valorTotal, 0, ',', '.'),
-            'con_prorroga'      => $conProrroga->count(),
-            'con_adicion'       => $conAdicion->count(),
-            'agrupacion'        => $agrupacion,
+            'total_contratos'      => $total,
+            'valor_total'          => '$' . number_format($valorTotal, 0, ',', '.'),
+            'con_prorroga'         => $conProrroga->count(),
+            'con_adicion'          => $conAdicion->count(),
+            'agrupacion'           => $agrupacion,
             'fuentes_financiacion' => $fuentes,
         ];
 
         // Detalle individual si se solicita
         if (! empty($input['con_detalle'])) {
             $resultado['contratos'] = $contratos->take(50)->map(fn ($c) => [
-                'numero'       => $c->numero_contrato,
-                'contratista'  => $c->getNombreContratista(),
-                'modalidad'    => $c->modalidad,
-                'objeto'       => str()->limit($c->objeto ?? '', 80),
-                'valor'        => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
-                'fecha_inicio' => $c->fecha_inicio?->format('d/m/Y'),
-                'fecha_fin'    => $c->fechaEfectivaCierre()?->format('d/m/Y'),
-                'fuente'       => $c->fuente_financiacion,
-                'prorroga'     => $c->fecha_prorroga_1 ? 'Sí' : 'No',
-                'dependencia'  => $c->dependencia?->nombre,
+                'numero'        => $c->numero_contrato,
+                'contratista'   => $c->getNombreContratista(),
+                'tipo_contrato' => $c->tipo_contrato,
+                'modalidad'     => $c->modalidad,
+                'objeto'        => str()->limit($c->objeto ?? '', 80),
+                'valor'         => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
+                'fecha_inicio'  => $c->fecha_inicio?->format('d/m/Y'),
+                'fecha_fin'     => $c->fechaEfectivaCierre()?->format('d/m/Y'),
+                'fuente'        => $c->fuente_financiacion,
+                'prorroga'      => $c->fecha_prorroga_1 ? 'Sí' : 'No',
+                'dependencia'   => $c->dependencia?->nombre,
             ])->toArray();
         }
 
