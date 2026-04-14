@@ -38,3 +38,10 @@ Schedule::command('contratos:actualizar-estados')
     ->dailyAt('06:00')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Notificar a SSST sobre afiliaciones pendientes de validación - diario a las 8:00 AM
+Schedule::command('afiliaciones:notificar-pendientes')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));
