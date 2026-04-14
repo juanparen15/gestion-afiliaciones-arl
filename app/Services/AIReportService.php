@@ -234,6 +234,24 @@ class AIReportService
                 ],
             ],
             [
+                'name'        => 'contratos_detallado',
+                'description' => 'Consulta detallada de contratos con filtros por modalidad, trimestre del año y fuente de financiación. ' .
+                                 'Incluye resumen de prórrogas y adiciones. Úsalo cuando se pregunten por modalidades específicas ' .
+                                 '(apoyo a la gestión, servicios profesionales, apoyo técnico, etc.), trimestres o fuentes de financiación.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'vigencia'   => ['type' => 'string',  'description' => 'Año. Ej: 2026. Opcional.'],
+                        'modalidad'  => ['type' => 'string',  'description' => 'Texto parcial de la modalidad. Ej: "apoyo a la gestión", "servicios profesionales". Opcional.'],
+                        'modalidades'=> ['type' => 'array', 'items' => ['type' => 'string'],
+                                         'description' => 'Lista de modalidades para filtrar simultáneamente. Opcional.'],
+                        'trimestre'  => ['type' => 'integer', 'description' => 'Trimestre: 1=ene-mar, 2=abr-jun, 3=jul-sep, 4=oct-dic. Opcional.'],
+                        'agrupar_por'=> ['type' => 'string',  'description' => 'Agrupar resultados por: "modalidad", "fuente_financiacion", "dependencia". Por defecto "modalidad".'],
+                        'con_detalle'=> ['type' => 'boolean', 'description' => 'Si true devuelve listado de contratos individuales (máx 50). Por defecto false.'],
+                    ],
+                ],
+            ],
+            [
                 'name'        => 'buscar_contratista',
                 'description' => 'Busca un contratista por nombre y retorna sus contratos y afiliaciones registradas.',
                 'parameters'  => [
@@ -260,6 +278,7 @@ class AIReportService
             'top_contratistas'             => $this->toolTopContratistas($input),
             'resumen_afiliaciones'         => $this->toolResumenAfiliaciones($input),
             'afiliaciones_proximas_vencer'  => $this->toolAfiliacionesProximasVencer($input),
+            'contratos_detallado'           => $this->toolContratosDetallado($input),
             'top_contratistas_afiliaciones' => $this->toolTopContratistasAfiliaciones($input),
             'afiliaciones_por_dependencia'  => $this->toolAfiliacionesPorDependencia($input),
             'estadisticas_afiliaciones'     => $this->toolEstadisticasAfiliaciones($input),
@@ -389,6 +408,106 @@ class AIReportService
             ->toArray();
 
         return ['total' => $total, 'por_estado' => $estados];
+    }
+
+    private function toolContratosDetallado(array $input): array
+    {
+        $q = Contrato::with('dependencia');
+
+        // Vigencia
+        if (! empty($input['vigencia'])) {
+            $q->where('vigencia', $input['vigencia']);
+        }
+
+        // Modalidad (una o varias)
+        $modalidades = $input['modalidades'] ?? [];
+        if (! empty($input['modalidad'])) {
+            $modalidades[] = $input['modalidad'];
+        }
+        if (! empty($modalidades)) {
+            $q->where(function ($sub) use ($modalidades) {
+                foreach ($modalidades as $m) {
+                    $sub->orWhere('modalidad', 'like', "%{$m}%");
+                }
+            });
+        }
+
+        // Trimestre → rango de fecha_inicio
+        if (! empty($input['trimestre'])) {
+            $t = (int) $input['trimestre'];
+            $year = $input['vigencia'] ?? now()->year;
+            [$mesInicio, $mesFin] = match ($t) {
+                1 => [1, 3],
+                2 => [4, 6],
+                3 => [7, 9],
+                4 => [10, 12],
+                default => [1, 12],
+            };
+            $desde = \Carbon\Carbon::create($year, $mesInicio, 1)->startOfDay();
+            $hasta = \Carbon\Carbon::create($year, $mesFin, 1)->endOfMonth()->endOfDay();
+            $q->whereBetween('fecha_inicio', [$desde, $hasta]);
+        }
+
+        $contratos = $q->orderBy('fecha_inicio')->get();
+
+        // Resumen general
+        $total      = $contratos->count();
+        $valorTotal = $contratos->sum('valor_contrato');
+
+        // Prórrogas
+        $conProrroga = $contratos->filter(fn ($c) =>
+            $c->fecha_prorroga_1 || $c->fecha_prorroga_2 || $c->fecha_prorroga_3
+        );
+
+        // Adiciones
+        $conAdicion = $contratos->filter(fn ($c) => $c->tieneAdiciones());
+
+        // Agrupación
+        $campoAgrupar = $input['agrupar_por'] ?? 'modalidad';
+        $agrupacion = $contratos->groupBy(fn ($c) => match ($campoAgrupar) {
+            'fuente_financiacion' => $c->fuente_financiacion ?? 'No especificada',
+            'dependencia'         => $c->dependencia?->nombre ?? 'Sin dependencia',
+            default               => $c->modalidad ?? 'Sin modalidad',
+        })->map(fn ($grupo, $key) => [
+            $campoAgrupar => $key,
+            'cantidad'    => $grupo->count(),
+            'valor'       => '$' . number_format($grupo->sum('valor_contrato'), 0, ',', '.'),
+        ])->sortByDesc('cantidad')->values()->toArray();
+
+        // Fuentes de financiación (siempre incluidas)
+        $fuentes = $contratos->groupBy(fn ($c) => $c->fuente_financiacion ?? 'No especificada')
+            ->map(fn ($g, $k) => [
+                'fuente'   => $k,
+                'cantidad' => $g->count(),
+                'valor'    => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+            ])->sortByDesc('cantidad')->values()->toArray();
+
+        $resultado = [
+            'total_contratos'   => $total,
+            'valor_total'       => '$' . number_format($valorTotal, 0, ',', '.'),
+            'con_prorroga'      => $conProrroga->count(),
+            'con_adicion'       => $conAdicion->count(),
+            'agrupacion'        => $agrupacion,
+            'fuentes_financiacion' => $fuentes,
+        ];
+
+        // Detalle individual si se solicita
+        if (! empty($input['con_detalle'])) {
+            $resultado['contratos'] = $contratos->take(50)->map(fn ($c) => [
+                'numero'       => $c->numero_contrato,
+                'contratista'  => $c->getNombreContratista(),
+                'modalidad'    => $c->modalidad,
+                'objeto'       => str()->limit($c->objeto ?? '', 80),
+                'valor'        => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
+                'fecha_inicio' => $c->fecha_inicio?->format('d/m/Y'),
+                'fecha_fin'    => $c->fechaEfectivaCierre()?->format('d/m/Y'),
+                'fuente'       => $c->fuente_financiacion,
+                'prorroga'     => $c->fecha_prorroga_1 ? 'Sí' : 'No',
+                'dependencia'  => $c->dependencia?->nombre,
+            ])->toArray();
+        }
+
+        return $resultado;
     }
 
     private function toolTopContratistasAfiliaciones(array $input): array
