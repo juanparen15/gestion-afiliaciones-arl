@@ -116,10 +116,11 @@ class AIReportService
     private function systemPrompt(): string
     {
         return 'Eres un asistente de análisis de datos del Sistema de Gestión ARL de la Alcaldía Municipal de Puerto Boyacá. ' .
-               'Tienes acceso a información real sobre contratos SECOP y afiliaciones ARL. ' .
+               'Tienes acceso a información real sobre contratos SECOP y afiliaciones ARL mediante herramientas. ' .
+               'SIEMPRE usa las herramientas disponibles para consultar datos antes de responder. ' .
+               'NUNCA digas que no tienes acceso a información sin intentar consultar la herramienta adecuada primero. ' .
                'Responde siempre en español, de forma clara, concisa y profesional. ' .
-               'Usa las herramientas disponibles para consultar datos antes de responder. ' .
-               'Cuando presentes listas usa formato estructurado con viñetas. ' .
+               'Cuando presentes listas usa formato estructurado con viñetas o numeración. ' .
                'Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente.';
     }
 
@@ -201,6 +202,49 @@ class AIReportService
                     ],
                 ],
             ],
+            [
+                'name'        => 'top_contratistas_afiliaciones',
+                'description' => 'Contratistas con más afiliaciones ARL registradas, con su valor total y estados.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'limite' => ['type' => 'integer', 'description' => 'Cantidad de resultados. Por defecto 10.'],
+                        'estado' => ['type' => 'string',  'description' => 'Filtrar por estado de afiliación. Opcional.'],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'afiliaciones_por_dependencia',
+                'description' => 'Afiliaciones ARL agrupadas por dependencia con cantidades y valor de contratos.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'estado' => ['type' => 'string', 'description' => 'Filtrar por estado. Opcional.'],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'estadisticas_afiliaciones',
+                'description' => 'Estadísticas detalladas de afiliaciones: por ARL, por tipo de riesgo, por EPS, promedios de valor.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'agrupar_por' => ['type' => 'string', 'description' => 'Campo de agrupación: "arl", "tipo_riesgo", "eps", "estado". Por defecto "arl".'],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'buscar_contratista',
+                'description' => 'Busca un contratista por nombre y retorna sus contratos y afiliaciones registradas.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'nombre'  => ['type' => 'string',  'description' => 'Nombre parcial del contratista. Requerido.'],
+                        'limite'  => ['type' => 'integer', 'description' => 'Máximo resultados por entidad. Por defecto 5.'],
+                    ],
+                    'required' => ['nombre'],
+                ],
+            ],
         ];
     }
 
@@ -215,8 +259,12 @@ class AIReportService
             'contratos_vencidos'           => $this->toolContratosVencidos($input),
             'top_contratistas'             => $this->toolTopContratistas($input),
             'resumen_afiliaciones'         => $this->toolResumenAfiliaciones($input),
-            'afiliaciones_proximas_vencer' => $this->toolAfiliacionesProximasVencer($input),
-            default                        => ['error' => "Herramienta '{$nombre}' no encontrada."],
+            'afiliaciones_proximas_vencer'  => $this->toolAfiliacionesProximasVencer($input),
+            'top_contratistas_afiliaciones' => $this->toolTopContratistasAfiliaciones($input),
+            'afiliaciones_por_dependencia'  => $this->toolAfiliacionesPorDependencia($input),
+            'estadisticas_afiliaciones'     => $this->toolEstadisticasAfiliaciones($input),
+            'buscar_contratista'            => $this->toolBuscarContratista($input),
+            default                         => ['error' => "Herramienta '{$nombre}' no encontrada."],
         };
     }
 
@@ -341,6 +389,111 @@ class AIReportService
             ->toArray();
 
         return ['total' => $total, 'por_estado' => $estados];
+    }
+
+    private function toolTopContratistasAfiliaciones(array $input): array
+    {
+        $limite = (int) ($input['limite'] ?? 10);
+        $q = Afiliacion::selectRaw('nombre_contratista, count(*) as cantidad, sum(valor_contrato) as valor_total')
+            ->groupBy('nombre_contratista')
+            ->orderByDesc('cantidad')
+            ->limit($limite);
+
+        if (! empty($input['estado'])) $q->where('estado', $input['estado']);
+
+        return $q->get()->map(fn ($r) => [
+            'contratista'   => $r->nombre_contratista,
+            'afiliaciones'  => $r->cantidad,
+            'valor_total'   => '$' . number_format($r->valor_total ?? 0, 0, ',', '.'),
+        ])->toArray();
+    }
+
+    private function toolAfiliacionesPorDependencia(array $input): array
+    {
+        $q = Afiliacion::with('dependencia')
+            ->selectRaw('dependencia_id, count(*) as cantidad, sum(valor_contrato) as valor')
+            ->groupBy('dependencia_id');
+
+        if (! empty($input['estado'])) $q->where('estado', $input['estado']);
+
+        return $q->get()->map(fn ($r) => [
+            'dependencia' => $r->dependencia?->nombre ?? 'Sin dependencia',
+            'cantidad'    => $r->cantidad,
+            'valor'       => '$' . number_format($r->valor ?? 0, 0, ',', '.'),
+        ])->sortByDesc('cantidad')->values()->toArray();
+    }
+
+    private function toolEstadisticasAfiliaciones(array $input): array
+    {
+        $campo = match ($input['agrupar_por'] ?? 'arl') {
+            'tipo_riesgo' => 'tipo_riesgo',
+            'eps'         => 'eps',
+            'estado'      => 'estado',
+            default       => 'nombre_arl',
+        };
+
+        $label = match ($campo) {
+            'tipo_riesgo' => 'tipo_riesgo',
+            'eps'         => 'eps',
+            'estado'      => 'estado',
+            default       => 'arl',
+        };
+
+        return Afiliacion::selectRaw("{$campo} as agrupacion, count(*) as cantidad, avg(ibc) as ibc_promedio, sum(valor_contrato) as valor_total")
+            ->groupBy($campo)
+            ->orderByDesc('cantidad')
+            ->get()
+            ->map(fn ($r) => [
+                $label       => $r->agrupacion ?? 'No especificado',
+                'cantidad'   => $r->cantidad,
+                'ibc_prom'   => '$' . number_format($r->ibc_promedio ?? 0, 0, ',', '.'),
+                'valor_total'=> '$' . number_format($r->valor_total ?? 0, 0, ',', '.'),
+            ])->toArray();
+    }
+
+    private function toolBuscarContratista(array $input): array
+    {
+        $nombre = $input['nombre'] ?? '';
+        $limite = (int) ($input['limite'] ?? 5);
+
+        $contratos = Contrato::with('dependencia')
+            ->where(function ($q) use ($nombre) {
+                $q->where('nombre_persona_natural', 'like', "%{$nombre}%")
+                  ->orWhere('nombre_persona_juridica', 'like', "%{$nombre}%");
+            })
+            ->latest()
+            ->limit($limite)
+            ->get()
+            ->map(fn ($c) => [
+                'numero'      => $c->numero_contrato,
+                'estado'      => $c->estado,
+                'vigencia'    => $c->vigencia,
+                'valor'       => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
+                'dependencia' => $c->dependencia?->nombre,
+                'objeto'      => str()->limit($c->objeto_contractual ?? '', 80),
+            ])->toArray();
+
+        $afiliaciones = Afiliacion::with('dependencia')
+            ->where('nombre_contratista', 'like', "%{$nombre}%")
+            ->latest()
+            ->limit($limite)
+            ->get()
+            ->map(fn ($a) => [
+                'estado'      => $a->estado,
+                'arl'         => $a->nombre_arl,
+                'dependencia' => $a->dependencia?->nombre,
+                'fecha_inicio'=> $a->fecha_inicio?->format('d/m/Y'),
+                'fecha_fin'   => $a->fecha_fin?->format('d/m/Y'),
+                'valor'       => '$' . number_format($a->valor_contrato ?? 0, 0, ',', '.'),
+            ])->toArray();
+
+        return [
+            'busqueda'           => $nombre,
+            'total_contratos'    => count($contratos),
+            'total_afiliaciones' => count($afiliaciones),
+            'contratos'          => $contratos,
+            'afiliaciones'       => $afiliaciones,
+        ];
     }
 
     private function toolAfiliacionesProximasVencer(array $input): array
