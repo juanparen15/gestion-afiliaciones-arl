@@ -60,7 +60,7 @@ class AIReportService
             $toolResponses = [];
             foreach ($functionCalls as $part) {
                 $fn     = $part['functionCall'];
-                $result = $this->ejecutar($fn['name'], $fn['args'] ?? []);
+                $result = $this->ejecutar($fn['name'], (array) ($fn['args'] ?? []));
 
                 $toolResponses[] = [
                     'functionResponse' => [
