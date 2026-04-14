@@ -176,6 +176,27 @@ html:not(.dark) .ia-skeleton-line{background:linear-gradient(90deg,#f1f5f9 25%,#
 html:not(.dark) .ia-bubble-user{background:#f8fafc;border-color:rgba(0,0,0,.08);}
 html:not(.dark) .ia-bubble-ai{background:rgba(219,234,254,.5);border-color:rgba(59,130,246,.2);}
 
+/* ── Markdown rendered ───────────────────────── */
+.ia-md p{margin:.35rem 0}
+.ia-md p:first-child{margin-top:0}
+.ia-md p:last-child{margin-bottom:0}
+.ia-md strong{font-weight:600;color:#f1f5f9}
+.ia-md em{font-style:italic;opacity:.9}
+.ia-md ul,.ia-md ol{padding-left:1.25rem;margin:.4rem 0}
+.ia-md ul{list-style:disc}
+.ia-md ol{list-style:decimal}
+.ia-md li{margin:.2rem 0;line-height:1.65}
+.ia-md h1,.ia-md h2,.ia-md h3{font-weight:700;color:#f1f5f9;margin:.75rem 0 .3rem;line-height:1.3}
+.ia-md h1{font-size:1.1rem}
+.ia-md h2{font-size:1rem}
+.ia-md h3{font-size:.9rem}
+.ia-md code{font-family:monospace;font-size:.82rem;background:rgba(255,255,255,.1);padding:.1rem .35rem;border-radius:.3rem}
+.ia-md hr{border:none;border-top:1px solid rgba(255,255,255,.1);margin:.75rem 0}
+html:not(.dark) .ia-md strong{color:#0f172a}
+html:not(.dark) .ia-md h1,html:not(.dark) .ia-md h2,html:not(.dark) .ia-md h3{color:#0f172a}
+html:not(.dark) .ia-md code{background:rgba(0,0,0,.07)}
+html:not(.dark) .ia-md hr{border-color:rgba(0,0,0,.1)}
+
 /* ── Error ───────────────────────────────────── */
 .ia-error-box{border-radius:1rem;padding:1.125rem 1.25rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);}
 html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(252,165,165,.5);}
@@ -374,8 +395,15 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
                     <svg style="width:13px;height:13px;color:#60a5fa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
                 </div>
                 <div class="ia-bubble-ai" style="flex:1;padding:.875rem 1rem;">
-                    <div style="font-size:.875rem;line-height:1.75;" class="t-m">
-                        {!! nl2br(e($respuesta)) !!}
+                    @php
+                        $converter = new \League\CommonMark\CommonMarkConverter([
+                            'html_input'         => 'strip',
+                            'allow_unsafe_links' => false,
+                        ]);
+                        $respuestaHtml = $converter->convert($respuesta)->getContent();
+                    @endphp
+                    <div class="ia-md t-m" style="font-size:.875rem;line-height:1.75;">
+                        {!! $respuestaHtml !!}
                     </div>
                 </div>
             </div>
