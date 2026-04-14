@@ -22,8 +22,8 @@ class EditAfiliacion extends EditRecord
     {
         // Asegurar que campos del tab "Estado y Observaciones" estén como null si el usuario no es SSST o super_admin
         if (!Auth::user()->hasRole(['super_admin', 'SSST'])) {
-            // No permitir modificar estos campos si no es SSST o super_admin
-            unset($data['estado']);
+            // Dependencia puede editar info adicional pero estado vuelve a pendiente
+            $data['estado'] = 'pendiente';
             unset($data['observaciones']);
             unset($data['motivo_rechazo']);
         }

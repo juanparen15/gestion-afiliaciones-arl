@@ -533,12 +533,11 @@ class AfiliacionResource extends Resource
                                 ->columns(2),
                         ]),
 
-                    // PASO 4: Información Adicional (Solo para admins)
+                    // PASO 4: Información Adicional (visible para todos los roles)
                     Forms\Components\Wizard\Step::make('Información Adicional')
                         ->icon('heroicon-o-document-plus')
                         ->description('Adiciones, prórrogas y terminaciones')
                         ->completedIcon('heroicon-o-check-circle')
-                        ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                         ->schema([
                             Forms\Components\Section::make('Adición al Contrato')
                                 ->description('Complete si el contrato tiene una adición')
@@ -667,6 +666,7 @@ class AfiliacionResource extends Resource
                             Forms\Components\Section::make('Estado de la Afiliación')
                                 ->description('Gestión del estado y observaciones')
                                 ->icon('heroicon-o-clipboard-document-check')
+                                ->hidden(fn() => Auth::user()->hasRole('Dependencia'))
                                 ->schema([
                                     Forms\Components\Select::make('estado')
                                         ->label('Estado')
