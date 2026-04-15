@@ -164,10 +164,11 @@ class AIReportService
                "- Fuentes de financiación: {$fuentes}\n\n" .
 
                "TIPOS DE CONTRATO (campo tipo_contrato):\n" .
-               "- 'C1 Prestación de Servicios Profesionales' → servicios profesionales\n" .
-               "- 'C2 Prestación de Servicios de Apoyo a la Gestión' → apoyo a la gestión, apoyo técnico, apoyo tecnológico\n" .
-               "- 'NO APLICA' → arrendamiento, obra, suministro, interadministrativos, etc.\n" .
-               "- IMPORTANTE: el campo 'modalidad' contiene SOLO códigos (CD-CPS, LIC-006, etc.), NO descripciones.\n" .
+               "- 'C1 Prestación de Servicios Profesionales' → servicios profesionales (clase C1)\n" .
+               "- 'C2 Prestación de Servicios de Apoyo a la Gestión' → apoyo a la gestión, apoyo técnico, apoyo tecnológico (clase C1 o C2)\n" .
+               "- 'NO APLICA' → contratos que NO son prestación de servicios: incluye Interventorías (C14), Arrendamientos (C9), Interadministrativos (C12), Licitaciones y concursos (F5). Son los contratos de mayor valor unitario generalmente.\n" .
+               "- 'Sin tipo' (NULL en BD) → contratos sin tipo_contrato registrado; probablemente son prestación de servicios no clasificados.\n" .
+               "- IMPORTANTE: el campo 'modalidad' contiene SOLO códigos (CD-CPS, LIC-006, SMC-001, etc.), NO descripciones de tipo.\n" .
                "  Para filtrar por tipo use SIEMPRE tipo_contrato o tipos_contrato en contratos_detallado.\n\n" .
 
                "ESTADOS DE AFILIACIÓN: pendiente, validado, rechazado\n" .
