@@ -163,13 +163,16 @@ class AIReportService
                "- Vigencias disponibles en contratos: {$vigencias}\n" .
                "- Fuentes de financiación: {$fuentes}\n\n" .
 
-               "TIPOS DE CONTRATO (campo tipo_contrato):\n" .
-               "- 'C1 Prestación de Servicios Profesionales' → servicios profesionales (clase C1)\n" .
-               "- 'C2 Prestación de Servicios de Apoyo a la Gestión' → apoyo a la gestión, apoyo técnico, apoyo tecnológico (clase C1 o C2)\n" .
-               "- 'NO APLICA' → contratos que NO son prestación de servicios: incluye Interventorías (C14), Arrendamientos (C9), Interadministrativos (C12), Licitaciones y concursos (F5). Son los contratos de mayor valor unitario generalmente.\n" .
-               "- 'Sin tipo' (NULL en BD) → contratos sin tipo_contrato registrado; probablemente son prestación de servicios no clasificados.\n" .
-               "- IMPORTANTE: el campo 'modalidad' contiene SOLO códigos (CD-CPS, LIC-006, SMC-001, etc.), NO descripciones de tipo.\n" .
-               "  Para filtrar por tipo use SIEMPRE tipo_contrato o tipos_contrato en contratos_detallado.\n\n" .
+               "TIPOS DE CONTRATO:\n" .
+               "- La agrupación por_tipo_contrato en contratos_detallado ya desglosa automáticamente los contratos:\n" .
+               "  * 'C1 Prestación de Servicios Profesionales' → servicios profesionales\n" .
+               "  * 'C2 Prestación de Servicios de Apoyo a la Gestión' → apoyo a la gestión / técnico / tecnológico\n" .
+               "  * 'C9 ARRENDAMIENTOS' → arrendamientos de bienes inmuebles\n" .
+               "  * 'C12 INTERADMINISTRATIVOS' → convenios interadministrativos\n" .
+               "  * 'C14 INTERVENTORIAS' → contratos de interventoría\n" .
+               "  * 'C1 PRESTACION DE SERVICIOS' (sin tipo_contrato) → prestación de servicios sin clasificar\n" .
+               "- NUNCA uses 'NO APLICA' en tu respuesta: usa siempre el nombre de la clase real (Arrendamientos, Interventorías, etc.).\n" .
+               "- El campo 'modalidad' contiene SOLO códigos (CD-CPS, LIC-006, etc.), NO descripciones de tipo.\n\n" .
 
                "ESTADOS DE AFILIACIÓN: pendiente, validado, rechazado\n" .
                "ESTADOS DE CONTRATO SECOP: EN EJECUCION, EN EJECUCION CON ADICION, TERMINADO\n\n" .
@@ -496,13 +499,21 @@ class AIReportService
         $conProrroga = $contratos->filter(fn ($c) => $c->fecha_prorroga_1 || $c->fecha_prorroga_2 || $c->fecha_prorroga_3);
         $conAdicion  = $contratos->filter(fn ($c) => $c->tieneAdiciones());
 
-        // Siempre incluir agrupaciones por tipo_contrato, fuente_financiacion y dependencia
-        $porTipo = $contratos->groupBy(fn ($c) => $c->tipo_contrato ?? 'Sin tipo')
-            ->map(fn ($g, $k) => [
-                'tipo_contrato' => $k,
-                'cantidad'      => $g->count(),
-                'valor'         => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
-            ])->sortByDesc('cantidad')->values()->toArray();
+        // Agrupación por tipo de contrato:
+        // - "NO APLICA" y NULL se desglosan por clase real (Arrendamientos, Interventorías, etc.)
+        // - CPS profesionales y apoyo se muestran con su tipo_contrato descriptivo
+        $porTipo = $contratos->groupBy(function ($c) {
+            $tipo = $c->tipo_contrato ?? '';
+            if ($tipo === '' || $tipo === 'NO APLICA') {
+                // Usar la clase real del contrato para mayor detalle
+                return $c->clase ?? 'Sin clasificar';
+            }
+            return $tipo;
+        })->map(fn ($g, $k) => [
+            'tipo_contrato' => $k,
+            'cantidad'      => $g->count(),
+            'valor'         => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+        ])->sortByDesc('cantidad')->values()->toArray();
 
         $porFuente = $contratos->groupBy(fn ($c) => $c->fuente_financiacion ?? 'No especificada')
             ->map(fn ($g, $k) => [
