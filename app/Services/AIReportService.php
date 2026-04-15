@@ -6,6 +6,12 @@ use App\Models\Afiliacion;
 use App\Models\Contrato;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class AIReportService
 {
@@ -361,6 +367,28 @@ class AIReportService
                 ],
             ],
             [
+                'name'        => 'exportar_excel',
+                'description' => 'Genera un archivo Excel (.xlsx) descargable con listado completo de contratos o afiliaciones. ' .
+                                 'USA ESTA HERRAMIENTA cuando el usuario pida "exportar", "descargar", "Excel", "archivo plano", ' .
+                                 '"archivo magnético", "listado completo" o cuando el listado tenga más de 20 registros. ' .
+                                 'Devuelve una URL de descarga directa.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'tipo'               => ['type' => 'string',  'description' => '"contratos" o "afiliaciones". Por defecto "contratos".'],
+                        'vigencia'           => ['type' => 'string',  'description' => 'Año. Ej: "2026". Opcional.'],
+                        'tipo_contrato'      => ['type' => 'string',  'description' => 'Texto parcial del tipo de contrato. Opcional.'],
+                        'tipos_contrato'     => ['type' => 'array',   'items' => ['type' => 'string'], 'description' => 'Lista de tipos de contrato. Opcional.'],
+                        'dependencia_nombre' => ['type' => 'string',  'description' => 'Nombre parcial de la dependencia. Opcional.'],
+                        'trimestre'          => ['type' => 'integer', 'description' => 'Trimestre: 1-4. Opcional.'],
+                        'fecha_desde'        => ['type' => 'string',  'description' => 'Fecha inicio YYYY-MM-DD. Opcional.'],
+                        'fecha_hasta'        => ['type' => 'string',  'description' => 'Fecha fin YYYY-MM-DD. Opcional.'],
+                        'estado'             => ['type' => 'string',  'description' => 'Estado (para afiliaciones). Opcional.'],
+                        'nombre_archivo'     => ['type' => 'string',  'description' => 'Nombre descriptivo del archivo sin extensión. Opcional.'],
+                    ],
+                ],
+            ],
+            [
                 'name'        => 'buscar_contratista',
                 'description' => 'Busca un contratista por nombre y retorna sus contratos SECOP y afiliaciones ARL.',
                 'parameters'  => [
@@ -393,6 +421,7 @@ class AIReportService
             'top_contratistas_afiliaciones' => $this->toolTopContratistasAfiliaciones($input),
             'afiliaciones_por_dependencia'  => $this->toolAfiliacionesPorDependencia($input),
             'estadisticas_afiliaciones'     => $this->toolEstadisticasAfiliaciones($input),
+            'exportar_excel'                => $this->toolExportarExcel($input),
             'buscar_contratista'            => $this->toolBuscarContratista($input),
             default                         => ['error' => "Herramienta '{$nombre}' no encontrada."],
         };
@@ -714,6 +743,232 @@ class AIReportService
         }
 
         return $resultado;
+    }
+
+    private function toolExportarExcel(array $input): array
+    {
+        $tipo = $input['tipo'] ?? 'contratos';
+
+        if ($tipo === 'afiliaciones') {
+            return $this->exportarAfiliacionesExcel($input);
+        }
+
+        return $this->exportarContratosExcel($input);
+    }
+
+    private function exportarContratosExcel(array $input): array
+    {
+        $q = Contrato::with('dependencia');
+
+        if (! empty($input['vigencia'])) $q->where('vigencia', $input['vigencia']);
+
+        $tiposContrato = $input['tipos_contrato'] ?? [];
+        if (! empty($input['tipo_contrato'])) $tiposContrato[] = $input['tipo_contrato'];
+        if (! empty($tiposContrato)) {
+            $q->where(function ($sub) use ($tiposContrato) {
+                foreach ($tiposContrato as $t) {
+                    $sub->orWhere('tipo_contrato', 'like', "%{$t}%");
+                }
+            });
+        }
+
+        if (! empty($input['dependencia_nombre'])) {
+            $q->whereHas('dependencia', fn ($d) => $d->where('nombre', 'like', '%' . $input['dependencia_nombre'] . '%'));
+        }
+
+        if (! empty($input['trimestre'])) {
+            $year = (int) ($input['vigencia'] ?? now()->year);
+            [$mesInicio, $mesFin] = match ((int) $input['trimestre']) {
+                1 => [1, 3], 2 => [4, 6], 3 => [7, 9], 4 => [10, 12], default => [1, 12],
+            };
+            $q->whereBetween('fecha_inicio', [
+                \Carbon\Carbon::create($year, $mesInicio, 1)->startOfDay(),
+                \Carbon\Carbon::create($year, $mesFin, 1)->endOfMonth()->endOfDay(),
+            ]);
+        } elseif (! empty($input['fecha_desde']) || ! empty($input['fecha_hasta'])) {
+            if (! empty($input['fecha_desde'])) $q->where('fecha_inicio', '>=', $input['fecha_desde']);
+            if (! empty($input['fecha_hasta'])) $q->where('fecha_inicio', '<=', $input['fecha_hasta']);
+        }
+
+        $contratos = $q->orderBy('fecha_inicio')->get();
+
+        // Crear Excel
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Contratos');
+
+        // Encabezados
+        $headers = ['N°','No. Contrato','Contratista','Tipo Contrato','Clase','Objeto','Valor','Fecha Inicio','Fecha Fin','Fuente Financiación','Prórroga','Dependencia'];
+        foreach ($headers as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$col}1", $h);
+        }
+
+        // Estilo encabezado
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = "A1:{$lastCol}1";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1D4ED8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        // Datos
+        foreach ($contratos as $i => $c) {
+            $row = $i + 2;
+            $dep = $c->dependencia?->nombre
+                ?? (! empty($c->dependencia_contrato) ? $c->dependencia_contrato : '');
+
+            $sheet->setCellValue("A{$row}", $i + 1);
+            $sheet->setCellValue("B{$row}", $c->numero_contrato);
+            $sheet->setCellValue("C{$row}", $c->getNombreContratista());
+            $sheet->setCellValue("D{$row}", $c->tipo_contrato ?? 'Sin tipo');
+            $sheet->setCellValue("E{$row}", $c->clase ?? '');
+            $sheet->setCellValue("F{$row}", $c->objeto ?? '');
+            $sheet->getCell("G{$row}")->setValueExplicit(
+                $c->valor_contrato ?? 0, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC
+            );
+            $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('$ #,##0');
+            $sheet->setCellValue("H{$row}", $c->fecha_inicio?->format('d/m/Y') ?? '');
+            $sheet->setCellValue("I{$row}", $c->fechaEfectivaCierre()?->format('d/m/Y') ?? '');
+            $sheet->setCellValue("J{$row}", $c->fuente_financiacion ?? '');
+            $sheet->setCellValue("K{$row}", $c->fecha_prorroga_1 ? 'Sí' : 'No');
+            $sheet->setCellValue("L{$row}", $dep);
+
+            // Fila par/impar
+            $bgColor = ($row % 2 === 0) ? 'EFF6FF' : 'FFFFFF';
+            $sheet->getStyle("A{$row}:{$lastCol}{$row}")->applyFromArray([
+                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bgColor]],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DBEAFE']]],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+        }
+
+        // Ancho de columnas
+        foreach (['A' => 6, 'B' => 14, 'C' => 30, 'D' => 32, 'E' => 22, 'F' => 55,
+                  'G' => 18, 'H' => 13, 'I' => 13, 'J' => 18, 'K' => 10, 'L' => 30] as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        // Fila objeto con wrap
+        $sheet->getStyle('F2:F' . ($contratos->count() + 1))->getAlignment()->setWrapText(true);
+
+        // Fila de totales
+        $totalRow = $contratos->count() + 2;
+        $sheet->setCellValue("A{$totalRow}", 'TOTAL');
+        $sheet->setCellValue("B{$totalRow}", $contratos->count() . ' contratos');
+        $sheet->getCell("G{$totalRow}")->setValueExplicit(
+            $contratos->sum('valor_contrato'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC
+        );
+        $sheet->getStyle("G{$totalRow}")->getNumberFormat()->setFormatCode('$ #,##0');
+        $sheet->getStyle("A{$totalRow}:{$lastCol}{$totalRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1E3A5F']],
+        ]);
+
+        // Guardar archivo
+        $nombreBase = $input['nombre_archivo'] ?? ('contratos_' . now()->format('Ymd_His'));
+        $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $nombreBase);
+        $filename = "{$nombreBase}.xlsx";
+        $path = storage_path("app/public/exports/{$filename}");
+
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        (new Xlsx($spreadsheet))->save($path);
+
+        return [
+            'url'      => asset("storage/exports/{$filename}"),
+            'filename' => $filename,
+            'total'    => $contratos->count(),
+            'valor_total' => '$' . number_format($contratos->sum('valor_contrato'), 0, ',', '.'),
+        ];
+    }
+
+    private function exportarAfiliacionesExcel(array $input): array
+    {
+        $q = Afiliacion::with('dependencia');
+
+        if (! empty($input['estado']))             $q->where('estado', $input['estado']);
+        if (! empty($input['dependencia_nombre'])) {
+            $q->whereHas('dependencia', fn ($d) => $d->where('nombre', 'like', '%' . $input['dependencia_nombre'] . '%'));
+        }
+        if (! empty($input['trimestre']) && ! empty($input['vigencia'])) {
+            $year = (int) $input['vigencia'];
+            [$mesInicio, $mesFin] = match ((int) $input['trimestre']) {
+                1 => [1, 3], 2 => [4, 6], 3 => [7, 9], 4 => [10, 12], default => [1, 12],
+            };
+            $q->whereBetween('fecha_inicio', [
+                \Carbon\Carbon::create($year, $mesInicio, 1)->startOfDay(),
+                \Carbon\Carbon::create($year, $mesFin, 1)->endOfMonth()->endOfDay(),
+            ]);
+        }
+
+        $afiliaciones = $q->orderBy('created_at')->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Afiliaciones ARL');
+
+        $headers = ['N°','Contratista','Documento','No. Contrato','ARL','Tipo Riesgo','EPS','IBC','Valor Contrato','Estado','Fecha Inicio','Fecha Fin','Dependencia'];
+        foreach ($headers as $i => $h) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$col}1", $h);
+        }
+
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1D4ED8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+
+        foreach ($afiliaciones as $i => $a) {
+            $row = $i + 2;
+            $sheet->setCellValue("A{$row}", $i + 1);
+            $sheet->setCellValue("B{$row}", $a->nombre_contratista);
+            $sheet->setCellValue("C{$row}", ($a->tipo_documento ?? '') . ' ' . ($a->numero_documento ?? ''));
+            $sheet->setCellValue("D{$row}", $a->numero_contrato);
+            $sheet->setCellValue("E{$row}", $a->nombre_arl);
+            $sheet->setCellValue("F{$row}", $a->tipo_riesgo);
+            $sheet->setCellValue("G{$row}", $a->eps);
+            $sheet->getCell("H{$row}")->setValueExplicit($a->ibc ?? 0, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+            $sheet->getStyle("H{$row}")->getNumberFormat()->setFormatCode('$ #,##0');
+            $sheet->getCell("I{$row}")->setValueExplicit($a->valor_contrato ?? 0, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+            $sheet->getStyle("I{$row}")->getNumberFormat()->setFormatCode('$ #,##0');
+            $sheet->setCellValue("J{$row}", $a->estado);
+            $sheet->setCellValue("K{$row}", $a->fecha_inicio?->format('d/m/Y') ?? '');
+            $sheet->setCellValue("L{$row}", $a->fecha_fin?->format('d/m/Y') ?? '');
+            $sheet->setCellValue("M{$row}", $a->dependencia?->nombre ?? '');
+
+            $bgColor = ($row % 2 === 0) ? 'EFF6FF' : 'FFFFFF';
+            $sheet->getStyle("A{$row}:{$lastCol}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($bgColor);
+        }
+
+        foreach (['A' => 5, 'B' => 30, 'C' => 18, 'D' => 16, 'E' => 16, 'F' => 12,
+                  'G' => 16, 'H' => 16, 'I' => 18, 'J' => 14, 'K' => 13, 'L' => 13, 'M' => 30] as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $nombreBase = $input['nombre_archivo'] ?? ('afiliaciones_' . now()->format('Ymd_His'));
+        $nombreBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $nombreBase);
+        $filename = "{$nombreBase}.xlsx";
+        $path = storage_path("app/public/exports/{$filename}");
+
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        (new Xlsx($spreadsheet))->save($path);
+
+        return [
+            'url'      => asset("storage/exports/{$filename}"),
+            'filename' => $filename,
+            'total'    => $afiliaciones->count(),
+        ];
     }
 
     private function toolAfiliacionesProximasVencer(array $input): array
