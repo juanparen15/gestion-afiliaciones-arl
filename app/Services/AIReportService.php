@@ -174,12 +174,21 @@ class AIReportService
                "ESTADOS DE AFILIACIÓN: pendiente, validado, rechazado\n" .
                "ESTADOS DE CONTRATO SECOP: EN EJECUCION, EN EJECUCION CON ADICION, TERMINADO\n\n" .
 
+               "NOTA SOBRE DEPENDENCIAS EN CONTRATOS SECOP:\n" .
+               "- Algunos contratos (especialmente NO APLICA: arrendamientos, interadministrativos, interventorías, licitaciones)\n" .
+               "  NO tienen dependencia_id asignada en la BD; usan el campo texto 'dependencia_contrato'.\n" .
+               "- Esos contratos pertenecen a 'D07 Administración Central' según el campo texto.\n" .
+               "- Si aparece 'Sin dependencia' en agrupación, corresponde a estos contratos de Administración Central.\n\n" .
+
                "REGLAS DE USO DE HERRAMIENTAS:\n" .
                "- Para preguntas sobre un trimestre específico, usa el parámetro trimestre (1=ene-mar, 2=abr-jun, 3=jul-sep, 4=oct-dic).\n" .
                "- Para el año actual usa vigencia={$anioActual}.\n" .
                "- Para listar dependencias disponibles usa la herramienta listar_dependencias.\n" .
                "- Para detalle de afiliaciones (por dependencia, año, trimestre, ARL) usa afiliaciones_detallado.\n" .
-               "- Para detalle de contratos SECOP con filtros múltiples usa contratos_detallado.";
+               "- Para detalle de contratos SECOP con filtros múltiples usa contratos_detallado.\n" .
+               "- Cuando el usuario pide 'más detalle', 'detalle de cada contrato', 'listado', 'uno a uno' o 'qué contratos son':\n" .
+               "  USA SIEMPRE con_detalle: true en contratos_detallado para obtener el listado individual.\n" .
+               "- El campo con_detalle devuelve número, contratista, clase, objeto, valor, fechas, fuente y dependencia de cada contrato.";
     }
 
     // ─── Definición de herramientas (formato Gemini) ──────────────────────────
@@ -502,12 +511,15 @@ class AIReportService
                 'valor'               => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
             ])->sortByDesc('cantidad')->values()->toArray();
 
-        $porDependencia = $contratos->groupBy(fn ($c) => $c->dependencia?->nombre ?? 'Sin dependencia')
-            ->map(fn ($g, $k) => [
-                'dependencia' => $k,
-                'cantidad'    => $g->count(),
-                'valor'       => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
-            ])->sortByDesc('cantidad')->values()->toArray();
+        // Dependencia: usar relación con ID si existe, si no usar el campo texto dependencia_contrato
+        $porDependencia = $contratos->groupBy(function ($c) {
+            return $c->dependencia?->nombre
+                ?? (! empty($c->dependencia_contrato) ? $c->dependencia_contrato : 'Sin dependencia');
+        })->map(fn ($g, $k) => [
+            'dependencia' => $k,
+            'cantidad'    => $g->count(),
+            'valor'       => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+        ])->sortByDesc('cantidad')->values()->toArray();
 
         $resultado = [
             'total_contratos'        => $total,
@@ -523,15 +535,17 @@ class AIReportService
             $resultado['contratos'] = $contratos->take(50)->map(fn ($c) => [
                 'numero'        => $c->numero_contrato,
                 'contratista'   => $c->getNombreContratista(),
-                'tipo_contrato' => $c->tipo_contrato,
+                'clase'         => $c->clase,
+                'tipo_contrato' => $c->tipo_contrato ?? 'Sin tipo',
                 'modalidad'     => $c->modalidad,
-                'objeto'        => str()->limit($c->objeto ?? '', 80),
+                'objeto'        => str()->limit($c->objeto ?? '', 100),
                 'valor'         => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
                 'fecha_inicio'  => $c->fecha_inicio?->format('d/m/Y'),
                 'fecha_fin'     => $c->fechaEfectivaCierre()?->format('d/m/Y'),
                 'fuente'        => $c->fuente_financiacion,
                 'prorroga'      => $c->fecha_prorroga_1 ? 'Sí' : 'No',
-                'dependencia'   => $c->dependencia?->nombre,
+                'dependencia'   => $c->dependencia?->nombre
+                    ?? (! empty($c->dependencia_contrato) ? $c->dependencia_contrato : 'Sin dependencia'),
             ])->toArray();
         }
 
