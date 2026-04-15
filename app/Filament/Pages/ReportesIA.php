@@ -17,9 +17,11 @@ class ReportesIA extends Page
     protected static string $view = 'filament.pages.reportes-ia';
 
     public string  $pregunta  = '';
-    public ?string $respuesta = null;
     public bool    $cargando  = false;
     public ?string $error     = null;
+
+    /** @var array<int, array{rol: string, texto: string, hora: string}> */
+    public array $historial = [];
 
     public static function canAccess(): bool
     {
@@ -29,37 +31,51 @@ class ReportesIA extends Page
 
     public function consultar(): void
     {
-        $this->validate(['pregunta' => 'required|min:5|max:500']);
+        $this->validate(['pregunta' => 'required|min:5|max:1000']);
 
-        $this->cargando  = true;
-        $this->respuesta = null;
-        $this->error     = null;
+        $this->cargando = true;
+        $this->error    = null;
+
+        $preguntaActual = $this->pregunta;
+        $this->pregunta = '';
+
+        // Agregar mensaje del usuario al historial
+        $this->historial[] = [
+            'rol'   => 'user',
+            'texto' => $preguntaActual,
+            'hora'  => now()->format('H:i'),
+        ];
 
         try {
-            $resultado = app(AIReportService::class)->consultar($this->pregunta);
+            // Pasar historial previo (sin el mensaje que acabamos de agregar)
+            $historialParaIA = array_slice($this->historial, 0, -1);
+
+            $resultado = app(AIReportService::class)->consultar($preguntaActual, $historialParaIA);
 
             if (isset($resultado['error'])) {
                 $this->error = $resultado['error'];
+                // Quitar el mensaje del usuario del historial si hubo error
+                array_pop($this->historial);
             } else {
-                $this->respuesta = $resultado['respuesta'];
+                $this->historial[] = [
+                    'rol'   => 'ia',
+                    'texto' => $resultado['respuesta'],
+                    'hora'  => now()->format('H:i'),
+                ];
             }
         } catch (\Throwable $e) {
             $this->error = 'Error inesperado: ' . $e->getMessage();
+            array_pop($this->historial);
         } finally {
             $this->cargando = false;
         }
     }
 
-    public function ejemplos(): array
+    public function limpiarConversacion(): void
     {
-        return [
-            '¿Cuántos contratos hay activos este año?',
-            '¿Qué dependencia tiene más contratos en ejecución?',
-            '¿Cuáles contratos vencen en los próximos 30 días?',
-            '¿Cuál es el valor total de contratos por dependencia?',
-            '¿Cuántas afiliaciones ARL están próximas a vencer?',
-            '¿Quiénes son los 5 contratistas con más contratos?',
-        ];
+        $this->historial = [];
+        $this->pregunta  = '';
+        $this->error     = null;
     }
 
     public function usarEjemplo(string $ejemplo): void

@@ -283,53 +283,66 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
         </div>
     </div>
 
-    {{-- ══════════════════ FORMULARIO ══════════════════ --}}
-    <div class="ia-form-section ia-a3">
-        <form wire:submit="consultar">
-            <textarea
-                wire:model="pregunta"
-                rows="3"
-                placeholder="Ej: ¿Cuántos contratos están activos este año y cuál es su valor total?"
-                class="ia-textarea">
-            </textarea>
+    {{-- ══════════════════ HISTORIAL DE CONVERSACIÓN ══════════════════ --}}
+    @if(!empty($historial))
+        @php
+            $converter = new \League\CommonMark\CommonMarkConverter([
+                'html_input'         => 'strip',
+                'allow_unsafe_links' => false,
+            ]);
+        @endphp
+        <div class="ia-form-section ia-a1" style="display:flex;flex-direction:column;gap:1rem;">
 
-            @error('pregunta')
-                <p style="margin-top:.5rem;font-size:.75rem;color:#f87171;display:flex;align-items:center;gap:.25rem;">
-                    <svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/></svg>
-                    {{ $message }}
-                </p>
-            @enderror
-
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.875rem;flex-wrap:wrap;gap:.5rem;">
-                <div style="display:flex;align-items:center;gap:.625rem;">
-                    <button type="submit" class="ia-btn" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="consultar" style="display:flex;align-items:center;gap:.5rem;">
-                            <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
-                            Consultar con IA
-                        </span>
-                        <span wire:loading.flex wire:target="consultar" style="align-items:center;gap:.5rem;">
-                            <svg style="width:16px;height:16px" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
-                            Analizando datos...
-                        </span>
-                    </button>
-
-                    @if($respuesta || $error)
-                        <button
-                            type="button"
-                            class="ia-btn-ghost"
-                            wire:click="$set('respuesta', null); $set('error', null); $set('pregunta', '')">
-                            <svg style="width:15px;height:15px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                            Nueva consulta
-                        </button>
-                    @endif
+            {{-- Header con botón limpiar --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:.875rem;border-bottom:1px solid rgba(255,255,255,.08);">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div style="width:32px;height:32px;border-radius:.5rem;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg style="width:16px;height:16px;color:#60a5fa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                    </div>
+                    <div>
+                        <p style="font-size:.875rem;font-weight:600;margin:0 0 .1rem;" class="t-h">Conversación con IA</p>
+                        <p style="font-size:.75rem;margin:0;" class="t-s">{{ count($historial) / 2 >= 1 ? floor(count($historial)/2).' intercambio(s)' : '' }} · Datos en tiempo real</p>
+                    </div>
                 </div>
-
-                <span style="font-size:.7rem;color:#475569;letter-spacing:.05em;">Powered by Gemini AI</span>
+                <button type="button" class="ia-btn-ghost" wire:click="limpiarConversacion" style="font-size:.75rem;padding:.375rem .75rem;">
+                    <svg style="width:13px;height:13px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                    Nueva conversación
+                </button>
             </div>
-        </form>
-    </div>
 
-    {{-- ══════════════════ SKELETON ══════════════════ --}}
+            {{-- Mensajes --}}
+            @foreach($historial as $msg)
+                @if($msg['rol'] === 'user')
+                    {{-- Burbuja usuario --}}
+                    <div style="display:flex;align-items:flex-start;gap:.75rem;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+                            <svg style="width:13px;height:13px;" class="t-s" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+                        </div>
+                        <div class="ia-bubble-user" style="flex:1;padding:.75rem 1rem;">
+                            <p style="font-size:.875rem;line-height:1.65;margin:0 0 .3rem;" class="t-m">{{ $msg['texto'] }}</p>
+                            <p style="font-size:.65rem;margin:0;opacity:.5;" class="t-s">{{ $msg['hora'] }}</p>
+                        </div>
+                    </div>
+                @else
+                    {{-- Burbuja IA --}}
+                    <div style="display:flex;align-items:flex-start;gap:.75rem;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.2);border:1px solid rgba(96,165,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+                            <svg style="width:13px;height:13px;color:#60a5fa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                        </div>
+                        <div class="ia-bubble-ai" style="flex:1;padding:.875rem 1rem;">
+                            <div class="ia-md t-m" style="font-size:.875rem;line-height:1.75;">
+                                {!! $converter->convert($msg['texto'])->getContent() !!}
+                            </div>
+                            <p style="font-size:.65rem;margin:.5rem 0 0;opacity:.5;" class="t-s">{{ $msg['hora'] }}</p>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
+
+        </div>
+    @endif
+
+    {{-- ══════════════════ SKELETON (cargando) ══════════════════ --}}
     <div wire:loading wire:target="consultar" class="ia-form-section">
         <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,.08);">
             <div style="width:32px;height:32px;border-radius:.5rem;" class="ia-skeleton-line"></div>
@@ -363,53 +376,45 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
         </div>
     @endif
 
-    {{-- ══════════════════ RESPUESTA ══════════════════ --}}
-    @if($respuesta)
-        <div class="ia-form-section ia-a1"
-             x-data x-init="setTimeout(()=>$el.scrollIntoView({behavior:'smooth',block:'nearest'}),100)">
+    {{-- ══════════════════ FORMULARIO ══════════════════ --}}
+    <div class="ia-form-section {{ empty($historial) ? 'ia-a3' : '' }}"
+         x-data x-init="@if(!empty($historial)) setTimeout(()=>$el.scrollIntoView({behavior:'smooth',block:'nearest'}),150) @endif">
+        <form wire:submit="consultar">
+            @if(!empty($historial))
+                <p style="font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#60a5fa;margin:0 0 .625rem;">
+                    Continúa la conversación
+                </p>
+            @endif
+            <textarea
+                wire:model="pregunta"
+                rows="3"
+                placeholder="{{ empty($historial) ? 'Ej: ¿Cuántos contratos están activos este año y cuál es su valor total?' : 'Escribe tu siguiente pregunta o respuesta...' }}"
+                class="ia-textarea">
+            </textarea>
 
-            {{-- Header --}}
-            <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:1.125rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,.08);">
-                <div style="width:32px;height:32px;border-radius:.5rem;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg style="width:16px;height:16px;color:#60a5fa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
-                </div>
-                <div>
-                    <p style="font-size:.875rem;font-weight:600;margin:0 0 .1rem;" class="t-h">Respuesta del Asistente IA</p>
-                    <p style="font-size:.75rem;margin:0;" class="t-s">Datos en tiempo real del sistema</p>
-                </div>
+            @error('pregunta')
+                <p style="margin-top:.5rem;font-size:.75rem;color:#f87171;display:flex;align-items:center;gap:.25rem;">
+                    <svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/></svg>
+                    {{ $message }}
+                </p>
+            @enderror
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.875rem;flex-wrap:wrap;gap:.5rem;">
+                <button type="submit" class="ia-btn" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="consultar" style="display:flex;align-items:center;gap:.5rem;">
+                        <svg style="width:16px;height:16px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
+                        {{ empty($historial) ? 'Consultar con IA' : 'Enviar' }}
+                    </span>
+                    <span wire:loading.flex wire:target="consultar" style="align-items:center;gap:.5rem;">
+                        <svg style="width:16px;height:16px" class="animate-spin" fill="none" viewBox="0 0 24 24"><circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                        Analizando datos...
+                    </span>
+                </button>
+
+                <span style="font-size:.7rem;color:#475569;letter-spacing:.05em;">Powered by Gemini AI</span>
             </div>
-
-            {{-- Pregunta --}}
-            <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.875rem;">
-                <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
-                    <svg style="width:13px;height:13px;" class="t-s" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-                </div>
-                <div class="ia-bubble-user" style="flex:1;padding:.75rem 1rem;">
-                    <p style="font-size:.875rem;line-height:1.65;margin:0;" class="t-m">{{ $pregunta }}</p>
-                </div>
-            </div>
-
-            {{-- Respuesta IA --}}
-            <div style="display:flex;align-items:flex-start;gap:.75rem;">
-                <div style="width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.2);border:1px solid rgba(96,165,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
-                    <svg style="width:13px;height:13px;color:#60a5fa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></svg>
-                </div>
-                <div class="ia-bubble-ai" style="flex:1;padding:.875rem 1rem;">
-                    @php
-                        $converter = new \League\CommonMark\CommonMarkConverter([
-                            'html_input'         => 'strip',
-                            'allow_unsafe_links' => false,
-                        ]);
-                        $respuestaHtml = $converter->convert($respuesta)->getContent();
-                    @endphp
-                    <div class="ia-md t-m" style="font-size:.875rem;line-height:1.75;">
-                        {!! $respuestaHtml !!}
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    @endif
+        </form>
+    </div>
 
     {{-- ══════════════════ API KEY WARNING ══════════════════ --}}
     @if(empty(config('services.gemini.key')))

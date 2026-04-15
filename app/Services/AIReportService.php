@@ -18,7 +18,7 @@ class AIReportService
         $this->model  = config('services.gemini.model', 'gemini-2.0-flash');
     }
 
-    public function consultar(string $pregunta): array
+    public function consultar(string $pregunta, array $historialPrevio = []): array
     {
         if (empty($this->apiKey)) {
             return ['error' => 'GEMINI_API_KEY no está configurada en el servidor.'];
@@ -26,7 +26,17 @@ class AIReportService
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}";
 
-        $contents = [['role' => 'user', 'parts' => [['text' => $pregunta]]]];
+        // Construir historial de conversación previo
+        $contents = [];
+        foreach ($historialPrevio as $msg) {
+            if ($msg['rol'] === 'user') {
+                $contents[] = ['role' => 'user', 'parts' => [['text' => $msg['texto']]]];
+            } elseif ($msg['rol'] === 'ia' && ! empty($msg['texto'])) {
+                $contents[] = ['role' => 'model', 'parts' => [['text' => $msg['texto']]]];
+            }
+        }
+        // Agregar la pregunta actual
+        $contents[] = ['role' => 'user', 'parts' => [['text' => $pregunta]]];
 
         $payload = [
             'system_instruction' => ['parts' => [['text' => $this->systemPrompt()]]],
@@ -137,6 +147,8 @@ class AIReportService
                "SIEMPRE usa las herramientas disponibles para consultar datos antes de responder. " .
                "NUNCA digas que no tienes acceso a información sin intentar consultar la herramienta adecuada primero. " .
                "Si necesitas varios datos, llama varias herramientas en la misma respuesta o en rondas sucesivas. " .
+               "NUNCA hagas preguntas de seguimiento al usuario para aclarar cómo quiere los datos: SIEMPRE responde directamente con la información completa. " .
+               "Si la pregunta pide datos por varios criterios (ej: por tipo Y por fuente), consulta los datos y presenta AMBOS en la respuesta. " .
                "Responde siempre en español, de forma clara, concisa y profesional. " .
                "Cuando presentes listas usa formato estructurado con viñetas o numeración. " .
                "Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente.\n\n" .
@@ -210,7 +222,8 @@ class AIReportService
                 'name'        => 'contratos_detallado',
                 'description' => 'Consulta detallada de contratos SECOP con múltiples filtros. ' .
                                  'IMPORTANTE: Para filtrar por tipo de contrato usa tipo_contrato (texto descriptivo), NO modalidad (que son códigos). ' .
-                                 'Incluye agrupación, fuentes de financiación, prórrogas y adiciones.',
+                                 'Siempre devuelve agrupación por tipo_contrato, por fuente_financiacion y por dependencia simultáneamente. ' .
+                                 'Incluye prórrogas y adiciones.',
                 'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
@@ -473,32 +486,36 @@ class AIReportService
         $conProrroga = $contratos->filter(fn ($c) => $c->fecha_prorroga_1 || $c->fecha_prorroga_2 || $c->fecha_prorroga_3);
         $conAdicion  = $contratos->filter(fn ($c) => $c->tieneAdiciones());
 
-        $campoAgrupar = $input['agrupar_por'] ?? 'tipo_contrato';
-        $agrupacion = $contratos->groupBy(fn ($c) => match ($campoAgrupar) {
-            'fuente_financiacion' => $c->fuente_financiacion ?? 'No especificada',
-            'dependencia'         => $c->dependencia?->nombre ?? 'Sin dependencia',
-            'modalidad'           => $c->modalidad ?? 'Sin modalidad',
-            default               => $c->tipo_contrato ?? 'Sin tipo',
-        })->map(fn ($grupo, $key) => [
-            $campoAgrupar => $key,
-            'cantidad'    => $grupo->count(),
-            'valor'       => '$' . number_format($grupo->sum('valor_contrato'), 0, ',', '.'),
-        ])->sortByDesc('cantidad')->values()->toArray();
-
-        $fuentes = $contratos->groupBy(fn ($c) => $c->fuente_financiacion ?? 'No especificada')
+        // Siempre incluir agrupaciones por tipo_contrato, fuente_financiacion y dependencia
+        $porTipo = $contratos->groupBy(fn ($c) => $c->tipo_contrato ?? 'Sin tipo')
             ->map(fn ($g, $k) => [
-                'fuente'   => $k,
-                'cantidad' => $g->count(),
-                'valor'    => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+                'tipo_contrato' => $k,
+                'cantidad'      => $g->count(),
+                'valor'         => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+            ])->sortByDesc('cantidad')->values()->toArray();
+
+        $porFuente = $contratos->groupBy(fn ($c) => $c->fuente_financiacion ?? 'No especificada')
+            ->map(fn ($g, $k) => [
+                'fuente_financiacion' => $k,
+                'cantidad'            => $g->count(),
+                'valor'               => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
+            ])->sortByDesc('cantidad')->values()->toArray();
+
+        $porDependencia = $contratos->groupBy(fn ($c) => $c->dependencia?->nombre ?? 'Sin dependencia')
+            ->map(fn ($g, $k) => [
+                'dependencia' => $k,
+                'cantidad'    => $g->count(),
+                'valor'       => '$' . number_format($g->sum('valor_contrato'), 0, ',', '.'),
             ])->sortByDesc('cantidad')->values()->toArray();
 
         $resultado = [
-            'total_contratos'      => $total,
-            'valor_total'          => '$' . number_format($valorTotal, 0, ',', '.'),
-            'con_prorroga'         => $conProrroga->count(),
-            'con_adicion'          => $conAdicion->count(),
-            'agrupacion'           => $agrupacion,
-            'fuentes_financiacion' => $fuentes,
+            'total_contratos'        => $total,
+            'valor_total'            => '$' . number_format($valorTotal, 0, ',', '.'),
+            'con_prorroga'           => $conProrroga->count(),
+            'con_adicion'            => $conAdicion->count(),
+            'por_tipo_contrato'      => $porTipo,
+            'por_fuente_financiacion'=> $porFuente,
+            'por_dependencia'        => $porDependencia,
         ];
 
         if (! empty($input['con_detalle'])) {
