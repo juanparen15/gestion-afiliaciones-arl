@@ -390,14 +390,27 @@ class AIReportService
             ],
             [
                 'name'        => 'buscar_contratista',
-                'description' => 'Busca un contratista por nombre y retorna sus contratos SECOP y afiliaciones ARL.',
+                'description' => 'Busca un contratista por nombre (una o varias palabras) y retorna sus contratos SECOP y afiliaciones ARL. ' .
+                                 'Divide el nombre en palabras para buscar aunque el nombre completo tenga más palabras intermedias.',
                 'parameters'  => [
                     'type'       => 'object',
                     'properties' => [
-                        'nombre'  => ['type' => 'string',  'description' => 'Nombre parcial del contratista. Requerido.'],
-                        'limite'  => ['type' => 'integer', 'description' => 'Máximo resultados por entidad. Por defecto 5.'],
+                        'nombre'  => ['type' => 'string',  'description' => 'Nombre parcial o completo del contratista. Puede ser solo apellido, solo nombre, o combinación.'],
+                        'limite'  => ['type' => 'integer', 'description' => 'Máximo resultados por entidad. Por defecto 10.'],
                     ],
                     'required' => ['nombre'],
+                ],
+            ],
+            [
+                'name'        => 'buscar_contrato',
+                'description' => 'Busca un contrato específico por su número y/o vigencia. Usa esta herramienta cuando el usuario mencione un número de contrato.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'numero'   => ['type' => 'integer', 'description' => 'Número del contrato. Requerido.'],
+                        'vigencia' => ['type' => 'integer', 'description' => 'Vigencia (año) del contrato. Opcional.'],
+                    ],
+                    'required' => ['numero'],
                 ],
             ],
         ];
@@ -423,6 +436,7 @@ class AIReportService
             'estadisticas_afiliaciones'     => $this->toolEstadisticasAfiliaciones($input),
             'exportar_excel'                => $this->toolExportarExcel($input),
             'buscar_contratista'            => $this->toolBuscarContratista($input),
+            'buscar_contrato'               => $this->toolBuscarContrato($input),
             default                         => ['error' => "Herramienta '{$nombre}' no encontrada."],
         };
     }
@@ -1061,13 +1075,28 @@ class AIReportService
 
     private function toolBuscarContratista(array $input): array
     {
-        $nombre = $input['nombre'] ?? '';
-        $limite = (int) ($input['limite'] ?? 5);
+        $nombre = trim($input['nombre'] ?? '');
+        $limite = (int) ($input['limite'] ?? 10);
+
+        // Dividir en palabras para buscar "mike piedrahita" → registros con "mike" Y "piedrahita"
+        $palabras = array_filter(explode(' ', $nombre));
 
         $contratos = Contrato::with('dependencia')
-            ->where(function ($q) use ($nombre) {
+            ->where(function ($q) use ($palabras, $nombre) {
+                // Primero intentar frase completa
                 $q->where('nombre_persona_natural', 'like', "%{$nombre}%")
                   ->orWhere('nombre_persona_juridica', 'like', "%{$nombre}%");
+                // Luego buscar por cada palabra (AND)
+                if (count($palabras) > 1) {
+                    $q->orWhere(function ($q2) use ($palabras) {
+                        foreach ($palabras as $p) {
+                            $q2->where(function ($q3) use ($p) {
+                                $q3->where('nombre_persona_natural', 'like', "%{$p}%")
+                                   ->orWhere('nombre_persona_juridica', 'like', "%{$p}%");
+                            });
+                        }
+                    });
+                }
             })
             ->latest()->limit($limite)->get()
             ->map(fn ($c) => [
@@ -1076,12 +1105,21 @@ class AIReportService
                 'estado'        => $c->estado,
                 'vigencia'      => $c->vigencia,
                 'valor'         => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
-                'dependencia'   => $c->dependencia?->nombre,
-                'objeto'        => str()->limit($c->objeto ?? '', 80),
+                'dependencia'   => $c->dependencia?->nombre ?? $c->dependencia_contrato,
+                'objeto'        => str()->limit($c->objeto ?? '', 120),
             ])->toArray();
 
         $afiliaciones = Afiliacion::with('dependencia')
-            ->where('nombre_contratista', 'like', "%{$nombre}%")
+            ->where(function ($q) use ($palabras, $nombre) {
+                $q->where('nombre_contratista', 'like', "%{$nombre}%");
+                if (count($palabras) > 1) {
+                    $q->orWhere(function ($q2) use ($palabras) {
+                        foreach ($palabras as $p) {
+                            $q2->where('nombre_contratista', 'like', "%{$p}%");
+                        }
+                    });
+                }
+            })
             ->latest()->limit($limite)->get()
             ->map(fn ($a) => [
                 'estado'       => $a->estado,
@@ -1099,6 +1137,42 @@ class AIReportService
             'total_afiliaciones' => count($afiliaciones),
             'contratos'          => $contratos,
             'afiliaciones'       => $afiliaciones,
+        ];
+    }
+
+    private function toolBuscarContrato(array $input): array
+    {
+        $numero   = (int) ($input['numero'] ?? 0);
+        $vigencia = isset($input['vigencia']) ? (int) $input['vigencia'] : null;
+
+        $q = Contrato::with('dependencia')->where('numero_contrato', $numero);
+        if ($vigencia) $q->where('vigencia', $vigencia);
+
+        $contratos = $q->get()->map(fn ($c) => [
+            'numero'              => $c->numero_contrato,
+            'vigencia'            => $c->vigencia,
+            'tipo_contrato'       => $c->tipo_contrato,
+            'clase'               => $c->clase,
+            'estado'              => $c->estado,
+            'modalidad'           => $c->modalidad,
+            'fuente_financiacion' => $c->fuente_financiacion,
+            'valor'               => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
+            'fecha_inicio'        => $c->fecha_inicio?->format('d/m/Y'),
+            'fecha_fin'           => $c->fecha_fin?->format('d/m/Y'),
+            'dependencia'         => $c->dependencia?->nombre ?? $c->dependencia_contrato,
+            'contratista'         => $c->nombre_persona_natural ?? $c->nombre_persona_juridica,
+            'objeto'              => $c->objeto,
+            'numero_secop'        => $c->numero_secop,
+        ])->toArray();
+
+        if (empty($contratos)) {
+            return ['encontrado' => false, 'mensaje' => "No se encontró el contrato número {$numero}" . ($vigencia ? " de la vigencia {$vigencia}" : '') . '.'];
+        }
+
+        return [
+            'encontrado' => true,
+            'total'      => count($contratos),
+            'contratos'  => $contratos,
         ];
     }
 }
