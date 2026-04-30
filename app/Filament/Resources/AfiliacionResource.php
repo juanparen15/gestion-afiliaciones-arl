@@ -1329,6 +1329,9 @@ class AfiliacionResource extends Resource
                                     ->onIcon('heroicon-o-check')
                                     ->offIcon('heroicon-o-x-mark')
                                     ->onColor('success')
+                                    ->afterStateUpdated(fn(bool $state, Forms\Set $set) =>
+                                        $state ? $set('fecha_adicion', now()->format('Y-m-d')) : null
+                                    )
                                     ->columnSpanFull(),
 
                                 Forms\Components\Textarea::make('descripcion_adicion')
