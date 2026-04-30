@@ -444,8 +444,10 @@ class AfiliacionResource extends Resource
                                         ->downloadable()
                                         ->openable()
                                         ->previewable()
-                                        ->required()
-                                        ->helperText('Formatos: PDF o Word (máximo 10MB)')
+                                        ->required(fn(string $operation) => $operation === 'create')
+                                        ->helperText(fn(string $operation) => $operation === 'edit'
+                                            ? 'El archivo ya fue cargado. Solo cargue uno nuevo si desea reemplazarlo.'
+                                            : 'Formatos: PDF o Word (máximo 10MB)')
                                         ->columnSpanFull()
                                         ->extraAttributes(['data-tour' => 'documento-contrato']),
                                 ]),
