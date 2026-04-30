@@ -1270,6 +1270,196 @@ class AfiliacionResource extends Resource
                     })
                     ->visible(fn(Afiliacion $record) => $record->estado === 'validado' && $record->pdf_arl && Auth::user()->hasRole(['SSST', 'super_admin'])),
 
+                Action::make('registrar_novedad')
+                    ->label('Adición / Prórroga')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('info')
+                    ->modalHeading(fn(Afiliacion $record) => 'Novedades — Contrato ' . $record->numero_contrato)
+                    ->modalDescription('Registre adiciones de valor o prórrogas de plazo al contrato de esta afiliación.')
+                    ->modalWidth('2xl')
+                    ->modalSubmitActionLabel('Guardar novedad')
+                    ->fillForm(fn(Afiliacion $record) => [
+                        'tiene_adicion'            => (bool) $record->tiene_adicion,
+                        'descripcion_adicion'      => $record->descripcion_adicion,
+                        'valor_adicion'            => $record->valor_adicion
+                            ? number_format($record->valor_adicion, 0, '.', ',')
+                            : null,
+                        'fecha_adicion'            => $record->fecha_adicion?->format('Y-m-d'),
+                        'tiene_prorroga'           => (bool) $record->tiene_prorroga,
+                        'descripcion_prorroga'     => $record->descripcion_prorroga,
+                        'meses_prorroga'           => $record->meses_prorroga ?? 0,
+                        'dias_prorroga'            => $record->dias_prorroga ?? 0,
+                        'nueva_fecha_fin_prorroga' => $record->nueva_fecha_fin_prorroga?->format('Y-m-d'),
+                    ])
+                    ->form([
+                        // ── Info actual del contrato ────────────────────────
+                        Forms\Components\Section::make('Contrato actual')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                Forms\Components\Placeholder::make('contrato_info')
+                                    ->label('')
+                                    ->content(fn(Forms\Get $get, $record) =>
+                                        new \Illuminate\Support\HtmlString(
+                                            '<div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">' .
+                                            '<p><strong>Contratista:</strong> ' . e($record->nombre_contratista) . '</p>' .
+                                            '<p><strong>Valor contrato:</strong> $' . number_format($record->valor_contrato ?? 0, 0, ',', '.') . '</p>' .
+                                            '<p><strong>Fecha inicio:</strong> ' . ($record->fecha_inicio?->format('d/m/Y') ?? '—') . '</p>' .
+                                            '<p><strong>Fecha fin original:</strong> ' . ($record->fecha_fin?->format('d/m/Y') ?? '—') . '</p>' .
+                                            ($record->nueva_fecha_fin_prorroga
+                                                ? '<p><strong>Fecha fin con prórroga:</strong> ' . $record->nueva_fecha_fin_prorroga->format('d/m/Y') . '</p>'
+                                                : '') .
+                                            '</div>'
+                                        )
+                                    )
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsible()
+                            ->collapsed(false),
+
+                        // ── Adición ─────────────────────────────────────────
+                        Forms\Components\Section::make('Adición al Contrato')
+                            ->description('Incremento en el valor del contrato')
+                            ->icon('heroicon-o-plus-circle')
+                            ->schema([
+                                Forms\Components\Toggle::make('tiene_adicion')
+                                    ->label('¿El contrato tiene adición?')
+                                    ->live()
+                                    ->onIcon('heroicon-o-check')
+                                    ->offIcon('heroicon-o-x-mark')
+                                    ->onColor('success')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Textarea::make('descripcion_adicion')
+                                    ->label('Descripción de la Adición')
+                                    ->placeholder('Describa los detalles de la adición...')
+                                    ->rows(3)
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_adicion'))
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('valor_adicion')
+                                    ->label('Valor de la Adición')
+                                    ->prefix('$')
+                                    ->inputMode('decimal')
+                                    ->placeholder('0')
+                                    ->mask(\Filament\Support\RawJs::make(<<<'JS'
+                                        $money($input, '.', ',', 0)
+                                    JS))
+                                    ->stripCharacters('.,')
+                                    ->dehydrateStateUsing(fn($state) => $state !== null
+                                        ? floatval(str_replace(['.', ','], '', $state))
+                                        : null)
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+
+                                Forms\Components\DatePicker::make('fecha_adicion')
+                                    ->label('Fecha de la Adición')
+                                    ->displayFormat('d/m/Y')
+                                    ->native(false)
+                                    ->prefixIcon('heroicon-o-calendar')
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_adicion')),
+                            ])
+                            ->columns(2)
+                            ->collapsible(),
+
+                        // ── Prórroga ─────────────────────────────────────────
+                        Forms\Components\Section::make('Prórroga del Contrato')
+                            ->description('Extensión del plazo de ejecución')
+                            ->icon('heroicon-o-arrow-path')
+                            ->schema([
+                                Forms\Components\Toggle::make('tiene_prorroga')
+                                    ->label('¿El contrato tiene prórroga?')
+                                    ->live()
+                                    ->onIcon('heroicon-o-check')
+                                    ->offIcon('heroicon-o-x-mark')
+                                    ->onColor('success')
+                                    ->columnSpanFull(),
+
+                                Forms\Components\Textarea::make('descripcion_prorroga')
+                                    ->label('Descripción de la Prórroga')
+                                    ->placeholder('Describa los detalles de la prórroga...')
+                                    ->rows(3)
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('meses_prorroga')
+                                    ->label('Meses de Prórroga')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefixIcon('heroicon-o-calendar')
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
+
+                                Forms\Components\TextInput::make('dias_prorroga')
+                                    ->label('Días de Prórroga')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefixIcon('heroicon-o-clock')
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
+
+                                Forms\Components\DatePicker::make('nueva_fecha_fin_prorroga')
+                                    ->label('Nueva Fecha de Finalización')
+                                    ->displayFormat('d/m/Y')
+                                    ->native(false)
+                                    ->prefixIcon('heroicon-o-calendar-days')
+                                    ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->collapsible(),
+                    ])
+                    ->action(function (Afiliacion $record, array $data): void {
+                        $tieneAdicion  = (bool) ($data['tiene_adicion'] ?? false);
+                        $tieneProrroga = (bool) ($data['tiene_prorroga'] ?? false);
+
+                        $updateData = [
+                            'tiene_adicion'            => $tieneAdicion,
+                            'descripcion_adicion'      => $tieneAdicion ? ($data['descripcion_adicion'] ?? null) : null,
+                            'valor_adicion'            => $tieneAdicion ? ($data['valor_adicion'] ?? null) : null,
+                            'fecha_adicion'            => $tieneAdicion ? ($data['fecha_adicion'] ?? null) : null,
+                            'tiene_prorroga'           => $tieneProrroga,
+                            'descripcion_prorroga'     => $tieneProrroga ? ($data['descripcion_prorroga'] ?? null) : null,
+                            'meses_prorroga'           => $tieneProrroga ? ($data['meses_prorroga'] ?? 0) : null,
+                            'dias_prorroga'            => $tieneProrroga ? ($data['dias_prorroga'] ?? 0) : null,
+                            'nueva_fecha_fin_prorroga' => $tieneProrroga ? ($data['nueva_fecha_fin_prorroga'] ?? null) : null,
+                        ];
+
+                        // Si el rol Dependencia modifica una afiliación validada → vuelve a pendiente
+                        if (Auth::user()->hasRole('Dependencia') && $record->estado === 'validado') {
+                            $updateData['estado'] = 'pendiente';
+                        }
+
+                        $record->update($updateData);
+
+                        // Notificar a SSST si el estado cambió a pendiente por novedad
+                        if (isset($updateData['estado']) && $updateData['estado'] === 'pendiente') {
+                            \App\Models\User::role('SSST')->each(function ($u) use ($record) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Novedad registrada — Afiliación pendiente de revisión')
+                                    ->body("Se registró una adición/prórroga en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere validación.")
+                                    ->sendToDatabase($u);
+                            });
+                        }
+
+                        $novedades = collect([
+                            $tieneAdicion  ? 'adición' : null,
+                            $tieneProrroga ? 'prórroga' : null,
+                        ])->filter()->implode(' y ');
+
+                        Notification::make()
+                            ->success()
+                            ->title('Novedad registrada')
+                            ->body($novedades
+                                ? "Se registró {$novedades} en el contrato {$record->numero_contrato}."
+                                : 'Los campos de novedad han sido actualizados.')
+                            ->send();
+                    })
+                    ->visible(fn(Afiliacion $record) =>
+                        Auth::user()->hasRole(['super_admin', 'SSST']) ||
+                        (Auth::user()->hasRole('Dependencia') &&
+                            Auth::user()->dependencia_id === $record->dependencia_id)
+                    ),
+
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()
                         ->label('Ver'),
