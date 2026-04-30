@@ -1290,6 +1290,8 @@ class AfiliacionResource extends Resource
                         'meses_prorroga'           => $record->meses_prorroga ?? 0,
                         'dias_prorroga'            => $record->dias_prorroga ?? 0,
                         'nueva_fecha_fin_prorroga' => $record->nueva_fecha_fin_prorroga?->format('Y-m-d'),
+                        // fecha base para el cálculo automático (no se guarda)
+                        'fecha_fin_base'           => $record->fecha_fin?->format('Y-m-d'),
                     ])
                     ->form([
                         // ── Info actual del contrato ────────────────────────
@@ -1380,12 +1382,28 @@ class AfiliacionResource extends Resource
                                     ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
                                     ->columnSpanFull(),
 
+                                Forms\Components\Hidden::make('fecha_fin_base'),
+
                                 Forms\Components\TextInput::make('meses_prorroga')
                                     ->label('Meses de Prórroga')
                                     ->numeric()
                                     ->minValue(0)
                                     ->default(0)
                                     ->prefixIcon('heroicon-o-calendar')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $base  = $get('fecha_fin_base');
+                                        $meses = intval($state ?? 0);
+                                        $dias  = intval($get('dias_prorroga') ?? 0);
+                                        if ($base && ($meses > 0 || $dias > 0)) {
+                                            $set('nueva_fecha_fin_prorroga',
+                                                \Carbon\Carbon::parse($base)
+                                                    ->addMonths($meses)
+                                                    ->addDays($dias)
+                                                    ->format('Y-m-d')
+                                            );
+                                        }
+                                    })
                                     ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
 
                                 Forms\Components\TextInput::make('dias_prorroga')
@@ -1394,6 +1412,20 @@ class AfiliacionResource extends Resource
                                     ->minValue(0)
                                     ->default(0)
                                     ->prefixIcon('heroicon-o-clock')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $base  = $get('fecha_fin_base');
+                                        $meses = intval($get('meses_prorroga') ?? 0);
+                                        $dias  = intval($state ?? 0);
+                                        if ($base && ($meses > 0 || $dias > 0)) {
+                                            $set('nueva_fecha_fin_prorroga',
+                                                \Carbon\Carbon::parse($base)
+                                                    ->addMonths($meses)
+                                                    ->addDays($dias)
+                                                    ->format('Y-m-d')
+                                            );
+                                        }
+                                    })
                                     ->visible(fn(Forms\Get $get) => $get('tiene_prorroga')),
 
                                 Forms\Components\DatePicker::make('nueva_fecha_fin_prorroga')
@@ -1401,6 +1433,7 @@ class AfiliacionResource extends Resource
                                     ->displayFormat('d/m/Y')
                                     ->native(false)
                                     ->prefixIcon('heroicon-o-calendar-days')
+                                    ->helperText('Se calcula automáticamente. Puede ajustarla manualmente si es necesario.')
                                     ->visible(fn(Forms\Get $get) => $get('tiene_prorroga'))
                                     ->columnSpanFull(),
                             ])
