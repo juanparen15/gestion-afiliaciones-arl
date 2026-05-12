@@ -51,7 +51,9 @@ class AIReportService
         ];
 
         // ─── Agentic loop: hasta 6 rondas de herramientas ────────────────────
-        $maxRondas = 6;
+        $maxRondas      = 6;
+        $herramientsUsadas = false;
+
         for ($ronda = 0; $ronda < $maxRondas; $ronda++) {
             $res = $this->postWithRetry($url, $payload);
 
@@ -75,6 +77,8 @@ class AIReportService
             if (empty($functionCalls)) {
                 break;
             }
+
+            $herramientsUsadas = true;
 
             // Agregar respuesta del modelo al historial
             $contents[] = ['role' => 'model', 'parts' => $parts];
@@ -102,6 +106,24 @@ class AIReportService
             ->filter(fn ($p) => isset($p['text']))
             ->pluck('text')
             ->implode('');
+
+        // ─── Gemini 2.5 Flash a veces devuelve vacío tras llamadas a herramientas.
+        //     En ese caso, enviar un nudge explícito para que resuma los datos.
+        if (empty(trim($texto)) && $herramientsUsadas) {
+            $contents[] = ['role' => 'user', 'parts' => [
+                ['text' => 'Con base en los datos obtenidos de las herramientas, por favor redacta una respuesta clara y completa en español.'],
+            ]];
+            $payload['contents'] = $contents;
+
+            $res = $this->postWithRetry($url, $payload);
+            if ($res->successful()) {
+                $data  = $res->json();
+                $texto = collect($data['candidates'][0]['content']['parts'] ?? [])
+                    ->filter(fn ($p) => isset($p['text']))
+                    ->pluck('text')
+                    ->implode('');
+            }
+        }
 
         if (empty(trim($texto))) {
             return ['error' => 'Gemini no devolvió texto. Respuesta completa: ' . json_encode($data)];
