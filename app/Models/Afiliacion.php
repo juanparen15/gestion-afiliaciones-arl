@@ -56,6 +56,7 @@ class Afiliacion extends Model
         'fecha_afiliacion_arl',
         'fecha_terminacion_afiliacion',
         'pdf_arl',
+        'pdf_arl_novedad',
         'contrato_pdf_o_word',
         'dependencia_id',
         'area_id',

@@ -520,16 +520,31 @@ class AfiliacionResource extends Resource
                                         ->prefixIcon('heroicon-o-calendar-days'),
 
                                     Forms\Components\FileUpload::make('pdf_arl')
-                                        ->label('PDF del Afiliado en Sistema ARL')
+                                        ->label('PDF ARL — Afiliación inicial')
                                         ->acceptedFileTypes(['application/pdf'])
-                                        ->maxSize(10240) // 10MB
+                                        ->maxSize(10240)
                                         ->directory('afiliaciones/pdfs-arl')
                                         ->downloadable()
                                         ->openable()
                                         ->previewable()
-                                        ->helperText('PDF generado en el sistema de ARL del afiliado')
-                                        ->visible(fn($record) => $record && $record->estado === 'validado')
+                                        ->helperText('PDF generado en el sistema ARL al momento de la afiliación.')
+                                        ->visible(fn($record) => $record && $record->pdf_arl)
                                         ->disabled()
+                                        ->columnSpanFull(),
+
+                                    Forms\Components\FileUpload::make('pdf_arl_novedad')
+                                        ->label('PDF ARL — Adición / Prórroga')
+                                        ->acceptedFileTypes(['application/pdf'])
+                                        ->maxSize(10240)
+                                        ->directory('afiliaciones/pdfs-arl-novedad')
+                                        ->disk('public')
+                                        ->visibility('public')
+                                        ->downloadable()
+                                        ->openable()
+                                        ->previewable()
+                                        ->helperText('PDF del sistema ARL para la adición o prórroga del contrato.')
+                                        ->visible(fn($record) => $record && ($record->pdf_arl_novedad || Auth::user()->hasRole(['super_admin', 'SSST'])))
+                                        ->disabled(fn() => ! Auth::user()->hasRole(['super_admin', 'SSST']))
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2),
@@ -1292,6 +1307,7 @@ class AfiliacionResource extends Resource
                         'nueva_fecha_fin_prorroga' => $record->nueva_fecha_fin_prorroga?->format('Y-m-d'),
                         // fecha base para el cálculo automático (no se guarda)
                         'fecha_fin_base'           => $record->fecha_fin?->format('Y-m-d'),
+                        'pdf_arl_novedad'          => $record->pdf_arl_novedad,
                     ])
                     ->form([
                         // ── Info actual del contrato ────────────────────────
@@ -1444,6 +1460,26 @@ class AfiliacionResource extends Resource
                             ])
                             ->columns(2)
                             ->collapsible(),
+
+                        // ── PDF Novedad (solo SSST / super_admin) ────────────
+                        Forms\Components\Section::make('PDF de la Novedad')
+                            ->description('Cargue el PDF generado en el sistema ARL para esta adición o prórroga.')
+                            ->icon('heroicon-o-paper-clip')
+                            ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                            ->schema([
+                                Forms\Components\FileUpload::make('pdf_arl_novedad')
+                                    ->label('PDF ARL — Adición / Prórroga')
+                                    ->acceptedFileTypes(['application/pdf'])
+                                    ->maxSize(10240)
+                                    ->directory('afiliaciones/pdfs-arl-novedad')
+                                    ->disk('public')
+                                    ->visibility('public')
+                                    ->downloadable()
+                                    ->openable()
+                                    ->previewable()
+                                    ->helperText('PDF del sistema ARL correspondiente a la adición o prórroga. Complementa el PDF original de afiliación.')
+                                    ->columnSpanFull(),
+                            ]),
                     ])
                     ->action(function (Afiliacion $record, array $data): void {
                         $tieneAdicion  = (bool) ($data['tiene_adicion'] ?? false);
@@ -1460,6 +1496,11 @@ class AfiliacionResource extends Resource
                             'dias_prorroga'            => $tieneProrroga ? ($data['dias_prorroga'] ?? 0) : null,
                             'nueva_fecha_fin_prorroga' => $tieneProrroga ? ($data['nueva_fecha_fin_prorroga'] ?? null) : null,
                         ];
+
+                        // PDF novedad: solo SSST/admin pueden subirlo; si no se subió nada no se toca el existente
+                        if (Auth::user()->hasRole(['super_admin', 'SSST']) && ! empty($data['pdf_arl_novedad'])) {
+                            $updateData['pdf_arl_novedad'] = $data['pdf_arl_novedad'];
+                        }
 
                         // Si el rol Dependencia modifica una afiliación validada → vuelve a pendiente
                         if (Auth::user()->hasRole('Dependencia') && $record->estado === 'validado') {
