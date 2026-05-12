@@ -107,12 +107,14 @@ class AIReportService
             ->pluck('text')
             ->implode('');
 
-        // ─── Gemini 2.5 Flash a veces devuelve vacío tras llamadas a herramientas.
-        //     En ese caso, enviar un nudge explícito para que resuma los datos.
-        if (empty(trim($texto)) && $herramientsUsadas) {
-            $contents[] = ['role' => 'user', 'parts' => [
-                ['text' => 'Con base en los datos obtenidos de las herramientas, por favor redacta una respuesta clara y completa en español.'],
-            ]];
+        // ─── Gemini 2.5 Flash devuelve vacío (0 tokens) en distintos escenarios.
+        //     Se reintenta con nudge explícito en cualquier caso de respuesta vacía.
+        if (empty(trim($texto))) {
+            $nudge = $herramientsUsadas
+                ? 'Con base en los datos obtenidos de las herramientas, redacta una respuesta clara y completa en español.'
+                : 'Usa las herramientas disponibles para consultar la información solicitada y responde de forma clara y completa en español.';
+
+            $contents[] = ['role' => 'user', 'parts' => [['text' => $nudge]]];
             $payload['contents'] = $contents;
 
             $res = $this->postWithRetry($url, $payload);
