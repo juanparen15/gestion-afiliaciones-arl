@@ -148,16 +148,23 @@ class AIReportService
             ->whereNotNull('fuente_financiacion')
             ->distinct()->pluck('fuente_financiacion')->implode(', ');
 
-        return "Eres un asistente de análisis de datos del Sistema de Gestión ARL de la Alcaldía Municipal de Puerto Boyacá. " .
-               "Tienes acceso a información real sobre contratos SECOP y afiliaciones ARL mediante herramientas. " .
-               "SIEMPRE usa las herramientas disponibles para consultar datos antes de responder. " .
-               "NUNCA digas que no tienes acceso a información sin intentar consultar la herramienta adecuada primero. " .
-               "Si necesitas varios datos, llama varias herramientas en la misma respuesta o en rondas sucesivas. " .
-               "NUNCA hagas preguntas de seguimiento al usuario para aclarar cómo quiere los datos: SIEMPRE responde directamente con la información completa. " .
-               "Si la pregunta pide datos por varios criterios (ej: por tipo Y por fuente), consulta los datos y presenta AMBOS en la respuesta. " .
+        return "Eres un asistente experto en análisis de datos del Sistema de Gestión ARL de la Alcaldía Municipal de Puerto Boyacá. " .
+               "Tienes acceso COMPLETO a toda la información de la base de datos: contratos SECOP y afiliaciones ARL. " .
+               "REGLA ABSOLUTA: NUNCA respondas que 'no puedes' o que 'no tienes herramienta para algo'. " .
+               "SIEMPRE existe una forma de responder usando una o varias herramientas. Si no hay herramienta exacta, usa consulta_libre. " .
+               "NUNCA digas frases como 'no tengo esa capacidad', 'mis herramientas no permiten', 'no puedo determinar'. " .
+               "Si necesitas varios datos, llama VARIAS herramientas en paralelo o en rondas sucesivas. " .
+               "NUNCA hagas preguntas de seguimiento: SIEMPRE responde directamente con la información completa. " .
+               "Si la pregunta pide datos por varios criterios, presenta TODOS en la respuesta. " .
                "Responde siempre en español, de forma clara, concisa y profesional. " .
-               "Cuando presentes listas usa formato estructurado con viñetas o numeración. " .
-               "Si la pregunta no está relacionada con contratos o afiliaciones, indícalo amablemente.\n\n" .
+               "Cuando presentes listas usa formato con viñetas o tablas markdown. " .
+               "Si la pregunta no está relacionada con contratos o afiliaciones, indícalo brevemente.\n\n" .
+               "HERRAMIENTA COMODÍN: consulta_libre — úsala para CUALQUIER pregunta que las otras herramientas no cubran exactamente:\n" .
+               "- '¿quién tiene el mayor valor de contrato?' → consulta_libre(entidad=contratos, operacion=ranking, campo=valor_contrato, agrupar_por=nombre_persona_natural)\n" .
+               "- '¿cuál es el contrato más caro?' → consulta_libre(entidad=contratos, operacion=maximo, campo=valor_contrato)\n" .
+               "- '¿qué dependencia ha contratado más?' → consulta_libre(entidad=contratos, operacion=ranking, campo=valor_contrato, agrupar_por=dependencia_contrato)\n" .
+               "- '¿quién tiene el IBC más alto?' → consulta_libre(entidad=afiliaciones, operacion=ranking, campo=ibc, agrupar_por=nombre_contratista)\n" .
+               "- '¿cuántos contratos tiene cada estado?' → consulta_libre(entidad=contratos, operacion=conteo, agrupar_por=estado)\n\n" .
 
                "CONTEXTO DEL DÍA:\n" .
                "- Fecha actual: {$hoy}\n" .
@@ -207,6 +214,7 @@ class AIReportService
                "afiliaciones_rechazadas, estadisticas_afiliaciones, top_contratistas_afiliaciones\n" .
                "BÚSQUEDA: buscar_contratista, buscar_contrato, buscar_por_documento\n" .
                "CRUCE: cruce_contrato_afiliacion\n" .
+               "FLEXIBLE: consulta_libre (rankings, máximos, mínimos, totales, conteos — CUALQUIER pregunta no cubierta por las anteriores)\n" .
                "EXPORTAR: exportar_excel (para listas largas o cuando pidan 'archivo', 'Excel', 'plano')\n\n" .
 
                "REGLAS DE USO DE HERRAMIENTAS:\n" .
@@ -422,6 +430,26 @@ class AIReportService
                         'limite'  => ['type' => 'integer', 'description' => 'Máximo resultados por entidad. Por defecto 10.'],
                     ],
                     'required' => ['nombre'],
+                ],
+            ],
+            [
+                'name'        => 'consulta_libre',
+                'description' => 'Herramienta COMODÍN de consulta flexible. Úsala para CUALQUIER pregunta que las otras herramientas no cubran: ' .
+                                 'rankings por valor, máximos, mínimos, promedios, conteos, agrupaciones por cualquier campo. ' .
+                                 'Ejemplos: mayor valor de contrato, dependencia con más gasto, contratista con más contratos por valor, ' .
+                                 'IBC promedio, contrato más largo, etc.',
+                'parameters'  => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'entidad'    => ['type' => 'string',  'description' => '"contratos" o "afiliaciones". Requerido.'],
+                        'operacion'  => ['type' => 'string',  'description' => '"ranking" (top N agrupados), "maximo" (el mayor), "minimo" (el menor), "total" (suma), "promedio" (media), "conteo" (cuántos hay), "listado" (lista simple ordenada). Por defecto "ranking".'],
+                        'campo'      => ['type' => 'string',  'description' => 'Campo numérico o de texto a analizar. Contratos: valor_contrato, vigencia, estado, clase, tipo_contrato, fuente_financiacion. Afiliaciones: valor_contrato, honorarios_mensual, ibc, estado, nombre_arl, tipo_riesgo, eps.'],
+                        'agrupar_por'=> ['type' => 'string',  'description' => 'Campo por el que agrupar los resultados. Contratos: nombre_persona_natural, cedula, vigencia, estado, clase, tipo_contrato, fuente_financiacion, dependencia_contrato. Afiliaciones: nombre_contratista, numero_documento, estado, nombre_arl, tipo_riesgo, eps, afp.'],
+                        'filtros'    => ['type' => 'object',  'description' => 'Filtros opcionales como objeto clave-valor. Ej: {"vigencia": "2026", "estado": "EN EJECUCION"}'],
+                        'limite'     => ['type' => 'integer', 'description' => 'Máximo de resultados. Por defecto 10.'],
+                        'orden'      => ['type' => 'string',  'description' => '"desc" (mayor a menor) o "asc" (menor a mayor). Por defecto "desc".'],
+                    ],
+                    'required' => ['entidad'],
                 ],
             ],
             [
@@ -696,6 +724,7 @@ class AIReportService
             'afiliaciones_vencidas'         => $this->toolAfiliacionesVencidas($input),
             'buscar_por_documento'          => $this->toolBuscarPorDocumento($input),
             'cruce_contrato_afiliacion'     => $this->toolCruceContratoAfiliacion($input),
+            'consulta_libre'                => $this->toolConsultaLibre($input),
             default                         => ['error' => "Herramienta '{$nombre}' no encontrada."],
         };
     }
@@ -2099,6 +2128,219 @@ class AIReportService
                 ? round(count($conAfiliacion) / count($contratos) * 100, 1) . '%'
                 : '0%',
             'contratos_sin_afiliacion' => array_slice($sinAfiliacion, 0, 30),
+        ];
+    }
+
+    private function toolConsultaLibre(array $input): array
+    {
+        $entidad   = $input['entidad'] ?? 'contratos';
+        $operacion = $input['operacion'] ?? 'ranking';
+        $campo     = $input['campo'] ?? null;
+        $agruparPor= $input['agrupar_por'] ?? null;
+        $filtros   = is_array($input['filtros'] ?? null) ? $input['filtros'] : [];
+        $limite    = max(1, min(50, (int) ($input['limite'] ?? 10)));
+        $orden     = ($input['orden'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        // ── Whitelists de campos permitidos ────────────────────────────────
+        $camposNumericos = [
+            'contratos'    => ['valor_contrato', 'numero_contrato'],
+            'afiliaciones' => ['valor_contrato', 'honorarios_mensual', 'ibc', 'meses_contrato', 'dias_contrato'],
+        ];
+        $camposPermitidos = [
+            'contratos'    => ['valor_contrato', 'numero_contrato', 'vigencia', 'estado', 'clase', 'tipo_contrato', 'fuente_financiacion'],
+            'afiliaciones' => ['valor_contrato', 'honorarios_mensual', 'ibc', 'meses_contrato', 'dias_contrato', 'estado', 'nombre_arl', 'tipo_riesgo', 'eps'],
+        ];
+        $agruparPermitidos = [
+            'contratos'    => ['nombre_persona_natural', 'nombre_persona_juridica', 'cedula', 'nit_contratista', 'vigencia', 'estado', 'clase', 'tipo_contrato', 'fuente_financiacion', 'dependencia_contrato'],
+            'afiliaciones' => ['nombre_contratista', 'numero_documento', 'estado', 'nombre_arl', 'tipo_riesgo', 'eps', 'afp'],
+        ];
+        $filtrosDirectos = [
+            'contratos'    => ['vigencia', 'estado', 'clase', 'tipo_contrato', 'fuente_financiacion'],
+            'afiliaciones' => ['estado', 'nombre_arl', 'tipo_riesgo', 'eps'],
+        ];
+
+        if (! isset($camposPermitidos[$entidad])) {
+            return ['error' => "Entidad '{$entidad}' no válida. Use 'contratos' o 'afiliaciones'."];
+        }
+
+        $campoSafe   = ($campo && in_array($campo, $camposPermitidos[$entidad])) ? $campo : null;
+        $agruparSafe = ($agruparPor && in_array($agruparPor, $agruparPermitidos[$entidad])) ? $agruparPor : null;
+        $esNumerico  = $campoSafe && in_array($campoSafe, $camposNumericos[$entidad]);
+
+        // ── Query base con filtros seguros ──────────────────────────────────
+        $buildQuery = function () use ($entidad, $filtros, $filtrosDirectos) {
+            $q = $entidad === 'contratos'
+                ? Contrato::with('dependencia')
+                : Afiliacion::with('dependencia');
+
+            foreach ($filtros as $k => $v) {
+                if (! empty($v) && in_array($k, $filtrosDirectos[$entidad])) {
+                    $q->where($k, 'like', "%{$v}%");
+                }
+            }
+            if (! empty($filtros['dependencia_nombre'])) {
+                $dep = $filtros['dependencia_nombre'];
+                $q->where(function ($q2) use ($dep, $entidad) {
+                    $q2->whereHas('dependencia', fn ($d) => $d->where('nombre', 'like', "%{$dep}%"));
+                    if ($entidad === 'contratos') {
+                        $q2->orWhere('dependencia_contrato', 'like', "%{$dep}%");
+                    }
+                });
+            }
+            if (! empty($filtros['anio']) && $entidad === 'afiliaciones') {
+                $q->whereYear('fecha_inicio', (int) $filtros['anio']);
+            }
+            return $q;
+        };
+
+        // ── MAXIMO ──────────────────────────────────────────────────────────
+        if ($operacion === 'maximo' && $campoSafe && $esNumerico) {
+            $reg = $buildQuery()->orderByDesc($campoSafe)->first();
+            if (! $reg) return ['entidad' => $entidad, 'operacion' => 'maximo', 'campo' => $campoSafe, 'resultado' => 'Sin registros'];
+            return [
+                'entidad'   => $entidad,
+                'operacion' => 'maximo',
+                'campo'     => $campoSafe,
+                'valor'     => '$' . number_format($reg->{$campoSafe} ?? 0, 0, ',', '.'),
+                'nombre'    => $entidad === 'contratos'
+                    ? ($reg->nombre_persona_natural ?? $reg->nombre_persona_juridica)
+                    : $reg->nombre_contratista,
+                'numero_contrato' => $reg->numero_contrato ?? null,
+                'vigencia'        => $reg->vigencia ?? null,
+                'estado'          => $reg->estado ?? null,
+                'dependencia'     => $entidad === 'contratos'
+                    ? ($reg->dependencia?->nombre ?? $reg->dependencia_contrato)
+                    : $reg->dependencia?->nombre,
+            ];
+        }
+
+        // ── MINIMO ──────────────────────────────────────────────────────────
+        if ($operacion === 'minimo' && $campoSafe && $esNumerico) {
+            $reg = $buildQuery()->where($campoSafe, '>', 0)->orderBy($campoSafe)->first();
+            if (! $reg) return ['entidad' => $entidad, 'operacion' => 'minimo', 'campo' => $campoSafe, 'resultado' => 'Sin registros'];
+            return [
+                'entidad'   => $entidad,
+                'operacion' => 'minimo',
+                'campo'     => $campoSafe,
+                'valor'     => '$' . number_format($reg->{$campoSafe} ?? 0, 0, ',', '.'),
+                'nombre'    => $entidad === 'contratos'
+                    ? ($reg->nombre_persona_natural ?? $reg->nombre_persona_juridica)
+                    : $reg->nombre_contratista,
+                'numero_contrato' => $reg->numero_contrato ?? null,
+                'vigencia'        => $reg->vigencia ?? null,
+                'estado'          => $reg->estado ?? null,
+                'dependencia'     => $entidad === 'contratos'
+                    ? ($reg->dependencia?->nombre ?? $reg->dependencia_contrato)
+                    : $reg->dependencia?->nombre,
+            ];
+        }
+
+        // ── TOTAL (suma) ─────────────────────────────────────────────────────
+        if ($operacion === 'total' && $campoSafe && $esNumerico) {
+            return [
+                'entidad'  => $entidad,
+                'operacion'=> 'total',
+                'campo'    => $campoSafe,
+                'total'    => '$' . number_format($buildQuery()->sum($campoSafe), 0, ',', '.'),
+                'cantidad' => $buildQuery()->count(),
+            ];
+        }
+
+        // ── PROMEDIO ─────────────────────────────────────────────────────────
+        if ($operacion === 'promedio' && $campoSafe && $esNumerico) {
+            return [
+                'entidad'  => $entidad,
+                'operacion'=> 'promedio',
+                'campo'    => $campoSafe,
+                'promedio' => '$' . number_format($buildQuery()->avg($campoSafe) ?? 0, 0, ',', '.'),
+                'cantidad' => $buildQuery()->count(),
+            ];
+        }
+
+        // ── CONTEO simple (sin agrupación) ────────────────────────────────────
+        if ($operacion === 'conteo' && ! $agruparSafe) {
+            return [
+                'entidad'  => $entidad,
+                'operacion'=> 'conteo',
+                'total'    => $buildQuery()->count(),
+            ];
+        }
+
+        // ── LISTADO ordenado ──────────────────────────────────────────────────
+        if ($operacion === 'listado') {
+            $campoOrden = ($campoSafe && in_array($campoSafe, $camposPermitidos[$entidad])) ? $campoSafe
+                : ($entidad === 'contratos' ? 'valor_contrato' : 'ibc');
+            $registros = $buildQuery()->orderBy($campoOrden, $orden)->limit($limite)->get();
+
+            if ($entidad === 'contratos') {
+                return [
+                    'entidad'     => $entidad,
+                    'operacion'   => 'listado',
+                    'campo_orden' => $campoOrden,
+                    'total'       => $registros->count(),
+                    'registros'   => $registros->map(fn ($c) => [
+                        'numero'      => $c->numero_contrato,
+                        'vigencia'    => $c->vigencia,
+                        'contratista' => $c->nombre_persona_natural ?? $c->nombre_persona_juridica,
+                        'valor'       => '$' . number_format($c->valor_contrato ?? 0, 0, ',', '.'),
+                        'estado'      => $c->estado,
+                        'clase'       => $c->clase,
+                        'dependencia' => $c->dependencia?->nombre ?? $c->dependencia_contrato,
+                    ])->toArray(),
+                ];
+            }
+            return [
+                'entidad'     => $entidad,
+                'operacion'   => 'listado',
+                'campo_orden' => $campoOrden,
+                'total'       => $registros->count(),
+                'registros'   => $registros->map(fn ($a) => [
+                    'contratista' => $a->nombre_contratista,
+                    'documento'   => $a->numero_documento,
+                    'estado'      => $a->estado,
+                    'ibc'         => '$' . number_format($a->ibc ?? 0, 0, ',', '.'),
+                    'valor'       => '$' . number_format($a->valor_contrato ?? 0, 0, ',', '.'),
+                    'honorarios'  => '$' . number_format($a->honorarios_mensual ?? 0, 0, ',', '.'),
+                    'nombre_arl'  => $a->nombre_arl,
+                    'dependencia' => $a->dependencia?->nombre,
+                ])->toArray(),
+            ];
+        }
+
+        // ── RANKING / CONTEO agrupado (default) ──────────────────────────────
+        $agrupacion = $agruparSafe ?? ($entidad === 'contratos' ? 'nombre_persona_natural' : 'nombre_contratista');
+        $campoAgr   = $campoSafe ?? 'valor_contrato';
+        $esNumAgr   = in_array($campoAgr, $camposNumericos[$entidad]);
+
+        $selectRaw  = $esNumAgr
+            ? "{$agrupacion}, count(*) as cantidad, sum({$campoAgr}) as total_campo, max({$campoAgr}) as maximo_campo"
+            : "{$agrupacion}, count(*) as cantidad";
+        $orderField = $esNumAgr ? 'total_campo' : 'cantidad';
+
+        $resultados = $buildQuery()
+            ->selectRaw($selectRaw)
+            ->groupBy($agrupacion)
+            ->orderByDesc($orderField)
+            ->limit($limite)
+            ->get();
+
+        return [
+            'entidad'      => $entidad,
+            'operacion'    => in_array($operacion, ['ranking', 'conteo']) ? $operacion : 'ranking',
+            'campo'        => $campoAgr,
+            'agrupar_por'  => $agrupacion,
+            'total_grupos' => $resultados->count(),
+            'resultados'   => $resultados->map(function ($r) use ($agrupacion, $esNumAgr) {
+                $fila = [
+                    $agrupacion => $r->{$agrupacion} ?? 'No especificado',
+                    'cantidad'  => $r->cantidad,
+                ];
+                if ($esNumAgr) {
+                    $fila['total']  = '$' . number_format($r->total_campo ?? 0, 0, ',', '.');
+                    $fila['maximo'] = '$' . number_format($r->maximo_campo ?? 0, 0, ',', '.');
+                }
+                return $fila;
+            })->toArray(),
         ];
     }
 }
