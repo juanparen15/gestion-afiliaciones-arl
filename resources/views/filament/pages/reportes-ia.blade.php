@@ -197,6 +197,27 @@ html:not(.dark) .ia-md h1,html:not(.dark) .ia-md h2,html:not(.dark) .ia-md h3{co
 html:not(.dark) .ia-md code{background:rgba(0,0,0,.07)}
 html:not(.dark) .ia-md hr{border-color:rgba(0,0,0,.1)}
 
+/* ── Opciones predictivas (chips) ────────────── */
+.ia-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07);}
+html:not(.dark) .ia-opts{border-top-color:rgba(0,0,0,.07);}
+.ia-opt-chip{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.35rem .875rem;border-radius:9999px;
+    border:1px solid rgba(96,165,250,.4);
+    background:rgba(96,165,250,.08);
+    color:#93c5fd;font-size:.78rem;font-weight:500;
+    cursor:pointer;text-align:left;
+    transition:background .2s,border-color .2s,transform .15s,box-shadow .15s;
+}
+.ia-opt-chip:hover{
+    background:rgba(96,165,250,.2);border-color:rgba(96,165,250,.7);
+    transform:translateY(-1px);box-shadow:0 4px 12px rgba(96,165,250,.2);
+}
+.ia-opt-chip:active{transform:translateY(0);}
+.ia-opt-chip:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+html:not(.dark) .ia-opt-chip{border-color:rgba(37,99,235,.3);background:rgba(219,234,254,.55);color:#1d4ed8;}
+html:not(.dark) .ia-opt-chip:hover{background:rgba(219,234,254,.9);border-color:rgba(37,99,235,.6);box-shadow:0 4px 12px rgba(37,99,235,.12);}
+
 /* ── Error ───────────────────────────────────── */
 .ia-error-box{border-radius:1rem;padding:1.125rem 1.25rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);}
 html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(252,165,165,.5);}
@@ -333,6 +354,25 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
                             <div class="ia-md t-m" style="font-size:.875rem;line-height:1.75;">
                                 {!! $converter->convert($msg['texto'])->getContent() !!}
                             </div>
+
+                            {{-- Opciones seleccionables generadas por la IA --}}
+                            @if(!empty($msg['opciones'] ?? []))
+                                <div class="ia-opts">
+                                    @foreach($msg['opciones'] as $opcion)
+                                        <button
+                                            type="button"
+                                            class="ia-opt-chip"
+                                            wire:click="seleccionarOpcion({{ \Illuminate\Support\Js::from($opcion) }})"
+                                            wire:loading.attr="disabled">
+                                            <svg style="width:11px;height:11px;flex-shrink:0;opacity:.7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                                            </svg>
+                                            {{ $opcion }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+
                             <p style="font-size:.65rem;margin:.5rem 0 0;opacity:.5;" class="t-s">{{ $msg['hora'] }}</p>
                         </div>
                     </div>

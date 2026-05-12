@@ -57,10 +57,13 @@ class ReportesIA extends Page
                 // Quitar el mensaje del usuario del historial si hubo error
                 array_pop($this->historial);
             } else {
+                [$textoLimpio, $opciones] = $this->parsearRespuesta($resultado['respuesta']);
+
                 $this->historial[] = [
-                    'rol'   => 'ia',
-                    'texto' => $resultado['respuesta'],
-                    'hora'  => now()->format('H:i'),
+                    'rol'     => 'ia',
+                    'texto'   => $textoLimpio,
+                    'hora'    => now()->format('H:i'),
+                    'opciones'=> $opciones,
                 ];
             }
         } catch (\Throwable $e) {
@@ -81,5 +84,29 @@ class ReportesIA extends Page
     public function usarEjemplo(string $ejemplo): void
     {
         $this->pregunta = $ejemplo;
+    }
+
+    public function seleccionarOpcion(string $opcion): void
+    {
+        $this->pregunta = $opcion;
+        $this->consultar();
+    }
+
+    /** Extrae etiquetas [OPT]...[/OPT] del texto de la IA y las devuelve separadas. */
+    private function parsearRespuesta(string $texto): array
+    {
+        $opciones = [];
+        preg_match_all('/\[OPT\](.*?)\[\/OPT\]/s', $texto, $matches);
+
+        if (! empty($matches[1])) {
+            $opciones    = array_values(array_filter(array_map('trim', $matches[1])));
+            $textoLimpio = trim(preg_replace('/\[OPT\].*?\[\/OPT\]/s', '', $texto));
+            // Limpiar líneas vacías extra que quedan
+            $textoLimpio = preg_replace('/\n{3,}/', "\n\n", $textoLimpio);
+        } else {
+            $textoLimpio = $texto;
+        }
+
+        return [$textoLimpio, $opciones];
     }
 }
