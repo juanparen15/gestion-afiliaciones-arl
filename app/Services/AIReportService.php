@@ -107,8 +107,8 @@ class AIReportService
             ->pluck('text')
             ->implode('');
 
-        // ─── Gemini 2.5 Flash devuelve vacío (0 tokens) en distintos escenarios.
-        //     Se reintenta con nudge explícito en cualquier caso de respuesta vacía.
+        // ─── Recuperación: Gemini 2.5 Flash puede devolver vacío o llamar herramientas
+        //     después del nudge sin dar texto. Mini-loop ejecuta las llamadas y reintenta.
         if (empty(trim($texto))) {
             $nudge = $herramientsUsadas
                 ? 'Con base en los datos obtenidos de las herramientas, redacta una respuesta clara y completa en español.'
@@ -117,13 +117,43 @@ class AIReportService
             $contents[] = ['role' => 'user', 'parts' => [['text' => $nudge]]];
             $payload['contents'] = $contents;
 
-            $res = $this->postWithRetry($url, $payload);
-            if ($res->successful()) {
-                $data  = $res->json();
-                $texto = collect($data['candidates'][0]['content']['parts'] ?? [])
+            for ($extra = 0; $extra < 3 && empty(trim($texto)); $extra++) {
+                $res = $this->postWithRetry($url, $payload);
+                if (! $res->successful()) break;
+
+                $data       = $res->json();
+                $partsExtra = array_map(function ($p) {
+                    if (isset($p['functionCall']['args']) && $p['functionCall']['args'] === []) {
+                        $p['functionCall']['args'] = new \stdClass();
+                    }
+                    return $p;
+                }, $data['candidates'][0]['content']['parts'] ?? []);
+
+                $texto = collect($partsExtra)
                     ->filter(fn ($p) => isset($p['text']))
                     ->pluck('text')
                     ->implode('');
+
+                if (! empty(trim($texto))) break;
+
+                // Si el nudge también generó function calls, ejecutarlas y reintentar
+                $fcsExtra = array_values(array_filter($partsExtra, fn ($p) => isset($p['functionCall'])));
+                if (empty($fcsExtra)) break; // Sin function calls ni texto → rendirse
+
+                $contents[] = ['role' => 'model', 'parts' => $partsExtra];
+                $toolResponsesExtra = [];
+                foreach ($fcsExtra as $part) {
+                    $fn     = $part['functionCall'];
+                    $result = $this->ejecutar($fn['name'], (array) ($fn['args'] ?? []));
+                    $toolResponsesExtra[] = [
+                        'functionResponse' => [
+                            'name'     => $fn['name'],
+                            'response' => ['result' => $result],
+                        ],
+                    ];
+                }
+                $contents[] = ['role' => 'user', 'parts' => $toolResponsesExtra];
+                $payload['contents'] = $contents;
             }
         }
 
