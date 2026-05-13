@@ -62,6 +62,7 @@ class Afiliacion extends Model
         'area_id',
         'created_by',
         'validated_by',
+        'novedad_registrada_por',
         'estado',
         'observaciones',
         'motivo_rechazo',
@@ -127,6 +128,11 @@ class Afiliacion extends Model
     public function validador(): BelongsTo
     {
         return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function novedadRegistradaPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'novedad_registrada_por');
     }
 
     public function archivos(): HasMany

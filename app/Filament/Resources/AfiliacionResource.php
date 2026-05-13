@@ -1226,12 +1226,25 @@ class AfiliacionResource extends Resource
                     ->modalHeading('Rechazar Afiliación')
                     ->modalSubmitActionLabel('Rechazar')
                     ->action(function (Afiliacion $record, array $data): void {
+                        $novedadUserId = $record->novedad_registrada_por;
+                        $tieneNovedad  = $record->tiene_adicion || $record->tiene_prorroga;
+
                         $record->update([
                             'estado' => 'rechazado',
                             'validated_by' => Auth::id(),
                             'fecha_validacion' => now(),
                             'motivo_rechazo' => $data['motivo_rechazo'],
                         ]);
+
+                        // Notificar por correo al usuario Dependencia que registró la adición/prórroga
+                        if ($novedadUserId && $tieneNovedad) {
+                            $usuarioNotificar = \App\Models\User::find($novedadUserId);
+                            if ($usuarioNotificar) {
+                                $correo = $usuarioNotificar->correo_institucional ?: $usuarioNotificar->email;
+                                \Illuminate\Support\Facades\Mail::to($correo)
+                                    ->send(new \App\Mail\NovedadRechazadaMail($record));
+                            }
+                        }
 
                         Notification::make()
                             ->warning()
@@ -1502,20 +1515,21 @@ class AfiliacionResource extends Resource
                             $updateData['pdf_arl_novedad'] = $data['pdf_arl_novedad'];
                         }
 
-                        // Si el rol Dependencia modifica una afiliación validada → vuelve a pendiente
-                        if (Auth::user()->hasRole('Dependencia') && $record->estado === 'validado') {
+                        // Si el rol Dependencia registra adición/prórroga → pasa a pendiente para que SSST cargue y apruebe el PDF de novedad
+                        if (Auth::user()->hasRole('Dependencia') && ($tieneAdicion || $tieneProrroga)) {
                             $updateData['estado'] = 'pendiente';
+                            $updateData['novedad_registrada_por'] = Auth::id();
                         }
 
                         $record->update($updateData);
 
-                        // Notificar a SSST si el estado cambió a pendiente por novedad
+                        // Notificar a SSST cuando Dependencia registra una novedad
                         if (isset($updateData['estado']) && $updateData['estado'] === 'pendiente') {
                             \App\Models\User::role('SSST')->each(function ($u) use ($record) {
                                 Notification::make()
                                     ->warning()
                                     ->title('Novedad registrada — Afiliación pendiente de revisión')
-                                    ->body("Se registró una adición/prórroga en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere validación.")
+                                    ->body("Se registró una adición/prórroga en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere carga del PDF de novedad ARL y aprobación.")
                                     ->sendToDatabase($u);
                             });
                         }
