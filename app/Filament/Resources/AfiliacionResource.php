@@ -718,7 +718,12 @@ class AfiliacionResource extends Resource
                 ])
                     ->skippable(true)
                     ->persistStepInQueryString('paso')
-                    ->submitAction(new \Illuminate\Support\HtmlString('<button type="submit" class="fi-btn fi-btn-size-md relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-custom fi-btn-color-primary fi-color-primary fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-primary-600 text-white hover:bg-primary-500 focus-visible:ring-primary-500/50 dark:bg-primary-500 dark:hover:bg-primary-400 dark:focus-visible:ring-primary-400/50"><span class="fi-btn-label">Guardar Afiliación</span></button>'))
+                    ->submitAction(new \Illuminate\Support\HtmlString(
+                        '<div class="flex items-center gap-3">' .
+                        '<button type="submit" class="fi-btn fi-btn-size-md relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-custom fi-btn-color-primary fi-color-primary fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-primary-600 text-white hover:bg-primary-500 focus-visible:ring-primary-500/50 dark:bg-primary-500 dark:hover:bg-primary-400 dark:focus-visible:ring-primary-400/50"><span class="fi-btn-label">Guardar Afiliación</span></button>' .
+                        '<a href="/admin/afiliacions" class="fi-btn fi-btn-size-md relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid ring-1 ring-gray-300 text-gray-700 hover:bg-gray-50 dark:ring-gray-600 dark:text-gray-200 dark:hover:bg-white/5"><span class="fi-btn-label">Cancelar</span></a>' .
+                        '</div>'
+                    ))
                     ->columnSpanFull(),
             ]);
     }

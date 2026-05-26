@@ -20,12 +20,7 @@ class EditAfiliacion extends EditRecord
 
     protected function getFormActions(): array
     {
-        return [
-            Actions\Action::make('cancelar')
-                ->label('Cancelar')
-                ->color('gray')
-                ->url(static::getResource()::getUrl('index')),
-        ];
+        return [];
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
