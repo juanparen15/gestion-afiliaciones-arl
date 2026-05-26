@@ -21,7 +21,6 @@ class EditAfiliacion extends EditRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getSaveFormAction()->label('Guardar afiliación'),
             Actions\Action::make('cancelar')
                 ->label('Cancelar')
                 ->color('gray')
