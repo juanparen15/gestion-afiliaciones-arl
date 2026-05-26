@@ -95,7 +95,6 @@ class AfiliacionResource extends Resource
                                         ->extraInputAttributes([
                                             'data-tour' => 'documento',
                                             'inputmode' => 'numeric',
-                                            'pattern' => '[0-9]*',
                                             'maxlength' => '15',
                                             'onkeypress' => 'return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 0',
                                             'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").substring(0, 15)',
