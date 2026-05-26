@@ -18,6 +18,17 @@ class EditAfiliacion extends EditRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()->label('Guardar afiliación'),
+            Actions\Action::make('cancelar')
+                ->label('Cancelar')
+                ->color('gray')
+                ->url(static::getResource()::getUrl('index')),
+        ];
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Asegurar que campos del tab "Estado y Observaciones" estén como null si el usuario no es SSST o super_admin
