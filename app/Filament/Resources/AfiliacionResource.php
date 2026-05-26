@@ -91,6 +91,7 @@ class AfiliacionResource extends Resource
                                             'max_length' => 'El número de documento no puede tener más de 15 dígitos.',
                                         ])
                                         ->prefixIcon('heroicon-o-hashtag')
+                                        ->afterStateHydrated(fn($component, ?string $state) => $component->state($state ? preg_replace('/[^0-9]/', '', $state) : $state))
                                         ->dehydrateStateUsing(fn(?string $state) => $state ? preg_replace('/[^0-9]/', '', $state) : null)
                                         ->extraInputAttributes([
                                             'data-tour' => 'documento',
