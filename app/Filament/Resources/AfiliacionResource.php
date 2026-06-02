@@ -812,6 +812,17 @@ class AfiliacionResource extends Resource
                     ->toggleable()
                     ->tooltip(fn($record) => $record->tiene_prorroga ? 'Tiene Prórroga' : 'Sin Prórroga'),
 
+                Tables\Columns\TextColumn::make('novedad_registrada_at')
+                    ->label('Fecha Novedad')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable()
+                    ->tooltip(fn($record) => $record->novedadRegistradaPor?->name
+                        ? 'Registrada por: ' . $record->novedadRegistradaPor->name
+                        : null)
+                    ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST'])),
+
                 Tables\Columns\IconColumn::make('tiene_terminacion_anticipada')
                     ->label('Terminación Anticipada')
                     ->boolean()
