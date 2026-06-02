@@ -1520,10 +1520,15 @@ class AfiliacionResource extends Resource
                             $updateData['pdf_arl_novedad'] = $data['pdf_arl_novedad'];
                         }
 
+                        // Trazabilidad: registrar quién y cuándo se registró la adición/prórroga
+                        if ($tieneAdicion || $tieneProrroga) {
+                            $updateData['novedad_registrada_por'] = Auth::id();
+                            $updateData['novedad_registrada_at']  = now();
+                        }
+
                         // Si el rol Dependencia registra adición/prórroga → pasa a pendiente para que SSST cargue y apruebe el PDF de novedad
                         if (Auth::user()->hasRole('Dependencia') && ($tieneAdicion || $tieneProrroga)) {
                             $updateData['estado'] = 'pendiente';
-                            $updateData['novedad_registrada_por'] = Auth::id();
                         }
 
                         $record->update($updateData);
@@ -1662,6 +1667,8 @@ class AfiliacionResource extends Resource
                                     'Meses Prórroga' => 'meses_prorroga',
                                     'Días Prórroga' => 'dias_prorroga',
                                     'Nueva Fecha Fin Prórroga' => 'nueva_fecha_fin_prorroga',
+                                    'Fecha Registro Novedad' => 'novedad_registrada_at',
+                                    'Novedad Registrada Por' => 'novedadRegistradaPor.name',
                                     'Tiene Terminación Anticipada' => 'tiene_terminacion_anticipada',
                                     'Fecha Terminación Anticipada' => 'fecha_terminacion_anticipada',
                                     'Motivo Terminación Anticipada' => 'motivo_terminacion_anticipada',
