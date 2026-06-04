@@ -23,9 +23,11 @@ El objetivo de la unificación es enlazar `Planadquisicione` → `Contrato`.
 | Estrategia de datos | Migrar PAA a la BD `gestion_arl` (una sola base) |
 | Fuente de datos | Dump de **producción** `C:\Users\User\Downloads\paa.sql` (NO la BD local `paa`) |
 | Tablas compartidas (areas/dependencias/users) | Reusar las de `gestion_arl` + **remapear** por nombre/email |
+| Usuarios PAA sin match | **Crearlos** en `gestion_arl` durante el import (misma organización; rol básico + password aleatorio) |
 | Vínculo Plan↔Contrato | **1:N** — un plan tiene varios contratos; `planadquisicione_id` en `contratos` |
 | Mecanismo de importación | **Staging + comando artisan** idempotente con reporte de no-coincidencias |
 | Versión Filament | **v3** (la del proyecto destino); se porta el trabajo escrito en v4 |
+| Datos de referencia | Ambos sistemas son de la **misma entidad** (Alcaldía de Puerto Boyacá). Para desarrollo/pruebas se cargan en local los dos dumps de producción: `paa.sql` → `paa_legacy`, `gestion_arl.sql` → `gestion_arl` |
 
 ### Estado verificado del destino (`gestion_arl`)
 - Filament v3.2, Laravel 12, plugins: Shield, Overlook, ErrorPages, SentryFeedback, WhatsappWidget.
@@ -102,10 +104,14 @@ etc.). Convención de nombres del legacy preservada (`Planadquisicione`, `Mese`,
      en `gestion_arl` buscando por **nombre** (`areas.nomarea` legacy ≈ `areas.nombre`
      ARL, normalizado: trim + minúsculas + sin tildes).
    - **Remapeo de `user_id`:** traduce por **email** del usuario legacy → `users.email`
-     ARL.
-   - Sin coincidencia → el campo queda `null` y se registra en el reporte.
-   - **Reporte final:** lista de áreas y usuarios legacy sin match (para revisión
-     manual con el usuario). Se imprime en consola y se guarda en
+     ARL. Los usuarios PAA **sin match** (≈19 de 31; cuentas de dependencias de la
+     misma alcaldía) se **crean** en `gestion_arl` con: name/apellido/email/documento/
+     telefono del legacy, password aleatorio (`Str::random` + hash), rol básico
+     (p. ej. `panel_user`), y se mapean a su área ya remapeada. Quedan registrados en
+     el reporte como "creados".
+   - **Remapeo de `area_id`** sin match → queda `null` y se registra en el reporte.
+   - **Reporte final:** lista de áreas legacy sin match y usuarios creados/sin match
+     (para revisión con el usuario). Se imprime en consola y se guarda en
      `storage/logs/paa-import-YYYYMMDD.log`.
    - Reconstruye el pivote `planadquisicione_producto`.
    - Resumen: filas insertadas/actualizadas por tabla.
