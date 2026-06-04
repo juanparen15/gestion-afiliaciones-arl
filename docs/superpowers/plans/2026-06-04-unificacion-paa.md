@@ -920,7 +920,8 @@ class PlanadquisicioneResource extends Resource
                         Forms\Components\Select::make('area_id')->label('Área')->required()->searchable()->preload()
                             ->options(function () {
                                 $user = Auth::user();
-                                if ($user && ($user->hasRole('Admin') || $user->hasRole('super_admin') || $user->hasRole('Supervisor'))) {
+                                // Roles reales del proyecto: Administrador, super_admin (ven todo); Dependencia, SSST (solo su área)
+                                if ($user && ($user->hasRole('Administrador') || $user->hasRole('super_admin'))) {
                                     return Area::orderBy('nombre')->pluck('nombre', 'id');
                                 }
                                 return Area::where('id', $user?->area_id)->pluck('nombre', 'id');
@@ -975,7 +976,8 @@ class PlanadquisicioneResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $user = Auth::user();
-        if ($user && ! $user->hasRole('Admin') && ! $user->hasRole('super_admin') && ! $user->hasRole('Supervisor')) {
+        // Administrador y super_admin ven todo; el resto (Dependencia, SSST) solo lo suyo.
+        if ($user && ! $user->hasRole('Administrador') && ! $user->hasRole('super_admin')) {
             $query->where('user_id', $user->id);
         }
         return $query;
