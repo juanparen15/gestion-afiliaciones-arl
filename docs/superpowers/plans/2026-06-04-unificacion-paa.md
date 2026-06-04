@@ -791,15 +791,17 @@ return new class extends Migration
 };
 ```
 
-- [ ] **Step 2: Relación en `Contrato`**
+- [ ] **Step 2: Relación + fillable en `Contrato`**
 
-Añadir en `app/Models/Contrato.php` (y `planadquisicione_id` a `$fillable` si usa fillable):
+En `app/Models/Contrato.php`: (a) añadir `'planadquisicione_id'` al array `$fillable` (el modelo usa `$fillable`; sin esto el Select no guardará), y (b) añadir la relación:
 ```php
 public function planadquisicione(): \Illuminate\Database\Eloquent\Relations\BelongsTo
 {
     return $this->belongsTo(\App\Models\Planadquisicione::class);
 }
 ```
+
+> NOTA FK: la migración añade `planadquisicione_id` como columna indexada **sin constraint a nivel BD** (decisión deliberada para evitar problemas con datos legacy). El comportamiento "null on delete" del spec se garantiza a nivel aplicación (el RelationManager usa Dissociate, no delete). Reconciliado: no se crea FK física.
 
 - [ ] **Step 3: Test del vínculo (TDD)**
 
@@ -830,7 +832,7 @@ class PlanContratoLinkTest extends TestCase
 
 - [ ] **Step 4: Select en `ContratoResource`**
 
-Añadir en el form de `ContratoResource` (sección Identificación):
+Añadir en el form de `ContratoResource` (sección "Datos del Contrato", el primer section del form):
 ```php
 Forms\Components\Select::make('planadquisicione_id')
     ->label('Línea del Plan de Adquisición')
@@ -914,7 +916,6 @@ class PlanadquisicioneResource extends Resource
                         Forms\Components\TextInput::make('valorestimadocont')->label('Valor Estimado del Contrato')->required(),
                         Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado Vigencia')->required(),
                         Forms\Components\TextInput::make('duracont')->label('Duración (meses)')->required(),
-                        Forms\Components\TextInput::make('id_vigencia')->label('Vigencia (Año)')->numeric()->minValue(2000)->maxValue(2100),
                         Forms\Components\TextInput::make('codbpim')->label('Código BPIM')->maxLength(50),
                         Forms\Components\Select::make('area_id')->label('Área')->required()->searchable()->preload()
                             ->options(function () {
@@ -995,13 +996,21 @@ class PlanadquisicioneResource extends Resource
                         str_contains(strtolower($state), 'cerrad') => 'danger',
                         default => 'warning',
                     }),
-                Tables\Columns\TextColumn::make('id_vigencia')->label('Vigencia')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Vigencia')->date('Y')->sortable(),
                 Tables\Columns\TextColumn::make('user.name')->label('Registrado por')->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('contratos_count')->counts('contratos')->label('Contratos')->badge(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('id_vigencia')->label('Vigencia (Año)')
-                    ->options(fn () => Planadquisicione::query()->whereNotNull('id_vigencia')->distinct()->orderBy('id_vigencia', 'desc')->pluck('id_vigencia', 'id_vigencia')->toArray()),
+                Tables\Filters\SelectFilter::make('vigencia')->label('Vigencia (Año)')
+                    ->options(function () {
+                        // Año derivado de created_at; compatible con SQLite (tests) y MySQL (prod)
+                        $driver = DB::getDriverName();
+                        $yearExpr = $driver === 'sqlite'
+                            ? "CAST(strftime('%Y', created_at) AS INTEGER)"
+                            : 'YEAR(created_at)';
+                        return Planadquisicione::selectRaw("{$yearExpr} as year")->distinct()->orderBy('year', 'desc')->pluck('year', 'year')->toArray();
+                    })
+                    ->query(fn (Builder $query, array $data) => empty($data['value']) ? $query : $query->whereYear('created_at', $data['value'])),
                 Tables\Filters\SelectFilter::make('area_id')->label('Área')->relationship('area', 'nombre')->searchable()->preload(),
                 Tables\Filters\SelectFilter::make('estadovigencia_id')->label('Estado Vigencia')->relationship('estadovigencia', 'detestadovigencia'),
             ])
@@ -1015,7 +1024,7 @@ class PlanadquisicioneResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('id_vigencia', 'desc');
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
@@ -1035,6 +1044,8 @@ class PlanadquisicioneResource extends Resource
 ```
 
 > NOTA `afterStateUpdated` con `&&`: la forma `fn (Set $set) => $set(...) && $set(...)` no encadena correctamente; reemplazar por closure de bloque: `function (Set $set) { $set('familia_id', null); $set('clase_id', null); }`.
+
+> **NOTA IMPORTANTE — `id_vigencia` NO es un año.** Verificado en `paa.sql`: es un entero secuencial legacy (fila 1→1, fila 2→2…), no la vigencia/año. La **vigencia (año) real se deriva de `created_at`** (los datos abarcan 2024–2026). Por eso el campo `id_vigencia` se omite del formulario (se conserva la columna en BD por compatibilidad, nullable para registros nuevos) y tanto la columna "Vigencia", el filtro como los widgets usan `created_at`. NO usar `id_vigencia` como año en ninguna consulta.
 
 - [ ] **Step 3: Verificar nombres de roles**
 
@@ -1301,6 +1312,7 @@ namespace App\Filament\Widgets;
 use App\Models\{Area, Planadquisicione, Producto, User};
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\DB;
 
 class PaaStatsOverview extends BaseWidget
 {
@@ -1308,9 +1320,10 @@ class PaaStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $vigencia = (int) date('Y');
-        $planes = Planadquisicione::where('id_vigencia', $vigencia)->count();
-        $valor = Planadquisicione::where('id_vigencia', $vigencia)->get()
+        // Vigencia = año más reciente con datos (derivado de created_at), no el año actual.
+        $vigencia = (int) (Planadquisicione::max(DB::raw('YEAR(created_at)')) ?? date('Y'));
+        $planes = Planadquisicione::whereYear('created_at', $vigencia)->count();
+        $valor = Planadquisicione::whereYear('created_at', $vigencia)->get()
             ->sum(fn ($p) => (float) str_replace(['.', ','], ['', '.'], (string) $p->valorestimadocont));
 
         return [
@@ -1345,8 +1358,8 @@ class PlanesPorAreaChart extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $vigencia = (int) date('Y');
-        $rows = Planadquisicione::where('id_vigencia', $vigencia)
+        $vigencia = (int) (Planadquisicione::max(DB::raw('YEAR(created_at)')) ?? date('Y'));
+        $rows = Planadquisicione::whereYear('created_at', $vigencia)
             ->join('areas', 'planadquisiciones.area_id', '=', 'areas.id')
             ->select('areas.nombre', DB::raw('count(*) as total'))
             ->groupBy('areas.nombre')->orderByDesc('total')->limit(15)->get();
