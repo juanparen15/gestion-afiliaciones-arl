@@ -221,6 +221,8 @@ class Contrato extends Model
         'recursos_reactivacion',
         'funciones',
         'observaciones',
+        // Vínculo con el Plan Anual de Adquisiciones
+        'planadquisicione_id',
     ];
 
     protected $casts = [
@@ -312,6 +314,11 @@ class Contrato extends Model
     public function dependencia(): BelongsTo
     {
         return $this->belongsTo(Dependencia::class);
+    }
+
+    public function planadquisicione(): BelongsTo
+    {
+        return $this->belongsTo(Planadquisicione::class);
     }
 
     // Scopes
