@@ -40,4 +40,9 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
     ],
 
+    'pdftotext' => [
+        // Ruta al binario pdftotext (poppler-utils). Si está en el PATH, dejar vacío.
+        'bin' => env('PDFTOTEXT_BIN', ''),
+    ],
+
 ];

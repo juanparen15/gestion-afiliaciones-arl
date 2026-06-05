@@ -991,6 +991,119 @@ class AfiliacionResource extends Resource
                         );
                     }),
 
+                Action::make('aprobar_masivo')
+                    ->label('Aprobar Masivo (Certificados ARL)')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
+                    ->modalHeading('Aprobación masiva de afiliaciones')
+                    ->modalDescription('Suba los certificados ARL en PDF. El sistema lee la cédula dentro de cada certificado y lo asigna automáticamente a la afiliación pendiente correspondiente. No importa el nombre del archivo.')
+                    ->modalSubmitActionLabel('Procesar y aprobar')
+                    ->modalWidth('2xl')
+                    ->form([
+                        Forms\Components\Placeholder::make('instrucciones')
+                            ->label('¿Cómo funciona?')
+                            ->content(new \Illuminate\Support\HtmlString(
+                                '<ol style="list-style:decimal;padding-left:1.25rem;line-height:1.7">' .
+                                '<li>Arrastre o seleccione <strong>todos los certificados ARL en PDF</strong> (uno por contratista).</li>' .
+                                '<li>El sistema <strong>lee la cédula dentro de cada PDF</strong> y la empareja con la afiliación <strong>pendiente</strong> que tenga esa misma cédula.</li>' .
+                                '<li>Las que coincidan quedan <strong>Validadas</strong> con su certificado adjunto. Las que no, se le informan al final.</li>' .
+                                '</ol>'
+                            )),
+                        Forms\Components\FileUpload::make('certificados')
+                            ->label('Certificados ARL (PDF)')
+                            ->required()
+                            ->multiple()
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(10240)
+                            ->maxFiles(100)
+                            ->directory('afiliaciones/pdfs-arl')
+                            ->disk('public')
+                            ->visibility('public')
+                            ->panelLayout('grid')
+                            ->helperText('Puede subir varios PDFs a la vez (máximo 100, 10MB cada uno).'),
+                    ])
+                    ->action(function (array $data): void {
+                        $rutas = array_values(array_filter((array) ($data['certificados'] ?? [])));
+                        if (empty($rutas)) {
+                            Notification::make()->warning()->title('No se subieron certificados')->send();
+                            return;
+                        }
+
+                        $extractor = app(\App\Services\CertificadoArlExtractor::class);
+                        $disk      = Storage::disk('public');
+
+                        // Mapa de afiliaciones pendientes por cédula normalizada
+                        $pendientes = \App\Models\Afiliacion::where('estado', 'pendiente')->get();
+                        $mapa = [];
+                        foreach ($pendientes as $af) {
+                            $key = preg_replace('/\D/', '', (string) $af->numero_documento);
+                            if ($key !== '') {
+                                $mapa[$key] = $af;
+                            }
+                        }
+
+                        $aprobadas    = [];
+                        $sinCoincidir = [];
+                        $sinCedula    = [];
+
+                        foreach ($rutas as $ruta) {
+                            $absoluto = $disk->path($ruta);
+                            $resultado = $extractor->extraer($absoluto);
+                            $candidatas = $resultado['candidatas'] ?? [];
+
+                            if (empty($candidatas)) {
+                                $sinCedula[] = $ruta;
+                                $disk->delete($ruta);
+                                continue;
+                            }
+
+                            // Buscar la primera candidata que corresponda a una pendiente disponible
+                            $match = null;
+                            foreach ($candidatas as $cedula) {
+                                if (isset($mapa[$cedula])) {
+                                    $match = $mapa[$cedula];
+                                    unset($mapa[$cedula]); // un PDF por afiliación
+                                    break;
+                                }
+                            }
+
+                            if (! $match) {
+                                $sinCoincidir[] = $candidatas[0];
+                                $disk->delete($ruta);
+                                continue;
+                            }
+
+                            $match->update([
+                                'estado'           => 'validado',
+                                'validated_by'     => Auth::id(),
+                                'fecha_validacion' => now(),
+                                'motivo_rechazo'   => null,
+                                'pdf_arl'          => $ruta,
+                            ]);
+
+                            $aprobadas[] = $match->numero_documento . ' — ' . $match->nombre_contratista;
+                        }
+
+                        // Construir resumen
+                        $cuerpo = '✅ Aprobadas: ' . count($aprobadas);
+                        if (! empty($sinCoincidir)) {
+                            $cuerpo .= ' | ⚠️ Sin afiliación pendiente: ' . count($sinCoincidir)
+                                . ' (cédulas: ' . implode(', ', array_slice($sinCoincidir, 0, 10)) . ')';
+                        }
+                        if (! empty($sinCedula)) {
+                            $cuerpo .= ' | ❌ No se pudo leer la cédula: ' . count($sinCedula) . ' PDF(s)';
+                        }
+
+                        $tipo = count($aprobadas) > 0 ? 'success' : 'warning';
+                        Notification::make()
+                            ->{$tipo}()
+                            ->title(count($aprobadas) . ' afiliación(es) aprobada(s)')
+                            ->body($cuerpo)
+                            ->persistent()
+                            ->send();
+                    }),
+
                 Action::make('importar')
                     ->label('Importar Excel')
                     ->icon('heroicon-o-arrow-up-tray')
