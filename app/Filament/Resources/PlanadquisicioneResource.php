@@ -15,6 +15,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PlanadquisicioneResource extends Resource
 {
@@ -149,6 +152,26 @@ class PlanadquisicioneResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('descripcioncont')->heading('Descripción'),
+                                    Column::make('valorestimadocont')->heading('Valor Estimado'),
+                                    Column::make('valorestimadovig')->heading('Valor Vigencia'),
+                                    Column::make('duracont')->heading('Duración (meses)'),
+                                    Column::make('area.nombre')->heading('Área'),
+                                    Column::make('modalidade.detmodalidad')->heading('Modalidad'),
+                                    Column::make('tipoadquisicione.dettipoadquisicion')->heading('Tipo de Adquisición'),
+                                    Column::make('estadovigencia.detestadovigencia')->heading('Estado Vigencia'),
+                                    Column::make('fuente.detfuente')->heading('Fuente'),
+                                    Column::make('mese.nommes')->heading('Mes'),
+                                    Column::make('codbpim')->heading('Código BPIM'),
+                                    Column::make('created_at')->heading('Vigencia')->formatStateUsing(fn ($state) => $state?->format('Y')),
+                                    Column::make('user.name')->heading('Registrado por'),
+                                ])
+                                ->withFilename('plan-adquisiciones-' . now()->format('Y-m-d')),
+                        ]),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
