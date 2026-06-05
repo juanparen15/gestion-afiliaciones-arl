@@ -1028,76 +1028,32 @@ class AfiliacionResource extends Resource
                             return;
                         }
 
-                        $extractor = app(\App\Services\CertificadoArlExtractor::class);
-                        $disk      = Storage::disk('public');
+                        // Si hay una cola asíncrona configurada (database/redis) y el lote es grande,
+                        // se procesa en segundo plano y se notifica al terminar.
+                        $colaAsincrona = config('queue.default') !== 'sync';
 
-                        // Mapa de afiliaciones pendientes por cédula normalizada
-                        $pendientes = \App\Models\Afiliacion::where('estado', 'pendiente')->get();
-                        $mapa = [];
-                        foreach ($pendientes as $af) {
-                            $key = preg_replace('/\D/', '', (string) $af->numero_documento);
-                            if ($key !== '') {
-                                $mapa[$key] = $af;
-                            }
+                        if ($colaAsincrona && count($rutas) > 20) {
+                            \App\Jobs\ProcesarCertificadosArlJob::dispatch($rutas, Auth::id());
+
+                            Notification::make()
+                                ->info()
+                                ->title('Procesando ' . count($rutas) . ' certificados en segundo plano')
+                                ->body('Le llegará una notificación cuando termine la aprobación. Puede seguir trabajando mientras tanto.')
+                                ->persistent()
+                                ->send();
+
+                            return;
                         }
 
-                        $aprobadas    = [];
-                        $sinCoincidir = [];
-                        $sinCedula    = [];
+                        // Modo síncrono: resultado inmediato (lotes normales o sin worker de cola)
+                        $resultado = app(\App\Services\AprobacionMasivaCertificados::class)
+                            ->procesar($rutas, Auth::id());
 
-                        foreach ($rutas as $ruta) {
-                            $absoluto = $disk->path($ruta);
-                            $resultado = $extractor->extraer($absoluto);
-                            $candidatas = $resultado['candidatas'] ?? [];
-
-                            if (empty($candidatas)) {
-                                $sinCedula[] = $ruta;
-                                $disk->delete($ruta);
-                                continue;
-                            }
-
-                            // Buscar la primera candidata que corresponda a una pendiente disponible
-                            $match = null;
-                            foreach ($candidatas as $cedula) {
-                                if (isset($mapa[$cedula])) {
-                                    $match = $mapa[$cedula];
-                                    unset($mapa[$cedula]); // un PDF por afiliación
-                                    break;
-                                }
-                            }
-
-                            if (! $match) {
-                                $sinCoincidir[] = $candidatas[0];
-                                $disk->delete($ruta);
-                                continue;
-                            }
-
-                            $match->update([
-                                'estado'           => 'validado',
-                                'validated_by'     => Auth::id(),
-                                'fecha_validacion' => now(),
-                                'motivo_rechazo'   => null,
-                                'pdf_arl'          => $ruta,
-                            ]);
-
-                            $aprobadas[] = $match->numero_documento . ' — ' . $match->nombre_contratista;
-                        }
-
-                        // Construir resumen
-                        $cuerpo = '✅ Aprobadas: ' . count($aprobadas);
-                        if (! empty($sinCoincidir)) {
-                            $cuerpo .= ' | ⚠️ Sin afiliación pendiente: ' . count($sinCoincidir)
-                                . ' (cédulas: ' . implode(', ', array_slice($sinCoincidir, 0, 10)) . ')';
-                        }
-                        if (! empty($sinCedula)) {
-                            $cuerpo .= ' | ❌ No se pudo leer la cédula: ' . count($sinCedula) . ' PDF(s)';
-                        }
-
-                        $tipo = count($aprobadas) > 0 ? 'success' : 'warning';
+                        $tipo = count($resultado['aprobadas']) > 0 ? 'success' : 'warning';
                         Notification::make()
                             ->{$tipo}()
-                            ->title(count($aprobadas) . ' afiliación(es) aprobada(s)')
-                            ->body($cuerpo)
+                            ->title(count($resultado['aprobadas']) . ' afiliación(es) aprobada(s)')
+                            ->body(\App\Services\AprobacionMasivaCertificados::resumen($resultado))
                             ->persistent()
                             ->send();
                     }),
