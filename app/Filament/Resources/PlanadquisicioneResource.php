@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanadquisicioneResource\Pages;
+use App\Filament\Resources\PlanadquisicioneResource\RelationManagers\ContratosRelationManager;
 use App\Models\{Area, Clase, Familia, Planadquisicione, Producto, Segmento};
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -156,7 +157,9 @@ class PlanadquisicioneResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            ContratosRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
