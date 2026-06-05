@@ -1015,13 +1015,11 @@ class AfiliacionResource extends Resource
                             ->required()
                             ->multiple()
                             ->acceptedFileTypes(['application/pdf'])
-                            ->maxSize(10240)
-                            ->maxFiles(100)
                             ->directory('afiliaciones/pdfs-arl')
                             ->disk('public')
                             ->visibility('public')
                             ->panelLayout('grid')
-                            ->helperText('Puede subir varios PDFs a la vez (máximo 100, 10MB cada uno).'),
+                            ->helperText('Suba todos los certificados ARL en PDF que necesite, sin límite de cantidad ni de tamaño.'),
                     ])
                     ->action(function (array $data): void {
                         $rutas = array_values(array_filter((array) ($data['certificados'] ?? [])));
