@@ -9,9 +9,9 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -207,22 +207,22 @@ class PlanadquisicioneResource extends Resource
                 Section::make('Plan Anual de Adquisiciones')
                     ->description('Alcaldía de Puerto Boyacá · Comprobante de registro del plan')
                     ->icon('heroicon-o-building-library')
+                    ->compact()
                     ->schema([
                         TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
+                        TextEntry::make('id_vigencia')->label('N° de Registro')->badge()->color('primary')->placeholder('—'),
                         TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
                         TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
                         TextEntry::make('created_at')->label('Vigencia')->date('Y'),
                         TextEntry::make('codbpim')->label('Código BPIM')->placeholder('—'),
-                    ])->columns(2),
-
-                Section::make('Valores y Duración')
-                    ->schema([
-                        TextEntry::make('valorestimadocont')->label('Valor Estimado del Contrato')->prefix('$ '),
-                        TextEntry::make('valorestimadovig')->label('Valor Estimado Vigencia')->prefix('$ '),
+                        TextEntry::make('valorestimadocont')->label('Valor Estimado')->prefix('$ '),
+                        TextEntry::make('valorestimadovig')->label('Valor Vigencia')->prefix('$ '),
                         TextEntry::make('duracont')->label('Duración (meses)'),
-                    ])->columns(3),
+                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
+                    ])->columns(4),
 
                 Section::make('Clasificación del Proceso')
+                    ->compact()
                     ->schema([
                         TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('—'),
                         TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('—'),
@@ -233,29 +233,19 @@ class PlanadquisicioneResource extends Resource
                         TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('—'),
                         TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('—'),
                         TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('—'),
-                        TextEntry::make('requiproyecto.detproyeto')->label('Requiere Proyecto')->placeholder('—'),
-                        TextEntry::make('requipoai.detpoai')->label('Requiere POA-I')->placeholder('—'),
+                        TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('—'),
+                        TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('—'),
                         TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('—'),
-                    ])->columns(3),
+                    ])->columns(4),
 
                 Section::make('Clasificación UNSPSC')
                     ->icon('heroicon-o-squares-2x2')
+                    ->compact()
                     ->schema([
-                        RepeatableEntry::make('items')
+                        ViewEntry::make('items')
                             ->hiddenLabel()
-                            ->schema([
-                                TextEntry::make('segmento_nombre')->label('Segmento')->placeholder('—'),
-                                TextEntry::make('familia_nombre')->label('Familia')->placeholder('—'),
-                                TextEntry::make('clase_nombre')->label('Clase')->placeholder('—'),
-                                TextEntry::make('producto_nombre')->label('Producto')->placeholder('—'),
-                            ])->columns(4),
+                            ->view('filament.infolists.unspsc-table'),
                     ]),
-
-                Section::make('Registro')
-                    ->schema([
-                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
-                        TextEntry::make('created_at')->label('Fecha de registro')->dateTime('d/m/Y H:i'),
-                    ])->columns(2),
             ]);
     }
 
@@ -263,6 +253,7 @@ class PlanadquisicioneResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id_vigencia')->label('N° Reg.')->badge()->color('primary')->sortable(),
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
                 Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable(),
                 Tables\Columns\TextColumn::make('dependencia.nombre')->label('Dependencia')->sortable()->searchable()->toggleable(),

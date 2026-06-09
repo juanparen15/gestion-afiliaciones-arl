@@ -40,23 +40,32 @@ class PlanadquisicioneProducto extends Model
         return $this->producto?->clase;
     }
 
+    // El id de cada catálogo UNSPSC es su código jerárquico (segmento 2, familia 4, clase 6, producto 8 dígitos).
     public function getSegmentoNombreAttribute(): ?string
     {
-        return $this->claseEfectiva()?->familia?->segmento?->detsegmento;
+        $s = $this->claseEfectiva()?->familia?->segmento;
+
+        return $s ? "{$s->id} — {$s->detsegmento}" : null;
     }
 
     public function getFamiliaNombreAttribute(): ?string
     {
-        return $this->claseEfectiva()?->familia?->detfamilia;
+        $f = $this->claseEfectiva()?->familia;
+
+        return $f ? "{$f->id} — {$f->detfamilia}" : null;
     }
 
     public function getClaseNombreAttribute(): ?string
     {
-        return $this->claseEfectiva()?->detclase;
+        $c = $this->claseEfectiva();
+
+        return $c ? "{$c->id} — {$c->detclase}" : null;
     }
 
     public function getProductoNombreAttribute(): ?string
     {
-        return $this->producto?->detproducto;
+        $p = $this->producto;
+
+        return $p ? "{$p->id} — {$p->detproducto}" : null;
     }
 }
