@@ -213,7 +213,7 @@ class PlanadquisicioneResource extends Resource
                     ->compact()
                     ->schema([
                         TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
-                        TextEntry::make('id_vigencia')->label('N° de Registro')->badge()->color('primary')->placeholder('—'),
+                        TextEntry::make('id_vigencia')->label('N° de Registro')->placeholder('—'),
                         TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
                         TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
                         TextEntry::make('created_at')->label('Vigencia')->date('Y'),
