@@ -55,7 +55,8 @@ class AdminPanelProvider extends PanelProvider
                 const target = document.querySelector('#comprobante-plan') || document.querySelector('.fi-in') || document.querySelector('.fi-page-content');
                 if (!target) { alert('No se encontró el contenido a capturar.'); return; }
                 try {
-                    const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+                    const isDark = document.documentElement.classList.contains('dark');
+                    const canvas = await html2canvas(target, { scale: 2, backgroundColor: isDark ? '#18181b' : '#ffffff', useCORS: true, logging: false });
                     const link = document.createElement('a');
                     link.download = 'plan-adquisicion-' + Date.now() + '.png';
                     link.href = canvas.toDataURL('image/png');

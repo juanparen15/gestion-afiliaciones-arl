@@ -9,7 +9,9 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Infolists\Components\ViewEntry;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -39,7 +41,9 @@ class PlanadquisicioneResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->schema([
                         Forms\Components\TextInput::make('descripcioncont')->label('Descripción del Contrato')->required()->maxLength(500)->columnSpanFull(),
-                        Forms\Components\TextInput::make('valorestimadocont')->label('Valor Estimado del Contrato')->required(),
+                        Forms\Components\TextInput::make('valorestimadocont')->label('Valor Estimado del Contrato')->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, Set $set) => $set('tipoproceso_id', static::tipoProcesoSegunValor($state))),
                         Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado Vigencia')->required(),
                         Forms\Components\TextInput::make('duracont')->label('Duración (meses)')->required(),
                         Forms\Components\TextInput::make('codbpim')->label('Código BPIM')->maxLength(50),
@@ -98,7 +102,8 @@ class PlanadquisicioneResource extends Resource
                             Forms\Components\Select::make('tipoprioridade_id')->label('Tipo de Prioridad')->relationship('tipoprioridade', 'detprioridad')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requiproyecto_id')->label('Requiere Proyecto')->relationship('requiproyecto', 'detproyeto')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requipoai_id')->label('Requiere POA-I')->relationship('requipoai', 'detpoai')->searchable()->preload()->required(),
-                            Forms\Components\Select::make('tipoproceso_id')->label('Tipo de Proceso')->relationship('tipoproceso', 'dettipoproceso')->searchable()->preload(),
+                            Forms\Components\Select::make('tipoproceso_id')->label('Tipo de Proceso')->relationship('tipoproceso', 'dettipoproceso')->searchable()->preload()
+                                ->helperText('Se autoselecciona según el valor estimado (cuantía); puedes ajustarlo.'),
                         ]),
                     ]),
 
@@ -199,12 +204,92 @@ class PlanadquisicioneResource extends Resource
 
     public static function infolist(Infolist $infolist): Infolist
     {
-        return $infolist->schema([
-            ViewEntry::make('comprobante')
-                ->hiddenLabel()
-                ->view('filament.infolists.plan-comprobante')
-                ->columnSpanFull(),
-        ]);
+        return $infolist
+            ->extraAttributes(['id' => 'comprobante-plan'])
+            ->schema([
+                Section::make('Plan Anual de Adquisiciones')
+                    ->description('Alcaldía de Puerto Boyacá · Comprobante de registro del plan')
+                    ->icon('heroicon-o-building-library')
+                    ->compact()
+                    ->schema([
+                        TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
+                        TextEntry::make('id_vigencia')->label('N° de Registro')->badge()->color('primary')->placeholder('—'),
+                        TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
+                        TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
+                        TextEntry::make('created_at')->label('Vigencia')->date('Y'),
+                        TextEntry::make('codbpim')->label('Código BPIM')->placeholder('—'),
+                        TextEntry::make('valorestimadocont')->label('Valor Estimado')->prefix('$ '),
+                        TextEntry::make('valorestimadovig')->label('Valor Vigencia')->prefix('$ '),
+                        TextEntry::make('duracont')->label('Duración (meses)'),
+                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
+                    ])->columns(4),
+
+                Section::make('Clasificación del Proceso')
+                    ->compact()
+                    ->schema([
+                        TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('—'),
+                        TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('—'),
+                        TextEntry::make('tipozona.tipozona')->label('Tipo de Zona')->placeholder('—'),
+                        TextEntry::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->placeholder('—'),
+                        TextEntry::make('vigenfutura.detvigencia')->label('Vigencia Futura')->placeholder('—'),
+                        TextEntry::make('fuente.detfuente')->label('Fuente')->placeholder('—'),
+                        TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('—'),
+                        TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('—'),
+                        TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('—'),
+                        TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('—'),
+                        TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('—'),
+                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('—'),
+                    ])->columns(4),
+
+                Section::make('Clasificación UNSPSC')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->compact()
+                    ->schema([
+                        RepeatableEntry::make('items')
+                            ->hiddenLabel()
+                            ->schema([
+                                TextEntry::make('segmento_nombre')->label('Segmento')->placeholder('—'),
+                                TextEntry::make('familia_nombre')->label('Familia')->placeholder('—'),
+                                TextEntry::make('clase_nombre')->label('Clase')->placeholder('—'),
+                                TextEntry::make('producto_nombre')->label('Producto')->placeholder('—'),
+                            ])
+                            ->columns(4),
+                    ]),
+            ]);
+    }
+
+    /**
+     * Devuelve el tipoproceso_id correspondiente a un valor estimado, según la cuantía.
+     * Lee los umbrales directamente de los nombres del catálogo tipoprocesos
+     * (p. ej. "Mínima cuantía ($1 hasta $36.400.000)"), así se adapta si se actualizan.
+     */
+    public static function tipoProcesoSegunValor($valor): ?int
+    {
+        $monto = (int) preg_replace('/\D/', '', (string) $valor);
+        if ($monto <= 0) {
+            return null;
+        }
+
+        $tipos = \App\Models\Tipoproceso::all()
+            ->map(function ($t) {
+                preg_match_all('/[\d.]+/', (string) $t->dettipoproceso, $m);
+                $umbral = 0;
+                foreach ($m[0] as $num) {
+                    $n = (int) preg_replace('/\D/', '', $num);
+                    $umbral = max($umbral, $n);
+                }
+                return ['id' => $t->id, 'umbral' => $umbral];
+            })
+            ->sortBy('umbral')
+            ->values();
+
+        foreach ($tipos as $t) {
+            if ($t['umbral'] >= $monto) {
+                return $t['id'];
+            }
+        }
+
+        return $tipos->last()['id'] ?? null;
     }
 
     public static function table(Table $table): Table
