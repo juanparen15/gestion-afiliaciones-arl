@@ -29,4 +29,34 @@ class PlanadquisicioneProducto extends Model
     {
         return $this->belongsTo(Producto::class);
     }
+
+    /** Clase efectiva: la propia, o la del producto si la fila solo trae producto_id. */
+    public function claseEfectiva(): ?Clase
+    {
+        if ($this->clase_id) {
+            return $this->clase;
+        }
+
+        return $this->producto?->clase;
+    }
+
+    public function getSegmentoNombreAttribute(): ?string
+    {
+        return $this->claseEfectiva()?->familia?->segmento?->detsegmento;
+    }
+
+    public function getFamiliaNombreAttribute(): ?string
+    {
+        return $this->claseEfectiva()?->familia?->detfamilia;
+    }
+
+    public function getClaseNombreAttribute(): ?string
+    {
+        return $this->claseEfectiva()?->detclase;
+    }
+
+    public function getProductoNombreAttribute(): ?string
+    {
+        return $this->producto?->detproducto;
+    }
 }

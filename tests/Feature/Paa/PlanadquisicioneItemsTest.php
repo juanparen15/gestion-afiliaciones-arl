@@ -48,4 +48,33 @@ class PlanadquisicioneItemsTest extends TestCase
 
         Livewire::test(CreatePlanadquisicione::class)->assertSuccessful();
     }
+
+    public function test_vista_comprobante_muestra_clasificacion_unspsc(): void
+    {
+        Role::findOrCreate('super_admin');
+        $admin = User::factory()->create();
+        $admin->assignRole('super_admin');
+        $this->actingAs($admin);
+
+        $seg = Segmento::create(['detsegmento' => 'Seg X']);
+        $fam = Familia::create(['detfamilia' => 'Fam X', 'segmento_id' => $seg->id]);
+        $cla = Clase::create(['detclase' => 'Cla X', 'familia_id' => $fam->id]);
+        $pro = Producto::create(['detproducto' => 'Prod X', 'clase_id' => $cla->id]);
+
+        $plan = Planadquisicione::create([
+            'descripcioncont' => 'Plan de prueba',
+            'valorestimadocont' => '1',
+            'valorestimadovig' => '1',
+            'duracont' => '1',
+        ]);
+        // Fila que solo trae producto_id (sin clase_id): debe reconstruir la cascada.
+        $plan->items()->create(['clase_id' => null, 'producto_id' => $pro->id]);
+
+        Livewire::test(\App\Filament\Resources\PlanadquisicioneResource\Pages\ViewPlanadquisicione::class, ['record' => $plan->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSee('Seg X')
+            ->assertSee('Fam X')
+            ->assertSee('Cla X')
+            ->assertSee('Prod X');
+    }
 }

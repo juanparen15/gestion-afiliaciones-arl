@@ -9,6 +9,10 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -144,8 +148,12 @@ class PlanadquisicioneResource extends Resource
                                     ->searchable()
                                     ->nullable(),
                             ])
-                            // Al EDITAR: reconstruir Segmento/Familia desde la clase para mostrar la cascada completa.
+                            // Al EDITAR/VER: reconstruir la cascada completa. Los datos importados pueden traer
+                            // solo producto_id (sin clase_id), así que derivamos la clase desde el producto.
                             ->mutateRelationshipDataBeforeFillUsing(function (array $data): array {
+                                if (empty($data['clase_id']) && ! empty($data['producto_id']) && ($prod = Producto::find($data['producto_id']))) {
+                                    $data['clase_id'] = $prod->clase_id;
+                                }
                                 if (! empty($data['clase_id']) && ($clase = Clase::find($data['clase_id']))) {
                                     $data['familia_id'] = $clase->familia_id;
                                     $data['segmento_id'] = optional(Familia::find($clase->familia_id))->segmento_id;
@@ -191,6 +199,66 @@ class PlanadquisicioneResource extends Resource
         return $query->whereRaw('1 = 0');
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->extraAttributes(['id' => 'comprobante-plan'])
+            ->schema([
+                Section::make('Plan Anual de Adquisiciones')
+                    ->description('Alcaldía de Puerto Boyacá · Comprobante de registro del plan')
+                    ->icon('heroicon-o-building-library')
+                    ->schema([
+                        TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
+                        TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
+                        TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
+                        TextEntry::make('created_at')->label('Vigencia')->date('Y'),
+                        TextEntry::make('codbpim')->label('Código BPIM')->placeholder('—'),
+                    ])->columns(2),
+
+                Section::make('Valores y Duración')
+                    ->schema([
+                        TextEntry::make('valorestimadocont')->label('Valor Estimado del Contrato')->prefix('$ '),
+                        TextEntry::make('valorestimadovig')->label('Valor Estimado Vigencia')->prefix('$ '),
+                        TextEntry::make('duracont')->label('Duración (meses)'),
+                    ])->columns(3),
+
+                Section::make('Clasificación del Proceso')
+                    ->schema([
+                        TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('—'),
+                        TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('—'),
+                        TextEntry::make('tipozona.tipozona')->label('Tipo de Zona')->placeholder('—'),
+                        TextEntry::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->placeholder('—'),
+                        TextEntry::make('vigenfutura.detvigencia')->label('Vigencia Futura')->placeholder('—'),
+                        TextEntry::make('fuente.detfuente')->label('Fuente')->placeholder('—'),
+                        TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('—'),
+                        TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('—'),
+                        TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('—'),
+                        TextEntry::make('requiproyecto.detproyeto')->label('Requiere Proyecto')->placeholder('—'),
+                        TextEntry::make('requipoai.detpoai')->label('Requiere POA-I')->placeholder('—'),
+                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('—'),
+                    ])->columns(3),
+
+                Section::make('Clasificación UNSPSC')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->schema([
+                        RepeatableEntry::make('items')
+                            ->hiddenLabel()
+                            ->schema([
+                                TextEntry::make('segmento_nombre')->label('Segmento')->placeholder('—'),
+                                TextEntry::make('familia_nombre')->label('Familia')->placeholder('—'),
+                                TextEntry::make('clase_nombre')->label('Clase')->placeholder('—'),
+                                TextEntry::make('producto_nombre')->label('Producto')->placeholder('—'),
+                            ])->columns(4),
+                    ]),
+
+                Section::make('Registro')
+                    ->schema([
+                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
+                        TextEntry::make('created_at')->label('Fecha de registro')->dateTime('d/m/Y H:i'),
+                    ])->columns(2),
+            ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -226,7 +294,8 @@ class PlanadquisicioneResource extends Resource
                 Tables\Filters\SelectFilter::make('estadovigencia_id')->label('Estado Vigencia')->relationship('estadovigencia', 'detestadovigencia'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->url(fn ($record): string => static::getUrl('view', ['record' => $record])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -271,6 +340,7 @@ class PlanadquisicioneResource extends Resource
         return [
             'index'  => Pages\ListPlanadquisiciones::route('/'),
             'create' => Pages\CreatePlanadquisicione::route('/create'),
+            'view'   => Pages\ViewPlanadquisicione::route('/{record}'),
             'edit'   => Pages\EditPlanadquisicione::route('/{record}/edit'),
         ];
     }

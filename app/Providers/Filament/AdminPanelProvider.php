@@ -44,6 +44,30 @@ class AdminPanelProvider extends PanelProvider
             PanelsRenderHook::BODY_END,
             fn(): string => '<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script><script src="' . asset('js/tour-afiliaciones.js') . '"></script><script src="' . asset('js/chart-export.js') . '"></script>',
         );
+
+        // html2canvas: para el botón "Tomar pantallazo" del comprobante de Plan de Adquisición.
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn(): string => <<<'HTML'
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+            <script>
+            window.tomarPantallazoPlan = async function () {
+                const target = document.querySelector('#comprobante-plan') || document.querySelector('.fi-in') || document.querySelector('.fi-page-content');
+                if (!target) { alert('No se encontró el contenido a capturar.'); return; }
+                try {
+                    const canvas = await html2canvas(target, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+                    const link = document.createElement('a');
+                    link.download = 'plan-adquisicion-' + Date.now() + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (e) {
+                    console.error('html2canvas', e);
+                    alert('No se pudo generar el pantallazo: ' + (e && e.message ? e.message : e));
+                }
+            };
+            </script>
+            HTML,
+        );
     }
 
     public function panel(Panel $panel): Panel
