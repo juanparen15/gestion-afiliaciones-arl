@@ -42,8 +42,12 @@ class PlanadquisicioneResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('descripcioncont')->label('Descripción del Contrato')->required()->maxLength(500)->columnSpanFull(),
                         Forms\Components\TextInput::make('valorestimadocont')->label('Valor Estimado del Contrato')->required()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, Set $set) => $set('tipoproceso_id', static::tipoProcesoSegunValor($state))),
+                            ->live(debounce: 600)
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                if ($id = static::tipoProcesoSegunValor($state)) {
+                                    $set('tipoproceso_id', $id);
+                                }
+                            }),
                         Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado Vigencia')->required(),
                         Forms\Components\TextInput::make('duracont')->label('Duración (meses)')->required(),
                         Forms\Components\TextInput::make('codbpim')->label('Código BPIM')->maxLength(50),
