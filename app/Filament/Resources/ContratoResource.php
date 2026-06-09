@@ -303,6 +303,21 @@ class ContratoResource extends Resource
                                     ->helperText('Editable si el nombre difiere en SECOP'),
                             ]),
 
+                        Forms\Components\Section::make('Plan Anual de Adquisiciones')
+                            ->icon('heroicon-o-document-text')
+                            ->description('Línea del plan de adquisición que origina este contrato')
+                            ->schema([
+                                Forms\Components\Select::make('planadquisicione_id')
+                                    ->label('Línea del Plan de Adquisición')
+                                    ->relationship('planadquisicione', 'descripcioncont')
+                                    ->searchable()
+                                    ->preload()
+                                    ->native(false)
+                                    ->prefixIcon('heroicon-o-document-text')
+                                    ->placeholder('Vincule el contrato a una línea del plan (opcional)...')
+                                    ->nullable(),
+                            ]),
+
                         Forms\Components\Section::make('Entidad Contratante')
                             ->icon('heroicon-o-building-office-2')
                             ->description('Datos de la entidad que suscribe el contrato')
@@ -1109,6 +1124,11 @@ class ContratoResource extends Resource
                     ->badge()
                     ->color('primary')
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('planadquisicione.descripcioncont')
+                    ->label('Plan de Adquisición')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('estado')
                     ->label('Estado')

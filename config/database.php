@@ -43,6 +43,20 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'paa_legacy' => [
+            'driver' => 'mysql',
+            'host' => env('PAA_LEGACY_DB_HOST', '127.0.0.1'),
+            'port' => env('PAA_LEGACY_DB_PORT', '3306'),
+            'database' => env('PAA_LEGACY_DB_DATABASE', 'paa_legacy'),
+            'username' => env('PAA_LEGACY_DB_USERNAME', 'root'),
+            'password' => env('PAA_LEGACY_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
+        ],
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
