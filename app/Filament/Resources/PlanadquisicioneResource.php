@@ -86,28 +86,58 @@ class PlanadquisicioneResource extends Resource
                 Forms\Components\Wizard\Step::make('Clasificación UNSPSC')
                     ->icon('heroicon-o-squares-2x2')
                     ->schema([
-                        Forms\Components\Select::make('segmento_id')->label('Segmento')
-                            ->options(fn () => Segmento::orderBy('detsegmento')->pluck('detsegmento', 'id'))
-                            ->live()->searchable()->dehydrated(false)
-                            ->afterStateUpdated(function (Set $set) {
-                                $set('familia_id', null);
-                                $set('clase_id', null);
-                            }),
-                        Forms\Components\Select::make('familia_id')->label('Familia')
-                            ->options(fn (Get $get) => Familia::when($get('segmento_id'), fn ($q) => $q->where('segmento_id', $get('segmento_id')))->orderBy('detfamilia')->pluck('detfamilia', 'id'))
-                            ->live()->searchable()->dehydrated(false)
-                            ->afterStateUpdated(function (Set $set) {
-                                $set('clase_id', null);
-                            }),
-                        Forms\Components\Select::make('clase_id')->label('Clase')
-                            ->options(fn (Get $get) => Clase::when($get('familia_id'), fn ($q) => $q->where('familia_id', $get('familia_id')))->orderBy('detclase')->pluck('detclase', 'id'))
-                            ->live()->searchable()->dehydrated(false),
-                        Forms\Components\Select::make('productos')->label('Productos UNSPSC')->multiple()->relationship('productos', 'detproducto')
-                            ->options(fn (Get $get) => Producto::when($get('clase_id'), fn ($q) => $q->where('clase_id', $get('clase_id')))->orderBy('detproducto')->pluck('detproducto', 'id'))
-                            ->searchable()->preload(false),
-                        Forms\Components\Select::make('clases')->label('Clases UNSPSC')->multiple()->relationship('clases', 'detclase')
-                            ->options(fn (Get $get) => Clase::when($get('familia_id'), fn ($q) => $q->where('familia_id', $get('familia_id')))->orderBy('detclase')->pluck('detclase', 'id'))
-                            ->searchable()->preload(false),
+                        Forms\Components\Repeater::make('items')
+                            ->relationship('items')
+                            ->label('Clasificaciones UNSPSC')
+                            ->helperText('Agrega una o varias clasificaciones. El producto es opcional (puedes dejarlo hasta la Clase).')
+                            ->addActionLabel('Agregar clasificación')
+                            ->defaultItems(1)
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): ?string => filled($state['clase_id'] ?? null)
+                                ? optional(Clase::find($state['clase_id']))->detclase
+                                : null)
+                            ->schema([
+                                Forms\Components\Select::make('segmento_id')->label('Segmento')
+                                    ->options(fn () => Segmento::orderBy('detsegmento')->pluck('detsegmento', 'id'))
+                                    ->searchable()->live()->dehydrated(false)
+                                    ->afterStateUpdated(function (Set $set) {
+                                        $set('familia_id', null);
+                                        $set('clase_id', null);
+                                        $set('producto_id', null);
+                                    }),
+                                Forms\Components\Select::make('familia_id')->label('Familia')
+                                    ->options(fn (Get $get) => $get('segmento_id')
+                                        ? Familia::where('segmento_id', $get('segmento_id'))->orderBy('detfamilia')->pluck('detfamilia', 'id')
+                                        : [])
+                                    ->searchable()->live()->dehydrated(false)
+                                    ->afterStateUpdated(function (Set $set) {
+                                        $set('clase_id', null);
+                                        $set('producto_id', null);
+                                    }),
+                                Forms\Components\Select::make('clase_id')->label('Clase')
+                                    ->options(fn (Get $get) => $get('familia_id')
+                                        ? Clase::where('familia_id', $get('familia_id'))->orderBy('detclase')->pluck('detclase', 'id')
+                                        : [])
+                                    ->searchable()->live()->required()
+                                    ->afterStateUpdated(fn (Set $set) => $set('producto_id', null)),
+                                Forms\Components\Select::make('producto_id')->label('Producto (opcional)')
+                                    ->options(fn (Get $get) => $get('clase_id')
+                                        ? Producto::where('clase_id', $get('clase_id'))->orderBy('detproducto')->pluck('detproducto', 'id')
+                                        : [])
+                                    ->searchable()
+                                    ->nullable(),
+                            ])
+                            // Al EDITAR: reconstruir Segmento/Familia desde la clase para mostrar la cascada completa.
+                            ->mutateRelationshipDataBeforeFillUsing(function (array $data): array {
+                                if (! empty($data['clase_id']) && ($clase = Clase::find($data['clase_id']))) {
+                                    $data['familia_id'] = $clase->familia_id;
+                                    $data['segmento_id'] = optional(Familia::find($clase->familia_id))->segmento_id;
+                                }
+                                return $data;
+                            })
+                            // Al GUARDAR: solo persistir clase_id y producto_id (segmento/familia son ayudas visuales).
+                            ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => collect($data)->only(['clase_id', 'producto_id'])->all())
+                            ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => collect($data)->only(['clase_id', 'producto_id'])->all()),
                     ]),
             ])->columnSpanFull(),
         ]);

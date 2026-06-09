@@ -95,4 +95,13 @@ class Planadquisicione extends Model
     {
         return $this->hasMany(Contrato::class);
     }
+
+    /**
+     * Líneas de clasificación UNSPSC (clase + producto opcional).
+     * Es la relación que gobierna el Repeater del formulario.
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(PlanadquisicioneProducto::class, 'planadquisicione_id');
+    }
 }
