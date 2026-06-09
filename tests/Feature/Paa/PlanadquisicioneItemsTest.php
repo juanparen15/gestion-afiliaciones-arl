@@ -7,10 +7,12 @@ use App\Models\{Clase, Familia, Planadquisicione, Producto, Segmento, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
+use Tests\Concerns\GrantsPaaPlanPermissions;
 use Tests\TestCase;
 
 class PlanadquisicioneItemsTest extends TestCase
 {
+    use GrantsPaaPlanPermissions;
     use RefreshDatabase;
 
     public function test_plan_tiene_items_clase_con_producto_opcional(): void
@@ -44,6 +46,7 @@ class PlanadquisicioneItemsTest extends TestCase
         Role::findOrCreate('super_admin');
         $admin = User::factory()->create();
         $admin->assignRole('super_admin');
+        $this->grantPlanPermissions($admin);
         $this->actingAs($admin);
 
         Livewire::test(CreatePlanadquisicione::class)->assertSuccessful();
@@ -54,6 +57,7 @@ class PlanadquisicioneItemsTest extends TestCase
         Role::findOrCreate('super_admin');
         $admin = User::factory()->create();
         $admin->assignRole('super_admin');
+        $this->grantPlanPermissions($admin);
         $this->actingAs($admin);
 
         $seg = Segmento::create(['detsegmento' => 'Seg X']);

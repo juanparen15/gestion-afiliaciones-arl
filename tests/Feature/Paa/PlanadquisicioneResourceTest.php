@@ -7,10 +7,12 @@ use App\Models\{Area, Dependencia, Planadquisicione, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
+use Tests\Concerns\GrantsPaaPlanPermissions;
 use Tests\TestCase;
 
 class PlanadquisicioneResourceTest extends TestCase
 {
+    use GrantsPaaPlanPermissions;
     use RefreshDatabase;
 
     public function test_super_admin_ve_la_lista(): void
@@ -18,6 +20,7 @@ class PlanadquisicioneResourceTest extends TestCase
         Role::findOrCreate('super_admin');
         $admin = User::factory()->create();
         $admin->assignRole('super_admin');
+        $this->grantPlanPermissions($admin);
         $this->actingAs($admin);
 
         Livewire::test(ListPlanadquisiciones::class)->assertSuccessful();
@@ -32,6 +35,7 @@ class PlanadquisicioneResourceTest extends TestCase
 
         // Usuario con área A1 (de la dependencia D1)
         $user = User::factory()->create(['area_id' => $a1->id, 'dependencia_id' => $a1->dependencia_id]);
+        $this->grantPlanPermissions($user);
         $this->actingAs($user);
 
         Livewire::test(ListPlanadquisiciones::class)
@@ -48,6 +52,7 @@ class PlanadquisicioneResourceTest extends TestCase
 
         // Usuario sin área pero con dependencia D1 (dueña de A1 y A2)
         $user = User::factory()->create(['area_id' => null, 'dependencia_id' => $a1->dependencia_id]);
+        $this->grantPlanPermissions($user);
         $this->actingAs($user);
 
         Livewire::test(ListPlanadquisiciones::class)
@@ -66,6 +71,7 @@ class PlanadquisicioneResourceTest extends TestCase
         // SSST aunque tenga un área, ve todo
         $user = User::factory()->create(['area_id' => $a1->id]);
         $user->assignRole('SSST');
+        $this->grantPlanPermissions($user);
         $this->actingAs($user);
 
         Livewire::test(ListPlanadquisiciones::class)
@@ -90,6 +96,7 @@ class PlanadquisicioneResourceTest extends TestCase
         $planOtra = $this->plan($a3->id);
 
         $user = User::factory()->create(['area_id' => null, 'dependencia_id' => $depId]);
+        $this->grantPlanPermissions($user);
         $this->actingAs($user);
 
         Livewire::test(ListPlanadquisiciones::class)
