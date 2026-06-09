@@ -72,6 +72,31 @@ class PlanadquisicioneResourceTest extends TestCase
             ->assertCanSeeTableRecords([$p1, $p2, $p3]);
     }
 
+    public function test_usuario_de_dependencia_ve_planes_a_nivel_de_dependencia(): void
+    {
+        [$a1, $a2, $a3] = $this->setupAreas();
+        $depId = $a1->dependencia_id;
+
+        // Plan registrado a nivel de dependencia (sin área específica).
+        $planDep = Planadquisicione::create([
+            'descripcioncont' => 'Plan a nivel dependencia',
+            'valorestimadocont' => '1',
+            'valorestimadovig' => '1',
+            'duracont' => '1',
+            'area_id' => null,
+            'dependencia_id' => $depId,
+        ]);
+        // Plan de otra dependencia (vía su área).
+        $planOtra = $this->plan($a3->id);
+
+        $user = User::factory()->create(['area_id' => null, 'dependencia_id' => $depId]);
+        $this->actingAs($user);
+
+        Livewire::test(ListPlanadquisiciones::class)
+            ->assertCanSeeTableRecords([$planDep])
+            ->assertCanNotSeeTableRecords([$planOtra]);
+    }
+
     /** @return Area[] [A1(D1), A2(D1), A3(D2)] */
     private function setupAreas(): array
     {

@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlanadquisicioneResource\Pages;
 use App\Filament\Resources\PlanadquisicioneResource\RelationManagers\ContratosRelationManager;
-use App\Models\{Area, Clase, Familia, Planadquisicione, Producto, Segmento};
+use App\Models\{Area, Clase, Dependencia, Familia, Planadquisicione, Producto, Segmento};
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -41,26 +41,43 @@ class PlanadquisicioneResource extends Resource
                         Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado Vigencia')->required(),
                         Forms\Components\TextInput::make('duracont')->label('Duración (meses)')->required(),
                         Forms\Components\TextInput::make('codbpim')->label('Código BPIM')->maxLength(50),
-                        Forms\Components\Select::make('area_id')->label('Área')->required()->searchable()->preload()
+                        Forms\Components\Select::make('dependencia_id')->label('Dependencia')->required()->searchable()->preload()->live()
                             ->options(function () {
                                 $user = Auth::user();
 
-                                // super_admin y SSST pueden elegir cualquier área.
                                 if (! $user || $user->hasRole('super_admin') || $user->hasRole('SSST')) {
-                                    return Area::orderBy('nombre')->pluck('nombre', 'id');
+                                    return Dependencia::orderBy('nombre')->pluck('nombre', 'id');
                                 }
 
-                                // Con área asignada: solo su área.
-                                if ($user->area_id) {
-                                    return Area::where('id', $user->area_id)->pluck('nombre', 'id');
-                                }
-
-                                // Sin área pero con dependencia: las áreas de su dependencia.
                                 if ($user->dependencia_id) {
-                                    return Area::where('dependencia_id', $user->dependencia_id)->orderBy('nombre')->pluck('nombre', 'id');
+                                    return Dependencia::where('id', $user->dependencia_id)->pluck('nombre', 'id');
+                                }
+
+                                if ($user->area_id) {
+                                    $depId = Area::where('id', $user->area_id)->value('dependencia_id');
+                                    return Dependencia::where('id', $depId)->pluck('nombre', 'id');
                                 }
 
                                 return [];
+                            })
+                            ->afterStateUpdated(fn (Set $set) => $set('area_id', null)),
+                        Forms\Components\Select::make('area_id')->label('Área (opcional)')->searchable()->preload()->nullable()
+                            ->helperText('Solo si el plan corresponde a un área específica de la dependencia.')
+                            ->options(function (Get $get) {
+                                $depId = $get('dependencia_id');
+                                if (! $depId) {
+                                    return [];
+                                }
+
+                                $user = Auth::user();
+                                $query = Area::where('dependencia_id', $depId);
+
+                                // Un usuario de área solo puede elegir su propia área.
+                                if ($user && $user->area_id && ! $user->hasRole('super_admin') && ! $user->hasRole('SSST')) {
+                                    $query->where('id', $user->area_id);
+                                }
+
+                                return $query->orderBy('nombre')->pluck('nombre', 'id');
                             }),
                     ])->columns(2),
 
@@ -162,9 +179,12 @@ class PlanadquisicioneResource extends Resource
             return $query->where('area_id', $user->area_id);
         }
 
-        // Sin área pero con dependencia: los planes de todas las áreas de su dependencia.
+        // Sin área pero con dependencia: planes de su dependencia (directos) o de las áreas de su dependencia.
         if ($user->dependencia_id) {
-            return $query->whereHas('area', fn (Builder $q) => $q->where('dependencia_id', $user->dependencia_id));
+            return $query->where(function (Builder $q) use ($user) {
+                $q->where('dependencia_id', $user->dependencia_id)
+                    ->orWhereHas('area', fn (Builder $a) => $a->where('dependencia_id', $user->dependencia_id));
+            });
         }
 
         // Sin área ni dependencia: no ve ningún plan.
@@ -177,7 +197,8 @@ class PlanadquisicioneResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
                 Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable(),
-                Tables\Columns\TextColumn::make('area.nombre')->label('Área')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('dependencia.nombre')->label('Dependencia')->sortable()->searchable()->toggleable(),
+                Tables\Columns\TextColumn::make('area.nombre')->label('Área')->sortable()->searchable()->placeholder('—'),
                 Tables\Columns\TextColumn::make('mese.nommes')->label('Mes')->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->badge()
                     ->color(fn (?string $state): string => match (true) {
@@ -219,6 +240,7 @@ class PlanadquisicioneResource extends Resource
                                     Column::make('valorestimadocont')->heading('Valor Estimado'),
                                     Column::make('valorestimadovig')->heading('Valor Vigencia'),
                                     Column::make('duracont')->heading('Duración (meses)'),
+                                    Column::make('dependencia.nombre')->heading('Dependencia'),
                                     Column::make('area.nombre')->heading('Área'),
                                     Column::make('modalidade.detmodalidad')->heading('Modalidad'),
                                     Column::make('tipoadquisicione.dettipoadquisicion')->heading('Tipo de Adquisición'),

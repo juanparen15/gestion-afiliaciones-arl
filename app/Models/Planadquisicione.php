@@ -16,6 +16,11 @@ class Planadquisicione extends Model
         return $this->belongsTo(Area::class);
     }
 
+    public function dependencia(): BelongsTo
+    {
+        return $this->belongsTo(Dependencia::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

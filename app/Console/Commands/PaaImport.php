@@ -23,15 +23,41 @@ class PaaImport extends Command
 
     private array $reporte = ['areas_sin_match' => [], 'usuarios_creados' => [], 'usuarios_sin_match' => []];
 
+    /** Equivalencias manuales: nombre legacy normalizado => area_id ARL (cuando es un ÁREA real). */
+    private array $aliasAreas = [
+        'area de almacen' => 9,
+        'area de archivo' => 12,
+        'area de vivienda' => 26,
+        'area de salud' => 25,
+        'area de cultura' => 21,
+        'cuerpo de bomberos' => 13,
+    ];
+
+    /** Equivalencias manuales: nombre legacy normalizado => dependencia_id ARL (cuando es una DEPENDENCIA/secretaría). */
+    private array $aliasDependencias = [
+        'umata' => 14,
+        'biblioteca publica municipal' => 18,
+        'secretaria de planeacion' => 11,
+        'secretaria de general y de servicios administrativos' => 8,
+        'secretaria de gobierno' => 9,
+        'secretaria de desarrollo' => 10,
+        'secretaria de obras publicas' => 15,
+        'secretaria de hacienda' => 12,
+        'despacho alcalde' => 6,
+        'inspeccion de transito y transporte' => 13,
+        'control interno' => 7,
+        'area de prensa y comunicaciones' => 8,
+    ];
+
     public function handle(): int
     {
         $legacy = $this->option('connection');
         $this->info("Importando desde conexión: {$legacy}");
 
         $this->importarCatalogos($legacy);
-        $mapaAreas = $this->construirMapaAreas($legacy);
-        $mapaUsers = $this->construirMapaUsuarios($legacy, $mapaAreas);
-        $this->importarPlanes($legacy, $mapaAreas, $mapaUsers);
+        $mapaUbicacion = $this->construirMapaUbicacion($legacy);
+        $mapaUsers = $this->construirMapaUsuarios($legacy, $mapaUbicacion);
+        $this->importarPlanes($legacy, $mapaUbicacion, $mapaUsers);
         $this->importarPivote($legacy);
         $this->imprimirReporte();
 
@@ -51,22 +77,43 @@ class PaaImport extends Command
         }
     }
 
-    private function construirMapaAreas(string $legacy): array
+    /**
+     * Resuelve cada área legacy a una ubicación ARL: ['area_id' => ?, 'dependencia_id' => ?].
+     * Orden: match por nombre de área → alias de área → alias de dependencia → sin match.
+     * Si resuelve a un área, deriva la dependencia desde esa área.
+     */
+    private function construirMapaUbicacion(string $legacy): array
     {
-        $arl = DB::table('areas')->get()->keyBy(fn ($a) => $this->norm($a->nombre));
+        $arlAreas = DB::table('areas')->get()->keyBy(fn ($a) => $this->norm($a->nombre));
+        $depPorArea = DB::table('areas')->pluck('dependencia_id', 'id');
+
         $mapa = [];
         foreach (DB::connection($legacy)->table('areas')->get() as $a) {
             $key = $this->norm($a->nomarea);
-            if (isset($arl[$key])) {
-                $mapa[$a->id] = $arl[$key]->id;
+            $areaId = null;
+            $depId = null;
+
+            if (isset($arlAreas[$key])) {
+                $areaId = $arlAreas[$key]->id;
+            } elseif (isset($this->aliasAreas[$key])) {
+                $areaId = $this->aliasAreas[$key];
+            } elseif (isset($this->aliasDependencias[$key])) {
+                $depId = $this->aliasDependencias[$key];
             } else {
                 $this->reporte['areas_sin_match'][] = $a->nomarea;
             }
+
+            if ($areaId !== null) {
+                $depId = $depPorArea[$areaId] ?? null;
+            }
+
+            $mapa[$a->id] = ['area_id' => $areaId, 'dependencia_id' => $depId];
         }
+
         return $mapa;
     }
 
-    private function construirMapaUsuarios(string $legacy, array $mapaAreas): array
+    private function construirMapaUsuarios(string $legacy, array $mapaUbicacion): array
     {
         $arl = DB::table('users')->get()->keyBy(fn ($u) => strtolower(trim($u->email)));
         $userCols = Schema::getColumnListing('users');
@@ -77,11 +124,13 @@ class PaaImport extends Command
                 $mapa[$u->id] = $arl[$email]->id;
                 continue;
             }
+            $ubic = $mapaUbicacion[$u->areas_id] ?? ['area_id' => null, 'dependencia_id' => null];
             $nuevo = User::create([
                 'name' => $u->name,
                 'email' => $u->email,
                 'password' => Hash::make(Str::random(16)),
-                'area_id' => $mapaAreas[$u->areas_id] ?? null,
+                'area_id' => $ubic['area_id'],
+                'dependencia_id' => $ubic['dependencia_id'],
             ]);
             $extra = array_filter([
                 'apellido' => $u->apellido ?? null,
@@ -114,15 +163,17 @@ class PaaImport extends Command
         }
     }
 
-    private function importarPlanes(string $legacy, array $mapaAreas, array $mapaUsers): void
+    private function importarPlanes(string $legacy, array $mapaUbicacion, array $mapaUsers): void
     {
         $total = DB::connection($legacy)->table('planadquisiciones')->count();
         $this->line("Planes: {$total} filas");
 
-        DB::connection($legacy)->table('planadquisiciones')->orderBy('id')->chunk(500, function ($filas) use ($mapaAreas, $mapaUsers) {
-            $data = $filas->map(function ($p) use ($mapaAreas, $mapaUsers) {
+        DB::connection($legacy)->table('planadquisiciones')->orderBy('id')->chunk(500, function ($filas) use ($mapaUbicacion, $mapaUsers) {
+            $data = $filas->map(function ($p) use ($mapaUbicacion, $mapaUsers) {
                 $d = (array) $p;
-                $d['area_id'] = $mapaAreas[$p->area_id] ?? null;
+                $ubic = $mapaUbicacion[$p->area_id] ?? ['area_id' => null, 'dependencia_id' => null];
+                $d['area_id'] = $ubic['area_id'];
+                $d['dependencia_id'] = $ubic['dependencia_id'];
                 $d['user_id'] = $mapaUsers[$p->user_id] ?? null;
                 return $d;
             })->all();
