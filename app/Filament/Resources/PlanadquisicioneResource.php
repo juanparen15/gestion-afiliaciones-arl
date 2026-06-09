@@ -44,11 +44,23 @@ class PlanadquisicioneResource extends Resource
                         Forms\Components\Select::make('area_id')->label('Área')->required()->searchable()->preload()
                             ->options(function () {
                                 $user = Auth::user();
-                                // Roles reales: Administrador, super_admin (ven todo); Dependencia, SSST (solo su área)
-                                if ($user && ($user->hasRole('Administrador') || $user->hasRole('super_admin'))) {
+
+                                // super_admin y SSST pueden elegir cualquier área.
+                                if (! $user || $user->hasRole('super_admin') || $user->hasRole('SSST')) {
                                     return Area::orderBy('nombre')->pluck('nombre', 'id');
                                 }
-                                return Area::where('id', $user?->area_id)->pluck('nombre', 'id');
+
+                                // Con área asignada: solo su área.
+                                if ($user->area_id) {
+                                    return Area::where('id', $user->area_id)->pluck('nombre', 'id');
+                                }
+
+                                // Sin área pero con dependencia: las áreas de su dependencia.
+                                if ($user->dependencia_id) {
+                                    return Area::where('dependencia_id', $user->dependencia_id)->orderBy('nombre')->pluck('nombre', 'id');
+                                }
+
+                                return [];
                             }),
                     ])->columns(2),
 
@@ -105,11 +117,28 @@ class PlanadquisicioneResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $user = Auth::user();
-        // Administrador y super_admin ven todo; el resto (Dependencia, SSST) solo lo suyo.
-        if ($user && ! $user->hasRole('Administrador') && ! $user->hasRole('super_admin')) {
-            $query->where('user_id', $user->id);
+
+        if (! $user) {
+            return $query;
         }
-        return $query;
+
+        // super_admin y SSST ven todos los planes.
+        if ($user->hasRole('super_admin') || $user->hasRole('SSST')) {
+            return $query;
+        }
+
+        // Con área asignada: solo los planes de su área.
+        if ($user->area_id) {
+            return $query->where('area_id', $user->area_id);
+        }
+
+        // Sin área pero con dependencia: los planes de todas las áreas de su dependencia.
+        if ($user->dependencia_id) {
+            return $query->whereHas('area', fn (Builder $q) => $q->where('dependencia_id', $user->dependencia_id));
+        }
+
+        // Sin área ni dependencia: no ve ningún plan.
+        return $query->whereRaw('1 = 0');
     }
 
     public static function table(Table $table): Table
