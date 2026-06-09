@@ -28,6 +28,7 @@ use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Awcodes\LightSwitch\LightSwitchPlugin;
 use JeffersonGoncalves\Filament\WhatsappWidget\WhatsappWidgetPlugin;
+use Moataz01\FilamentNotificationSound\FilamentNotificationSoundPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -96,6 +97,10 @@ class AdminPanelProvider extends PanelProvider
                     ->isNameRequired(true)
                     ->enableScreenshot(true),
                 WhatsappWidgetPlugin::make(),
+                FilamentNotificationSoundPlugin::make()
+                    ->volume(1.0)
+                    ->showAnimation(true)
+                    ->enabled(true),
             ])
             ->authMiddleware([
                 Authenticate::class,
