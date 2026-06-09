@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Support\RawJs;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -41,15 +42,25 @@ class PlanadquisicioneResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->schema([
                         Forms\Components\TextInput::make('descripcioncont')->label('Descripción del Contrato')->required()->maxLength(500)->columnSpanFull(),
-                        Forms\Components\TextInput::make('valorestimadocont')->label('Valor Estimado del Contrato')->required()
+                        Forms\Components\TextInput::make('valorestimadocont')->label('Valor Total Estimado')->required()
+                            ->prefix('$')
+                            ->mask(RawJs::make("\$money(\$input, ',', '.', 0)"))
+                            ->placeholder('Escriba el Valor Total Estimado')
                             ->live(debounce: 600)
                             ->afterStateUpdated(function ($state, Set $set) {
                                 if ($id = static::tipoProcesoSegunValor($state)) {
                                     $set('tipoproceso_id', $id);
                                 }
                             }),
-                        Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado Vigencia')->required(),
-                        Forms\Components\TextInput::make('duracont')->label('Duración (meses)')->required(),
+                        Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado en Vigencia Actual')->required()
+                            ->prefix('$')
+                            ->mask(RawJs::make("\$money(\$input, ',', '.', 0)"))
+                            ->placeholder('Escriba el Valor Estimado en Vigencia Actual'),
+                        Forms\Components\Select::make('intervalo_id')->label('Duración del contrato (intervalo: días, meses, años)')
+                            ->relationship('intervalo', 'intervalo')->searchable()->preload()->required()
+                            ->placeholder('Seleccione día, mes, año'),
+                        Forms\Components\TextInput::make('duracont')->label('Cantidad de días, meses, años')->required()
+                            ->numeric()->minValue(1)->placeholder('Cantidad de días, meses, años'),
                         Forms\Components\TextInput::make('codbpim')->label('Código BPIM')->maxLength(50),
                         Forms\Components\Select::make('dependencia_id')->label('Dependencia')->required()->searchable()->preload()->live()
                             ->options(function () {
@@ -102,7 +113,6 @@ class PlanadquisicioneResource extends Resource
                             Forms\Components\Select::make('vigenfutura_id')->label('Vigencia Futura')->relationship('vigenfutura', 'detvigencia')->searchable()->preload()->required(),
                             Forms\Components\Select::make('fuente_id')->label('Fuente')->relationship('fuente', 'detfuente')->searchable()->preload()->required(),
                             Forms\Components\Select::make('mese_id')->label('Mes de Inicio')->relationship('mese', 'nommes')->searchable()->preload()->required(),
-                            Forms\Components\Select::make('intervalo_id')->label('Intervalo')->relationship('intervalo', 'intervalo')->searchable()->preload()->required(),
                             Forms\Components\Select::make('tipoprioridade_id')->label('Tipo de Prioridad')->relationship('tipoprioridade', 'detprioridad')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requiproyecto_id')->label('Requiere Proyecto')->relationship('requiproyecto', 'detproyeto')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requipoai_id')->label('Requiere POA-I')->relationship('requipoai', 'detpoai')->searchable()->preload()->required(),
