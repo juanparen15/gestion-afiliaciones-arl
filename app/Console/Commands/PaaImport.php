@@ -41,11 +41,13 @@ class PaaImport extends Command
     private function importarCatalogos(string $legacy): void
     {
         foreach ($this->catalogos as $tabla) {
-            $filas = DB::connection($legacy)->table($tabla)->get();
-            $this->line("Catálogo {$tabla}: {$filas->count()} filas");
-            foreach ($filas as $fila) {
-                DB::table($tabla)->updateOrInsert(['id' => $fila->id], (array) $fila);
-            }
+            $total = DB::connection($legacy)->table($tabla)->count();
+            $this->line("Catálogo {$tabla}: {$total} filas");
+
+            DB::connection($legacy)->table($tabla)->orderBy('id')->chunk(1000, function ($filas) use ($tabla) {
+                $data = array_map(fn ($f) => (array) $f, $filas->all());
+                DB::table($tabla)->upsert($data, ['id']);
+            });
         }
     }
 
@@ -114,22 +116,46 @@ class PaaImport extends Command
 
     private function importarPlanes(string $legacy, array $mapaAreas, array $mapaUsers): void
     {
-        $filas = DB::connection($legacy)->table('planadquisiciones')->get();
-        $this->line("Planes: {$filas->count()} filas");
-        foreach ($filas as $p) {
-            $data = (array) $p;
-            $data['area_id'] = $mapaAreas[$p->area_id] ?? null;
-            $data['user_id'] = $mapaUsers[$p->user_id] ?? null;
-            DB::table('planadquisiciones')->updateOrInsert(['id' => $p->id], $data);
-        }
+        $total = DB::connection($legacy)->table('planadquisiciones')->count();
+        $this->line("Planes: {$total} filas");
+
+        DB::connection($legacy)->table('planadquisiciones')->orderBy('id')->chunk(500, function ($filas) use ($mapaAreas, $mapaUsers) {
+            $data = $filas->map(function ($p) use ($mapaAreas, $mapaUsers) {
+                $d = (array) $p;
+                $d['area_id'] = $mapaAreas[$p->area_id] ?? null;
+                $d['user_id'] = $mapaUsers[$p->user_id] ?? null;
+                return $d;
+            })->all();
+
+            DB::table('planadquisiciones')->upsert($data, ['id']);
+        });
     }
 
     private function importarPivote(string $legacy): void
     {
-        $filas = DB::connection($legacy)->table('planadquisicione_producto')->get();
-        $this->line("Pivote producto: {$filas->count()} filas");
-        foreach ($filas as $row) {
-            DB::table('planadquisicione_producto')->updateOrInsert(['id' => $row->id], (array) $row);
+        $total = DB::connection($legacy)->table('planadquisicione_producto')->count();
+        $this->line("Pivote producto: {$total} filas");
+
+        $omitidas = 0;
+
+        DB::connection($legacy)->table('planadquisicione_producto')->orderBy('id')->chunk(1000, function ($filas) use (&$omitidas) {
+            $data = [];
+            foreach ($filas as $row) {
+                // Las filas legacy sin plan asociado son huérfanas: se omiten.
+                if (is_null($row->planadquisicione_id)) {
+                    $omitidas++;
+                    continue;
+                }
+                $data[] = (array) $row;
+            }
+
+            if ($data) {
+                DB::table('planadquisicione_producto')->upsert($data, ['id']);
+            }
+        });
+
+        if ($omitidas > 0) {
+            $this->warn("Pivote: {$omitidas} filas omitidas por no tener plan asociado (planadquisicione_id null).");
         }
     }
 
