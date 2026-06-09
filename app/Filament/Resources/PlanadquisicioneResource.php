@@ -9,8 +9,6 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
@@ -201,52 +199,12 @@ class PlanadquisicioneResource extends Resource
 
     public static function infolist(Infolist $infolist): Infolist
     {
-        return $infolist
-            ->extraAttributes(['id' => 'comprobante-plan'])
-            ->schema([
-                Section::make('Plan Anual de Adquisiciones')
-                    ->description('Alcaldía de Puerto Boyacá · Comprobante de registro del plan')
-                    ->icon('heroicon-o-building-library')
-                    ->compact()
-                    ->schema([
-                        TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
-                        TextEntry::make('id_vigencia')->label('N° de Registro')->badge()->color('primary')->placeholder('—'),
-                        TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
-                        TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
-                        TextEntry::make('created_at')->label('Vigencia')->date('Y'),
-                        TextEntry::make('codbpim')->label('Código BPIM')->placeholder('—'),
-                        TextEntry::make('valorestimadocont')->label('Valor Estimado')->prefix('$ '),
-                        TextEntry::make('valorestimadovig')->label('Valor Vigencia')->prefix('$ '),
-                        TextEntry::make('duracont')->label('Duración (meses)'),
-                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
-                    ])->columns(4),
-
-                Section::make('Clasificación del Proceso')
-                    ->compact()
-                    ->schema([
-                        TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('—'),
-                        TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('—'),
-                        TextEntry::make('tipozona.tipozona')->label('Tipo de Zona')->placeholder('—'),
-                        TextEntry::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->placeholder('—'),
-                        TextEntry::make('vigenfutura.detvigencia')->label('Vigencia Futura')->placeholder('—'),
-                        TextEntry::make('fuente.detfuente')->label('Fuente')->placeholder('—'),
-                        TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('—'),
-                        TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('—'),
-                        TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('—'),
-                        TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('—'),
-                        TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('—'),
-                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('—'),
-                    ])->columns(4),
-
-                Section::make('Clasificación UNSPSC')
-                    ->icon('heroicon-o-squares-2x2')
-                    ->compact()
-                    ->schema([
-                        ViewEntry::make('items')
-                            ->hiddenLabel()
-                            ->view('filament.infolists.unspsc-table'),
-                    ]),
-            ]);
+        return $infolist->schema([
+            ViewEntry::make('comprobante')
+                ->hiddenLabel()
+                ->view('filament.infolists.plan-comprobante')
+                ->columnSpanFull(),
+        ]);
     }
 
     public static function table(Table $table): Table
