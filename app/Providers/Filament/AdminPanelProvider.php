@@ -107,7 +107,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                OverlookPlugin::make(),
+                // OverlookPlugin desactivado: su rejilla auto-generada (una tarjeta
+                // por recurso, con sparklines) se montaba sobre los números y se
+                // veía rota. El Escritorio usa widgets propios más limpios.
                 FilamentErrorPagesPlugin::make(),
                 // LightSwitchPlugin::make(),
                 FilamentSentryFeedbackPlugin::make()

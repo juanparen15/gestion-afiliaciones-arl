@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\AfiliacionesOverlookWidget;
 use App\Filament\Widgets\AfiliacionesPorDependenciaChart;
 use App\Filament\Widgets\AfiliacionesPorEstadoChart;
 use App\Filament\Widgets\AfiliacionesStatsOverview;
@@ -22,7 +21,6 @@ class Dashboard extends BaseDashboard
     {
         return [
             AfiliacionesStatsOverview::class,
-            AfiliacionesOverlookWidget::class,
             AfiliacionesPorDependenciaChart::class,
             AfiliacionesPorEstadoChart::class,
             AfiliacionesTendenciaMensualChart::class,
