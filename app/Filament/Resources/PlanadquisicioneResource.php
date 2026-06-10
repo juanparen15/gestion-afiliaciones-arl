@@ -187,33 +187,15 @@ class PlanadquisicioneResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
         $user = Auth::user();
 
+        // En contexto sin usuario (consola) no se aplica scope para no romper jobs.
         if (! $user) {
-            return $query;
+            return parent::getEloquentQuery();
         }
 
-        // super_admin y SSST ven todos los planes.
-        if ($user->hasRole('super_admin') || $user->hasRole('SSST')) {
-            return $query;
-        }
-
-        // Con área asignada: solo los planes de su área.
-        if ($user->area_id) {
-            return $query->where('area_id', $user->area_id);
-        }
-
-        // Sin área pero con dependencia: planes de su dependencia (directos) o de las áreas de su dependencia.
-        if ($user->dependencia_id) {
-            return $query->where(function (Builder $q) use ($user) {
-                $q->where('dependencia_id', $user->dependencia_id)
-                    ->orWhereHas('area', fn (Builder $a) => $a->where('dependencia_id', $user->dependencia_id));
-            });
-        }
-
-        // Sin área ni dependencia: no ve ningún plan.
-        return $query->whereRaw('1 = 0');
+        // Misma lógica de rol que Planadquisicione::scopeVisibleTo (fuente única).
+        return parent::getEloquentQuery()->visibleTo($user);
     }
 
     public static function infolist(Infolist $infolist): Infolist

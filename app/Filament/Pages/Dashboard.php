@@ -2,11 +2,35 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\AfiliacionesOverlookWidget;
+use App\Filament\Widgets\AfiliacionesPorDependenciaChart;
+use App\Filament\Widgets\AfiliacionesPorEstadoChart;
+use App\Filament\Widgets\AfiliacionesStatsOverview;
+use App\Filament\Widgets\AfiliacionesTendenciaMensualChart;
+use App\Filament\Widgets\ContratosPorVencerWidget;
+use App\Filament\Widgets\MapaCalorSemanalChart;
 use Filament\Actions;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
+    /**
+     * Solo los widgets de Afiliaciones/Contratos. Los widgets del módulo PAA
+     * viven en su propia página (PaaDashboard).
+     */
+    public function getWidgets(): array
+    {
+        return [
+            AfiliacionesStatsOverview::class,
+            AfiliacionesOverlookWidget::class,
+            AfiliacionesPorDependenciaChart::class,
+            AfiliacionesPorEstadoChart::class,
+            AfiliacionesTendenciaMensualChart::class,
+            MapaCalorSemanalChart::class,
+            ContratosPorVencerWidget::class,
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [

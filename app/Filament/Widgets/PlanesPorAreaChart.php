@@ -2,14 +2,18 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Planadquisicione;
+use App\Filament\Widgets\Concerns\ScopedPaaQuery;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Facades\DB;
 
 class PlanesPorAreaChart extends ChartWidget
 {
-    protected static ?string $heading = 'Planes por Área (vigencia actual)';
-    protected static ?int $sort = 11;
+    use InteractsWithPageFilters;
+    use ScopedPaaQuery;
+
+    protected static ?string $heading = 'Registros por oficina productora (Área)';
+    protected static ?int $sort = 2;
     protected static ?string $maxHeight = '300px';
     protected int | string | array $columnSpan = [
         'default' => 'full',
@@ -18,10 +22,7 @@ class PlanesPorAreaChart extends ChartWidget
 
     protected function getData(): array
     {
-        $vigencia = $this->vigenciaActual();
-
-        $rows = Planadquisicione::query()
-            ->whereYear('planadquisiciones.created_at', $vigencia)
+        $rows = $this->planQuery()
             ->join('areas', 'planadquisiciones.area_id', '=', 'areas.id')
             ->select('areas.nombre', DB::raw('count(*) as total'))
             ->groupBy('areas.nombre')
@@ -55,12 +56,5 @@ class PlanesPorAreaChart extends ChartWidget
             'plugins' => ['legend' => ['display' => false]],
             'maintainAspectRatio' => false,
         ];
-    }
-
-    private function vigenciaActual(): int
-    {
-        $latest = Planadquisicione::max('created_at');
-
-        return $latest ? (int) date('Y', strtotime((string) $latest)) : (int) date('Y');
     }
 }

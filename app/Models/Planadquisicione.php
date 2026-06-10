@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +11,66 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Planadquisicione extends Model
 {
     protected $guarded = [];
+
+    /**
+     * Convierte un valor monetario legacy (string con separador de miles,
+     * p. ej. "55.000.000") a float.
+     */
+    public static function parseValor(mixed $valor): float
+    {
+        return (float) str_replace(['.', ','], ['', '.'], (string) $valor);
+    }
+
+    /**
+     * Limita la consulta a los planes que el usuario puede ver, replicando la
+     * misma lógica de rol que PlanadquisicioneResource::getEloquentQuery().
+     */
+    public function scopeVisibleTo(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        // super_admin y SSST ven todos los planes.
+        if ($user->hasRole('super_admin') || $user->hasRole('SSST')) {
+            return $query;
+        }
+
+        // Con área asignada: solo los planes de su área.
+        if ($user->area_id) {
+            return $query->where($query->qualifyColumn('area_id'), $user->area_id);
+        }
+
+        // Sin área pero con dependencia: planes de su dependencia (directos) o de las áreas de su dependencia.
+        if ($user->dependencia_id) {
+            return $query->where(function (Builder $q) use ($user) {
+                $q->where($q->qualifyColumn('dependencia_id'), $user->dependencia_id)
+                    ->orWhereHas('area', fn (Builder $a) => $a->where('dependencia_id', $user->dependencia_id));
+            });
+        }
+
+        // Sin área ni dependencia: no ve ningún plan.
+        return $query->whereRaw('1 = 0');
+    }
+
+    /**
+     * Aplica los filtros de la barra global del dashboard PAA.
+     * Claves soportadas: vigencia, area_id, dependencia_id, tipoadquisicione_id.
+     */
+    public function scopeApplyDashboardFilters(Builder $query, array $filters): Builder
+    {
+        if (! empty($filters['vigencia'])) {
+            $query->whereYear($query->qualifyColumn('created_at'), (int) $filters['vigencia']);
+        }
+
+        foreach (['area_id', 'dependencia_id', 'tipoadquisicione_id'] as $col) {
+            if (! empty($filters[$col])) {
+                $query->where($query->qualifyColumn($col), $filters[$col]);
+            }
+        }
+
+        return $query;
+    }
 
     public function area(): BelongsTo
     {
