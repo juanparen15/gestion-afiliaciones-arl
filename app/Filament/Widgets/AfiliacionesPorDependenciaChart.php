@@ -12,7 +12,7 @@ class AfiliacionesPorDependenciaChart extends ChartWidget
     protected static ?string $heading = 'Afiliaciones por Dependencia';
     protected static ?int $sort = 2;
     protected static ?string $maxHeight = '280px';
-    protected static ?string $pollingInterval = '60s';
+    protected static ?string $pollingInterval = null;
     protected int | string | array $columnSpan = [
         'default' => 'full',
         'sm' => 1,

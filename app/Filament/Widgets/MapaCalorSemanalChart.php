@@ -13,7 +13,7 @@ class MapaCalorSemanalChart extends ChartWidget
     protected static ?string $heading = 'Actividad Semanal de Registros';
     protected static ?int $sort = 3;
     protected static ?string $maxHeight = '280px';
-    protected static ?string $pollingInterval = '60s';
+    protected static ?string $pollingInterval = null;
     protected int | string | array $columnSpan = [
         'default' => 'full',
         'sm' => 1,
