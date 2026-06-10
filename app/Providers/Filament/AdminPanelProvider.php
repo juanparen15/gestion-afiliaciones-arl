@@ -42,7 +42,10 @@ class AdminPanelProvider extends PanelProvider
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
-            fn(): string => '<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script><script src="' . asset('js/tour-afiliaciones.js') . '"></script><script src="' . asset('js/chart-export.js') . '"></script>',
+            // chart-export.js se retiró: inyectaba un botón de descarga en cada
+            // gráfica y su MutationObserver + hook de Livewire re-escaneaba el DOM
+            // en cada actualización, haciendo que los widgets se movieran.
+            fn(): string => '<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script><script src="' . asset('js/tour-afiliaciones.js') . '"></script>',
         );
 
         // html2canvas: para el botón "Tomar pantallazo" del comprobante de Plan de Adquisición.
