@@ -17,6 +17,10 @@ class Afiliacion extends Model
 
     protected $fillable = [
         'nombre_contratista',
+        'primer_nombre',
+        'segundo_nombre',
+        'primer_apellido',
+        'segundo_apellido',
         'tipo_documento',
         'numero_documento',
         'email_contratista',
@@ -105,6 +109,56 @@ class Afiliacion extends Model
                 throw new \Exception("Los honorarios mensuales no pueden ser menores al salario mínimo legal vigente en Colombia ($" . number_format($salarioMinimo, 0, ',', '.') . ")");
             }
         });
+
+        // Mantener nombre_contratista (nombre completo) sincronizado a partir de las 4 partes
+        static::saving(function ($afiliacion) {
+            $partes = array_filter([
+                $afiliacion->primer_nombre,
+                $afiliacion->segundo_nombre,
+                $afiliacion->primer_apellido,
+                $afiliacion->segundo_apellido,
+            ], fn($p) => filled($p));
+
+            if (! empty($partes)) {
+                $afiliacion->nombre_contratista = preg_replace('/\s+/', ' ', trim(implode(' ', $partes)));
+            }
+        });
+    }
+
+    /**
+     * Divide un nombre completo en sus 4 partes según la convención colombiana.
+     * Heurística (imperfecta, editable por el usuario):
+     *   2 palabras → nombre + primer apellido
+     *   3 palabras → nombre + primer apellido + segundo apellido
+     *   4 palabras → nombre + segundo nombre + primer apellido + segundo apellido
+     *   5+         → nombre + segundo nombre + primer apellido + (resto) segundo apellido
+     *
+     * @return array{primer_nombre: string, segundo_nombre: string, primer_apellido: string, segundo_apellido: string}
+     */
+    public static function dividirNombre(?string $completo): array
+    {
+        $vacio = ['primer_nombre' => '', 'segundo_nombre' => '', 'primer_apellido' => '', 'segundo_apellido' => ''];
+
+        $completo = preg_replace('/\s+/', ' ', trim((string) $completo));
+        if ($completo === '') {
+            return $vacio;
+        }
+
+        $palabras = explode(' ', $completo);
+        $n = count($palabras);
+
+        return match (true) {
+            $n === 1 => ['primer_nombre' => $palabras[0], 'segundo_nombre' => '', 'primer_apellido' => '', 'segundo_apellido' => ''],
+            $n === 2 => ['primer_nombre' => $palabras[0], 'segundo_nombre' => '', 'primer_apellido' => $palabras[1], 'segundo_apellido' => ''],
+            $n === 3 => ['primer_nombre' => $palabras[0], 'segundo_nombre' => '', 'primer_apellido' => $palabras[1], 'segundo_apellido' => $palabras[2]],
+            $n === 4 => ['primer_nombre' => $palabras[0], 'segundo_nombre' => $palabras[1], 'primer_apellido' => $palabras[2], 'segundo_apellido' => $palabras[3]],
+            default  => [
+                'primer_nombre'    => $palabras[0],
+                'segundo_nombre'   => $palabras[1],
+                'primer_apellido'  => $palabras[2],
+                'segundo_apellido' => implode(' ', array_slice($palabras, 3)),
+            ],
+        };
     }
 
     public function getActivitylogOptions(): LogOptions

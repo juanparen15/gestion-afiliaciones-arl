@@ -55,13 +55,51 @@ class AfiliacionResource extends Resource
                                 ->description('Ingrese los datos de identificación del contratista')
                                 ->icon('heroicon-o-identification')
                                 ->schema([
-                                    Forms\Components\TextInput::make('nombre_contratista')
-                                        ->label('Nombre Completo del Contratista')
-                                        ->placeholder('Ej: Juan Carlos Pérez González')
-                                        ->required()
-                                        ->maxLength(255)
-                                        ->prefixIcon('heroicon-o-user')
-                                        ->extraInputAttributes(['data-tour' => 'nombre-contratista']),
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('primer_nombre')
+                                                ->label('Primer Nombre')
+                                                ->placeholder('Ej: Juan')
+                                                ->required()
+                                                ->maxLength(100)
+                                                ->prefixIcon('heroicon-o-user')
+                                                ->extraInputAttributes(['data-tour' => 'nombre-contratista'])
+                                                ->afterStateHydrated(function ($state, $component, ?Afiliacion $record) {
+                                                    if (filled($state) || ! $record) return;
+                                                    $component->state(Afiliacion::dividirNombre($record->nombre_contratista)['primer_nombre']);
+                                                }),
+
+                                            Forms\Components\TextInput::make('segundo_nombre')
+                                                ->label('Segundo Nombre')
+                                                ->placeholder('Opcional')
+                                                ->maxLength(100)
+                                                ->prefixIcon('heroicon-o-user')
+                                                ->afterStateHydrated(function ($state, $component, ?Afiliacion $record) {
+                                                    if (filled($state) || ! $record) return;
+                                                    $component->state(Afiliacion::dividirNombre($record->nombre_contratista)['segundo_nombre']);
+                                                }),
+
+                                            Forms\Components\TextInput::make('primer_apellido')
+                                                ->label('Primer Apellido')
+                                                ->placeholder('Ej: Pérez')
+                                                ->required()
+                                                ->maxLength(100)
+                                                ->prefixIcon('heroicon-o-user')
+                                                ->afterStateHydrated(function ($state, $component, ?Afiliacion $record) {
+                                                    if (filled($state) || ! $record) return;
+                                                    $component->state(Afiliacion::dividirNombre($record->nombre_contratista)['primer_apellido']);
+                                                }),
+
+                                            Forms\Components\TextInput::make('segundo_apellido')
+                                                ->label('Segundo Apellido')
+                                                ->placeholder('Opcional')
+                                                ->maxLength(100)
+                                                ->prefixIcon('heroicon-o-user')
+                                                ->afterStateHydrated(function ($state, $component, ?Afiliacion $record) {
+                                                    if (filled($state) || ! $record) return;
+                                                    $component->state(Afiliacion::dividirNombre($record->nombre_contratista)['segundo_apellido']);
+                                                }),
+                                        ]),
 
                                     Forms\Components\Select::make('tipo_documento')
                                         ->label('Tipo de Documento')
