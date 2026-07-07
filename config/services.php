@@ -45,4 +45,11 @@ return [
         'bin' => env('PDFTOTEXT_BIN', ''),
     ],
 
+    'libreoffice' => [
+        // Ruta al binario soffice (LibreOffice) para convertir DOCX → PDF.
+        // Windows: 'C:\Program Files\LibreOffice\program\soffice.exe'
+        // Linux:   '/usr/bin/soffice' (paquete libreoffice-writer / libreoffice-nogui)
+        'bin' => env('LIBREOFFICE_BIN', 'soffice'),
+    ],
+
 ];

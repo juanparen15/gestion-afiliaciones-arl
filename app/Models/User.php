@@ -23,6 +23,7 @@ class User extends Authenticatable implements FilamentUser
         'cargo',
         'dependencia_id',
         'area_id',
+        'puede_aprobar_actas',
         'password',
     ];
 
@@ -36,6 +37,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'puede_aprobar_actas' => 'boolean',
         ];
     }
 

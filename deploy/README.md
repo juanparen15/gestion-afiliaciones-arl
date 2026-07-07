@@ -48,6 +48,43 @@ Opcional, si el binario está en una ruta no estándar, definir en `.env`:
 PDFTOTEXT_BIN=/usr/bin/pdftotext
 ```
 
+## 2b. Generación de Actas de Necesidad (LibreOffice)
+
+El módulo **Actas de Necesidad** genera el PDF a partir de la plantilla oficial
+`.docx` (`resources/document-templates/acta_necesidad.docx`) y la convierte a PDF
+con **LibreOffice headless**. Es obligatorio instalarlo en el servidor:
+
+```bash
+sudo apt install libreoffice-writer   # o libreoffice-nogui / libreoffice-core
+```
+
+Definir la ruta del binario en `.env` (si no está en el PATH):
+```env
+# Linux
+LIBREOFFICE_BIN=/usr/bin/soffice
+# Windows (Laragon/local)
+LIBREOFFICE_BIN="C:/Program Files/LibreOffice/program/soffice.exe"
+```
+
+Migración de datos existentes (una sola vez), desde el Excel de respuestas:
+```bash
+php artisan actas:importar-excel "/ruta/ACTA DE NECESIDAD 2026 V.3 (Respuestas).xlsx"
+```
+
+La firma del alcalde y su texto se configuran desde la app (botón
+"Configuración de firma" en Actas de Necesidad). La firma por defecto vive en
+`public/images/actas/firma-alcalde.png`.
+
+**Permisos (Filament Shield):** tras el despliegue, generar la política y permisos
+del recurso y otorgarlos a los roles operativos:
+```bash
+php artisan shield:generate --resource=ActaNecesidadResource --panel=admin
+```
+Luego, en la app (Roles/Shield), habilitar `view_any`, `view`, `create`, `update`
+de "acta::necesidad" para los roles **Dependencia**, **SSST** y **Administrador**
+(super_admin tiene acceso total). Quién puede **aprobar/rechazar** se controla
+aparte, con el toggle "Puede aprobar/rechazar actas de necesidad" en cada usuario.
+
 ## 3. Variables de entorno de Gemini (IA)
 
 Usadas por el chat de IA y por el respaldo de lectura de certificados escaneados.

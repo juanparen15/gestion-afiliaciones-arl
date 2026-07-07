@@ -110,6 +110,12 @@ class UserResource extends Resource
                             ->native(false)
                             ->helperText('Define los permisos y accesos del usuario')
                             ->columnSpanFull(),
+
+                        Forms\Components\Toggle::make('puede_aprobar_actas')
+                            ->label('Puede aprobar/rechazar actas de necesidad')
+                            ->helperText('Actívelo para que este usuario pueda aprobar o rechazar las solicitudes de acta de necesidad')
+                            ->inline(false)
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
             ]);
@@ -173,6 +179,11 @@ class UserResource extends Resource
                         'Dependencia' => 'Dependencia',
                         default => $state,
                     }),
+
+                Tables\Columns\ToggleColumn::make('puede_aprobar_actas')
+                    ->label('Aprueba Actas')
+                    ->tooltip('Puede aprobar/rechazar actas de necesidad')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha de Creación')
