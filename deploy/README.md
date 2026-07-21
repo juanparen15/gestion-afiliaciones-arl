@@ -75,6 +75,21 @@ La firma del alcalde y su texto se configuran desde la app (botón
 "Configuración de firma" en Actas de Necesidad). La firma por defecto vive en
 `public/images/actas/firma-alcalde.png`.
 
+**Protección del PDF:** el acta se exporta cifrada con permisos de SOLO IMPRESIÓN
+(no modificar, no copiar/extraer la firma), usando el FilterData de LibreOffice.
+Requiere LibreOffice 7.4+ (versiones anteriores generan el PDF sin cifrado y se
+registra una advertencia). Se puede desactivar con `ACTAS_PROTEGER_PDF=false`.
+
+**Verificación por QR:** cada acta aprobada lleva un QR que apunta a
+`/actas/verificar/{codigo}` (página pública de autenticidad). Requiere que
+`APP_URL` esté bien configurado en producción para que el QR apunte al dominio real.
+
+**Recordatorios a aprobadores:** el comando `actas:recordar-pendientes` corre cada
+lunes 07:45 (ver `routes/console.php`); requiere el scheduler activo en el cron.
+
+**Correo:** el envío es síncrono; se recomienda `QUEUE_CONNECTION=database` + worker
+para que el envío de correos de actas no bloquee la petición si el SMTP está lento.
+
 **Permisos (Filament Shield):** tras el despliegue, generar la política y permisos
 del recurso y otorgarlos a los roles operativos:
 ```bash

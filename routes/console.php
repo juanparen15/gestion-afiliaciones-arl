@@ -45,3 +45,9 @@ Schedule::command('afiliaciones:notificar-pendientes')
     ->withoutOverlapping()
     ->runInBackground()
     ->emailOutputOnFailure(env('MAIL_ADMIN_ADDRESS'));
+
+// Recordar a los aprobadores las actas de necesidad pendientes - lunes 07:45 AM
+Schedule::command('actas:recordar-pendientes')
+    ->weeklyOn(1, '07:45')
+    ->withoutOverlapping()
+    ->runInBackground();

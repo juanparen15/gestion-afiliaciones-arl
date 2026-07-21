@@ -125,6 +125,7 @@ class ActaNecesidadResource extends Resource
                         'pendiente' => 'warning',
                         'aprobado'  => 'success',
                         'rechazado' => 'danger',
+                        'anulado'   => 'gray',
                         default     => 'gray',
                     })
                     ->formatStateUsing(fn(string $state) => ucfirst($state)),
@@ -174,11 +175,31 @@ class ActaNecesidadResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->pdf_path),
 
+                Action::make('anular')
+                    ->label('Anular')
+                    ->icon('heroicon-o-no-symbol')->color('danger')
+                    ->form([
+                        Forms\Components\Textarea::make('motivo_anulacion')
+                            ->label('Motivo de la anulación')->required()->rows(3),
+                    ])
+                    ->modalHeading('Anular acta de necesidad')
+                    ->modalDescription('El acta quedará anulada y ya no será válida. Esta acción queda registrada en la auditoría.')
+                    ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && Auth::user()->puede_aprobar_actas)
+                    ->action(fn(ActaNecesidad $record, array $data) => static::anular($record, $data['motivo_anulacion'])),
+
                 Tables\Actions\EditAction::make()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'pendiente'),
                 Tables\Actions\ViewAction::make(),
             ])
             ->headerActions([
+                Action::make('exportar')
+                    ->label('Exportar Excel')
+                    ->icon('heroicon-o-table-cells')->color('success')
+                    ->action(fn() => \Maatwebsite\Excel\Facades\Excel::download(
+                        new \App\Exports\ActasNecesidadExport(static::getEloquentQuery()->with(['dependencia', 'area', 'aprobador'])->orderBy('consecutivo')),
+                        'actas_necesidad_' . date('Y-m-d_H-i-s') . '.xlsx'
+                    )),
+
                 Action::make('config_firma')
                     ->label('Configuración de firma')
                     ->icon('heroicon-o-pencil-square')->color('gray')
@@ -220,6 +241,7 @@ class ActaNecesidadResource extends Resource
         $record->aprobado_por = Auth::id();
         $record->fecha_aprobado = now();
         $record->fecha_generado = now();
+        $record->asegurarCodigoVerificacion();
 
         try {
             $pdfRel = app(ActaNecesidadDocGenerator::class)->generarPdf([
@@ -240,6 +262,7 @@ class ActaNecesidadResource extends Resource
                 'OBSERVACIONES'      => (string) $record->observaciones,
                 'label_alcalde'      => $cfg->label_alcalde,
                 'firma_alcalde_path' => $cfg->firmaAbsoluta(),
+                'url_verificacion'   => $record->urlVerificacion(),
             ]);
             $record->pdf_path = $pdfRel;
         } catch (\Throwable $e) {
@@ -301,6 +324,26 @@ class ActaNecesidadResource extends Resource
         }
 
         Notification::make()->warning()->title('Acta rechazada')->send();
+    }
+
+    /** Anular un acta aprobada. */
+    public static function anular(ActaNecesidad $record, string $motivo): void
+    {
+        $record->update([
+            'estado' => 'anulado',
+            'motivo_anulacion' => $motivo,
+            'anulado_por' => Auth::id(),
+            'fecha_anulacion' => now(),
+        ]);
+
+        if ($record->creador) {
+            Notification::make()->warning()
+                ->title('Acta de necesidad anulada')
+                ->body("El acta No 0{$record->consecutivo} fue anulada. Motivo: {$motivo}")
+                ->sendToDatabase($record->creador);
+        }
+
+        Notification::make()->warning()->title('Acta anulada')->send();
     }
 
     public static function getEloquentQuery(): Builder

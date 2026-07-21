@@ -35,7 +35,8 @@ class ActaNecesidadDocGenerator
 
         Storage::disk('public')->makeDirectory('actas-necesidad/pdf');
 
-        $this->convertirAPdf($docxTmp, $pdfAbs);
+        $proteger = (bool) config('services.actas.proteger_pdf', true);
+        $this->convertirAPdf($docxTmp, $pdfAbs, $proteger);
 
         @unlink($docxTmp);
 
@@ -72,6 +73,22 @@ class ActaNecesidadDocGenerator
             $tp->setValue($macro, (string) $valor);
         }
 
+        // Código QR de verificación (celda FIRMA)
+        $qrPng = null;
+        if (! empty($datos['url_verificacion'])) {
+            $qrPng = $this->generarQrPng($datos['url_verificacion']);
+        }
+        if ($qrPng && is_file($qrPng)) {
+            $tp->setImageValue('qr_verificacion', [
+                'path'   => $qrPng,
+                'width'  => 70,
+                'height' => 70,
+                'ratio'  => true,
+            ]);
+        } else {
+            $tp->setValue('qr_verificacion', '');
+        }
+
         // Firma del alcalde (imagen configurable). Si no hay, usa la firma por defecto.
         $firma = $datos['firma_alcalde_path'] ?? null;
         if (! $firma || ! is_file($firma)) {
@@ -92,41 +109,141 @@ class ActaNecesidadDocGenerator
         $docxTmp = tempnam(sys_get_temp_dir(), 'acta_') . '.docx';
         $tp->saveAs($docxTmp);
 
+        if ($qrPng && is_file($qrPng)) {
+            @unlink($qrPng);
+        }
+
         return $docxTmp;
+    }
+
+    /** Genera un PNG temporal con el código QR de verificación. */
+    private function generarQrPng(string $contenido): ?string
+    {
+        try {
+            $writer = new \Endroid\QrCode\Writer\PngWriter();
+            $qr = new \Endroid\QrCode\QrCode(
+                data: $contenido,
+                size: 240,
+                margin: 4,
+            );
+            $tmp = tempnam(sys_get_temp_dir(), 'qr_') . '.png';
+            $writer->write($qr)->saveToFile($tmp);
+            return $tmp;
+        } catch (\Throwable $e) {
+            report($e);
+            return null;
+        }
     }
 
     /**
      * Convierte un .docx a PDF usando LibreOffice headless.
+     *
+     * Si $proteger es true, exporta el PDF cifrado con permisos de SOLO IMPRESIÓN
+     * (sin modificar, sin copiar/extraer contenido → no se puede tomar la firma),
+     * usando el FilterData del filtro writer_pdf_Export de LibreOffice.
      */
-    private function convertirAPdf(string $docxAbs, string $pdfDestino): void
+    private function convertirAPdf(string $docxAbs, string $pdfDestino, bool $proteger = true): void
     {
-        $bin     = config('services.libreoffice.bin', 'soffice');
-        $outDir  = dirname($pdfDestino);
-        $tmpProf = tempnam(sys_get_temp_dir(), 'lo_') . '_prof';
+        $bin    = config('services.libreoffice.bin', 'soffice');
+        $outDir = dirname($pdfDestino);
 
-        // LibreOffice genera el PDF con el mismo basename del docx en outDir
-        $cmd = escapeshellarg($bin)
-            . ' -env:UserInstallation=' . escapeshellarg('file:///' . str_replace('\\', '/', $tmpProf))
-            . ' --headless --convert-to pdf --outdir ' . escapeshellarg($outDir)
-            . ' ' . escapeshellarg($docxAbs);
+        // Perfil de usuario único para permitir instancias concurrentes de LibreOffice
+        $profileDir = str_replace('\\', '/', sys_get_temp_dir() . '/lo_acta_' . uniqid());
+        $loProfile  = 'file:///' . ltrim($profileDir, '/');
 
-        @exec($cmd . ' 2>&1', $salida, $codigo);
+        if ($proteger) {
+            $filterData = json_encode([
+                'EncryptFile'                           => ['type' => 'boolean', 'value' => 'true'],
+                'PermissionPassword'                    => ['type' => 'string',  'value' => $this->ownerPassword()],
+                'Printing'                              => ['type' => 'long',    'value' => '2'],   // 2 = impresión alta resolución permitida
+                'Changes'                               => ['type' => 'long',    'value' => '0'],   // 0 = ningún cambio permitido
+                'EnableCopyingOfContent'                => ['type' => 'boolean', 'value' => 'false'], // no copiar/extraer (ni la firma)
+                'EnableTextAccessForAccessibilityTools' => ['type' => 'boolean', 'value' => 'false'],
+            ], JSON_UNESCAPED_SLASHES);
+            $convertTo = 'pdf:writer_pdf_Export:' . $filterData;
+        } else {
+            $convertTo = 'pdf';
+        }
 
-        // El PDF sale con el basename del docx
+        $cmd = [
+            $bin,
+            '--headless',
+            '--nofirststartwizard',
+            '-env:UserInstallation=' . $loProfile,
+            '--convert-to', $convertTo,
+            '--outdir', $outDir,
+            $docxAbs,
+        ];
+
+        $salida = $this->ejecutar($cmd, 90);
+
+        // El PDF sale con el basename del docx en $outDir
         $generado = $outDir . DIRECTORY_SEPARATOR . pathinfo($docxAbs, PATHINFO_FILENAME) . '.pdf';
 
-        if (is_file($generado)) {
-            if (realpath($generado) !== realpath($pdfDestino)) {
-                @rename($generado, $pdfDestino);
-            }
+        if (is_file($generado) && realpath($generado) !== realpath($pdfDestino)) {
+            @rename($generado, $pdfDestino);
         }
 
         if (! is_file($pdfDestino)) {
             throw new \RuntimeException(
-                'No se pudo generar el PDF del acta con LibreOffice. Verifique que soffice esté instalado y accesible. Salida: '
-                . implode("\n", (array) $salida)
+                'No se pudo generar el PDF del acta con LibreOffice. Verifique que soffice esté instalado y accesible. Salida: ' . $salida
             );
         }
+
+        // Garantía: si se pidió proteger pero LibreOffice no cifró, avisar
+        if ($proteger && ! $this->pdfEstaCifrado($pdfDestino)) {
+            report(new \RuntimeException('El acta se generó pero LibreOffice no aplicó el cifrado (versión sin soporte de FilterData).'));
+        }
+    }
+
+    /** Ejecuta LibreOffice con proc_open y timeout, devuelve su salida. */
+    private function ejecutar(array $cmd, int $timeout): string
+    {
+        $process = proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (! is_resource($process)) {
+            throw new \RuntimeException('No se pudo iniciar el proceso de LibreOffice.');
+        }
+        fclose($pipes[0]);
+        stream_set_blocking($pipes[1], false);
+        stream_set_blocking($pipes[2], false);
+
+        $deadline = microtime(true) + $timeout;
+        $output = '';
+        $code = null;
+        while (microtime(true) < $deadline) {
+            $status = proc_get_status($process);
+            if (! $status['running']) {
+                $code = $status['exitcode'];
+                break;
+            }
+            $output .= stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+            usleep(200_000);
+        }
+        $output .= stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        if ($code === null) {
+            proc_terminate($process);
+            proc_close($process);
+            throw new \RuntimeException("LibreOffice superó el tiempo límite de {$timeout}s.");
+        }
+        proc_close($process);
+
+        return trim($output);
+    }
+
+    /** Contraseña de propietario determinística (no se expone al usuario). */
+    private function ownerPassword(): string
+    {
+        return substr(hash('sha256', config('app.key') . '|actas-necesidad'), 0, 32);
+    }
+
+    /** ¿El PDF quedó cifrado (tiene diccionario /Encrypt)? */
+    private function pdfEstaCifrado(string $ruta): bool
+    {
+        $contenido = @file_get_contents($ruta);
+        return $contenido !== false && str_contains($contenido, '/Encrypt');
     }
 
     private function slug(string $s): string

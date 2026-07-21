@@ -52,4 +52,9 @@ return [
         'bin' => env('LIBREOFFICE_BIN', 'soffice'),
     ],
 
+    'actas' => [
+        // Proteger el PDF del acta (solo impresión; sin modificar ni copiar/extraer).
+        'proteger_pdf' => env('ACTAS_PROTEGER_PDF', true),
+    ],
+
 ];

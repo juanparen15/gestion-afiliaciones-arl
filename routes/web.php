@@ -9,6 +9,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Verificación pública de autenticidad de un Acta de Necesidad (QR)
+Route::get('/actas/verificar/{codigo}', function (string $codigo) {
+    $acta = \App\Models\ActaNecesidad::where('codigo_verificacion', $codigo)->first();
+    return view('actas.verificar', ['acta' => $acta, 'codigo' => $codigo]);
+})->name('actas.verificar');
+
 // Servir documentación estática de Starlight
 Route::get('/docs/{path?}', function ($path = '') {
     $basePath = public_path('docs');

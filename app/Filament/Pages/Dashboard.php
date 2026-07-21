@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\ActasNecesidadStatsOverview;
+use App\Filament\Widgets\ActasPorMesChart;
 use App\Filament\Widgets\AfiliacionesPorDependenciaChart;
 use App\Filament\Widgets\AfiliacionesPorEstadoChart;
 use App\Filament\Widgets\AfiliacionesStatsOverview;
@@ -26,6 +28,8 @@ class Dashboard extends BaseDashboard
             AfiliacionesTendenciaMensualChart::class,
             MapaCalorSemanalChart::class,
             ContratosPorVencerWidget::class,
+            ActasNecesidadStatsOverview::class,
+            ActasPorMesChart::class,
         ];
     }
 

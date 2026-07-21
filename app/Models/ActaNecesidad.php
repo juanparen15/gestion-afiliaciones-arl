@@ -5,15 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class ActaNecesidad extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $table = 'actas_necesidad';
 
     protected $fillable = [
         'consecutivo',
+        'codigo_verificacion',
         'email_solicitante',
         'dependencia_id',
         'area_id',
@@ -33,12 +36,15 @@ class ActaNecesidad extends Model
         'nombre_completo',
         'estado',
         'motivo_rechazo',
+        'motivo_anulacion',
         'fecha_solicitud',
         'fecha_generado',
         'fecha_aprobado',
+        'fecha_anulacion',
         'pdf_path',
         'created_by',
         'aprobado_por',
+        'anulado_por',
     ];
 
     protected $casts = [
@@ -47,7 +53,16 @@ class ActaNecesidad extends Model
         'fecha_solicitud'    => 'datetime',
         'fecha_generado'     => 'datetime',
         'fecha_aprobado'     => 'datetime',
+        'fecha_anulacion'    => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['estado', 'consecutivo', 'motivo_rechazo', 'motivo_anulacion', 'aprobado_por', 'anulado_por'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public function dependencia(): BelongsTo
     {
@@ -69,10 +84,35 @@ class ActaNecesidad extends Model
         return $this->belongsTo(User::class, 'aprobado_por');
     }
 
+    public function anulador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'anulado_por');
+    }
+
     /** Siguiente consecutivo disponible. */
     public static function siguienteConsecutivo(): int
     {
         return (int) static::max('consecutivo') + 1;
+    }
+
+    /** Genera (una vez) un código de verificación único para el QR. */
+    public function asegurarCodigoVerificacion(): string
+    {
+        if (! $this->codigo_verificacion) {
+            do {
+                $codigo = strtoupper(bin2hex(random_bytes(6))); // 12 hex
+            } while (static::where('codigo_verificacion', $codigo)->exists());
+            $this->codigo_verificacion = $codigo;
+        }
+        return $this->codigo_verificacion;
+    }
+
+    /** URL pública de verificación de autenticidad. */
+    public function urlVerificacion(): ?string
+    {
+        return $this->codigo_verificacion
+            ? url('/actas/verificar/' . $this->codigo_verificacion)
+            : null;
     }
 
     /** Nombre de dependencia (relación o texto denormalizado). */
