@@ -265,6 +265,24 @@ class ActaNecesidadResource extends Resource
                     })
                     ->formatStateUsing(fn(string $state) => ucfirst($state)),
 
+                Tables\Columns\IconColumn::make('correo_enviado')
+                    ->label('Correo')
+                    ->icon(fn(ActaNecesidad $record) => match (true) {
+                        $record->estado !== 'aprobado' => 'heroicon-o-minus-small',
+                        $record->correo_enviado        => 'heroicon-o-check-circle',
+                        default                        => 'heroicon-o-exclamation-triangle',
+                    })
+                    ->color(fn(ActaNecesidad $record) => match (true) {
+                        $record->estado !== 'aprobado' => 'gray',
+                        $record->correo_enviado        => 'success',
+                        default                        => 'danger',
+                    })
+                    ->tooltip(fn(ActaNecesidad $record) => match (true) {
+                        $record->estado !== 'aprobado' => 'Aún no aprobada',
+                        $record->correo_enviado        => 'Enviado ' . optional($record->correo_enviado_at)->format('d/m/Y H:i'),
+                        default                        => 'Falló: ' . ($record->correo_error ?: 'sin detalle'),
+                    }),
+
                 Tables\Columns\TextColumn::make('fecha_solicitud')
                     ->label('Solicitado')->dateTime('d/m/Y H:i')->sortable(),
 
@@ -309,6 +327,29 @@ class ActaNecesidadResource extends Resource
                     ->url(fn(ActaNecesidad $record) => $record->pdf_path ? Storage::disk('public')->url($record->pdf_path) : null)
                     ->openUrlInNewTab()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->pdf_path),
+
+                Action::make('reenviar_correo')
+                    ->label(fn(ActaNecesidad $record) => $record->correo_enviado ? 'Reenviar correo' : 'Enviar correo')
+                    ->icon('heroicon-o-envelope')
+                    ->color(fn(ActaNecesidad $record) => $record->correo_enviado ? 'gray' : 'warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Enviar acta por correo')
+                    ->modalDescription(fn(ActaNecesidad $record) => 'Se enviará el acta en PDF a: ' . $record->email_solicitante)
+                    ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->email_solicitante && Auth::user()->puede_aprobar_actas)
+                    ->action(function (ActaNecesidad $record) {
+                        if (static::enviarCorreoAprobacion($record)) {
+                            Notification::make()->success()
+                                ->title('Correo enviado')
+                                ->body('El acta fue enviada a ' . $record->email_solicitante)
+                                ->send();
+                        } else {
+                            Notification::make()->danger()
+                                ->title('No se pudo enviar el correo')
+                                ->body($record->correo_error ?: 'Error desconocido al enviar.')
+                                ->persistent()
+                                ->send();
+                        }
+                    }),
 
                 Action::make('anular')
                     ->label('Anular')
@@ -411,27 +452,58 @@ class ActaNecesidadResource extends Resource
 
         $record->save();
 
-        // Correo con PDF adjunto
-        if ($record->email_solicitante) {
-            try {
-                Mail::to($record->email_solicitante)->send(new \App\Mail\ActaAprobadaMail($record));
-            } catch (\Throwable $e) {
-                // no bloquear la aprobación si falla el correo
-            }
-        }
+        // Correo con PDF adjunto (registra estado; avisa si falla)
+        $correoOk = static::enviarCorreoAprobacion($record);
 
         // Notificación interna al creador
         if ($record->creador) {
             Notification::make()->success()
                 ->title('Acta de necesidad aprobada')
-                ->body("Su acta No 0{$consecutivo} fue aprobada y enviada a {$record->email_solicitante}.")
+                ->body("Su acta No 0{$consecutivo} fue aprobada.")
                 ->sendToDatabase($record->creador);
         }
 
-        Notification::make()->success()
-            ->title('Acta aprobada — No 0' . $consecutivo)
-            ->body('El PDF fue generado y enviado al solicitante.')
-            ->send();
+        if ($correoOk) {
+            Notification::make()->success()
+                ->title('Acta aprobada — No 0' . $consecutivo)
+                ->body('El PDF fue generado y enviado al solicitante.')
+                ->send();
+        } else {
+            Notification::make()->warning()
+                ->title('Acta aprobada — No 0' . $consecutivo . ' (correo NO enviado)')
+                ->body('El PDF se generó, pero el correo al solicitante falló. Use la acción "Reenviar correo" en la tabla.')
+                ->persistent()
+                ->send();
+        }
+    }
+
+    /**
+     * Envía el correo de aprobación (con PDF) y registra el resultado en el acta.
+     * Devuelve true si se envió; false si falló (guarda el error).
+     */
+    public static function enviarCorreoAprobacion(ActaNecesidad $record): bool
+    {
+        if (! $record->email_solicitante) {
+            $record->update(['correo_enviado' => false, 'correo_error' => 'El acta no tiene correo de solicitante.']);
+            return false;
+        }
+
+        try {
+            Mail::to($record->email_solicitante)->send(new \App\Mail\ActaAprobadaMail($record));
+            $record->update([
+                'correo_enviado'    => true,
+                'correo_enviado_at' => now(),
+                'correo_error'      => null,
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            $record->update([
+                'correo_enviado' => false,
+                'correo_error'   => \Illuminate\Support\Str::limit($e->getMessage(), 480),
+            ]);
+            report($e);
+            return false;
+        }
     }
 
     /** Rechazar: notifica por correo + interno. */

@@ -45,6 +45,9 @@ class ActaNecesidad extends Model
         'fecha_aprobado',
         'fecha_anulacion',
         'pdf_path',
+        'correo_enviado',
+        'correo_enviado_at',
+        'correo_error',
         'created_by',
         'aprobado_por',
         'anulado_por',
@@ -57,6 +60,8 @@ class ActaNecesidad extends Model
         'fecha_generado'     => 'datetime',
         'fecha_aprobado'     => 'datetime',
         'fecha_anulacion'    => 'datetime',
+        'correo_enviado'     => 'boolean',
+        'correo_enviado_at'  => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
