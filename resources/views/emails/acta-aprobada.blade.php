@@ -21,7 +21,7 @@
                                     </td>
                                     <td valign="middle" style="padding-left:12px;">
                                         <div style="color:#ffffff; font-size:15px; font-weight:bold; line-height:1.3;">Alcaldía Municipal de Puerto Boyacá</div>
-                                        <div style="color:#9fb6d6; font-size:12px; letter-spacing:.4px;">Boyacá — Colombia</div>
+                                        <div style="color:#9fb6d6; font-size:12px; letter-spacing:.4px;">Boyacá - Colombia</div>
                                     </td>
                                 </tr>
                             </table>
@@ -64,17 +64,35 @@
                                             <td style="padding:8px 0; color:#6b7280; border-top:1px solid #f1f5f9; vertical-align:top;">Objeto</td>
                                             <td style="padding:8px 0; font-weight:bold; text-align:right; border-top:1px solid #f1f5f9;">{{ $acta->objeto_contrato }}</td>
                                         </tr>
-                                        @if($acta->codigo_verificacion)
-                                        <tr>
-                                            <td style="padding:8px 0; color:#6b7280; border-top:1px solid #f1f5f9;">Verificación</td>
-                                            <td style="padding:8px 0; text-align:right; border-top:1px solid #f1f5f9;">
-                                                <a href="{{ $acta->urlVerificacion() }}" style="color:#0f2f5f; font-weight:bold; text-decoration:none;">Validar autenticidad</a>
-                                            </td>
-                                        </tr>
-                                        @endif
                                     </table>
                                 </td></tr>
                             </table>
+
+                            @if($acta->codigo_verificacion)
+                            {{-- Botón prominente de verificación --}}
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+                                <tr>
+                                    <td align="center">
+                                        <!--[if mso]>
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ $acta->urlVerificacion() }}" style="height:46px;v-text-anchor:middle;width:280px;" arcsize="18%" strokecolor="#15803d" fillcolor="#16a34a">
+                                        <w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;">Validar autenticidad</center>
+                                        </v:roundrect>
+                                        <![endif]-->
+                                        <!--[if !mso]><!-->
+                                        <a href="{{ $acta->urlVerificacion() }}" target="_blank"
+                                           style="display:inline-block; background-color:#16a34a; color:#ffffff; font-size:15px; font-weight:bold; text-decoration:none; padding:14px 34px; border-radius:10px; box-shadow:0 4px 12px rgba(22,163,74,.30); font-family:Arial,sans-serif;">
+                                            Validar autenticidad del documento
+                                        </a>
+                                        <!--<![endif]-->
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top:8px;">
+                                        <span style="font-size:11px; color:#94a3b8;">O escanee el código QR impreso en el acta</span>
+                                    </td>
+                                </tr>
+                            </table>
+                            @endif
 
                             <p style="margin:22px 0 0; font-size:13px; color:#6b7280; line-height:1.6;">
                                 El documento adjunto está protegido y habilitado únicamente para impresión.
@@ -88,7 +106,7 @@
                         <td style="background-color:#f8fafc; padding:18px 28px; text-align:center; border-top:1px solid #e5e7eb;">
                             <p style="margin:0; font-size:11px; color:#94a3b8; line-height:1.6;">
                                 Este es un correo automático, por favor no responder.<br>
-                                &copy; {{ date('Y') }} Alcaldía Municipal de Puerto Boyacá — Sistema de Gestión.
+                                &copy; {{ date('Y') }} Alcaldía Municipal de Puerto Boyacá - Sistema de Gestión.
                             </p>
                         </td>
                     </tr>
