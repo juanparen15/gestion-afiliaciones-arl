@@ -23,9 +23,12 @@ class ActaNecesidad extends Model
         'dependencia_nombre',
         'area_nombre',
         'nombre_solicitante',
+        'nombre_secretario_supervisor',
         'objeto_contrato',
         'tipo_contrato',
         'duracion',
+        'duracion_valor',
+        'duracion_unidad',
         'modalidad_seleccion',
         'tipo_solicitud',
         'numero_contrato_convenio',
@@ -62,6 +65,16 @@ class ActaNecesidad extends Model
             ->logOnly(['estado', 'consecutivo', 'motivo_rechazo', 'motivo_anulacion', 'aprobado_por', 'anulado_por'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    protected static function booted(): void
+    {
+        // Componer la duración textual (ej. "3 MESES") a partir de valor + unidad
+        static::saving(function (ActaNecesidad $acta) {
+            if ($acta->duracion_valor && $acta->duracion_unidad) {
+                $acta->duracion = trim($acta->duracion_valor . ' ' . $acta->duracion_unidad);
+            }
+        });
     }
 
     public function dependencia(): BelongsTo

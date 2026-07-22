@@ -34,71 +34,186 @@ class ActaNecesidadResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make('Datos de la solicitud')
-                ->description('Complete la información para la solicitud del acta de necesidad')
-                ->icon('heroicon-o-clipboard-document-list')
-                ->columns(2)
-                ->schema([
-                    Forms\Components\Select::make('dependencia_id')
-                        ->label('Dependencia')
-                        ->options(Dependencia::orderBy('nombre')->pluck('nombre', 'id'))
-                        ->searchable()->preload()->native(false)->required()
-                        ->default(fn() => Auth::user()->dependencia_id)
-                        ->live()
-                        ->afterStateUpdated(fn(Forms\Set $set) => $set('area_id', null)),
+            Forms\Components\Wizard::make([
 
-                    Forms\Components\Select::make('area_id')
-                        ->label('Área')
-                        ->options(function (Forms\Get $get) {
-                            $dep = $get('dependencia_id');
-                            return $dep
-                                ? Area::where('dependencia_id', $dep)->orderBy('nombre')->pluck('nombre', 'id')
-                                : Area::orderBy('nombre')->pluck('nombre', 'id');
-                        })
-                        ->searchable()->preload()->native(false)
-                        ->default(fn() => Auth::user()->area_id),
+                // ── Paso 1: Solicitud ─────────────────────────────────────────
+                Forms\Components\Wizard\Step::make('Solicitud')
+                    ->icon('heroicon-o-clipboard-document-list')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('dependencia_id')
+                            ->label('Dependencia')
+                            ->options(Dependencia::orderBy('nombre')->pluck('nombre', 'id'))
+                            ->searchable()->preload()->native(false)->required()
+                            ->default(fn() => Auth::user()->dependencia_id)
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                $set('area_id', null);
+                                $dep = Dependencia::find($state);
+                                if ($dep && $dep->email) {
+                                    $set('email_solicitante', $dep->email);
+                                }
+                            }),
 
-                    Forms\Components\TextInput::make('nombre_solicitante')
-                        ->label('Nombre del Solicitante')->required()->maxLength(255)
-                        ->default(fn() => Auth::user()->name),
+                        Forms\Components\Select::make('area_id')
+                            ->label('Área')
+                            ->options(function (Forms\Get $get) {
+                                $dep = $get('dependencia_id');
+                                return $dep
+                                    ? Area::where('dependencia_id', $dep)->orderBy('nombre')->pluck('nombre', 'id')
+                                    : Area::orderBy('nombre')->pluck('nombre', 'id');
+                            })
+                            ->searchable()->preload()->native(false)
+                            ->default(fn() => Auth::user()->area_id)
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                $area = Area::find($state);
+                                if ($area && $area->email) {
+                                    $set('email_solicitante', $area->email);
+                                }
+                            }),
 
-                    Forms\Components\TextInput::make('email_solicitante')
-                        ->label('Correo del Solicitante')->email()->maxLength(255)
-                        ->default(fn() => Auth::user()->correo_institucional ?: Auth::user()->email)
-                        ->helperText('Se usará para enviar el acta aprobada o el rechazo'),
+                        Forms\Components\TextInput::make('email_solicitante')
+                            ->label('Correo electrónico institucional')
+                            ->email()->maxLength(255)->required()
+                            ->helperText('Se toma del correo registrado en el área o la dependencia. Debe ser correo institucional.')
+                            ->default(fn() => Auth::user()->correo_institucional ?: Auth::user()->email),
 
-                    Forms\Components\Textarea::make('objeto_contrato')
-                        ->label('Objeto del Contrato')->required()->rows(2)->columnSpanFull(),
+                        Forms\Components\TextInput::make('nombre_solicitante')
+                            ->label('Nombre del solicitante')->required()->maxLength(255)
+                            ->default(fn() => Auth::user()->name),
 
-                    Forms\Components\TextInput::make('tipo_contrato')->label('Tipo de Contrato')->required(),
-                    Forms\Components\TextInput::make('duracion')->label('Duración')->required(),
+                        Forms\Components\TextInput::make('nombre_secretario_supervisor')
+                            ->label('Nombre del secretario o supervisor')->maxLength(255),
 
-                    Forms\Components\TextInput::make('modalidad_seleccion')->label('Modalidad de Selección')->required(),
+                        Forms\Components\Textarea::make('objeto_contrato')
+                            ->label('Objeto del contrato')->required()->rows(2)->columnSpanFull(),
 
-                    Forms\Components\Textarea::make('tipo_solicitud')
-                        ->label('Tipo de Solicitud')
-                        ->helperText('Especifique si requiere procedimiento de selección, adición, prórroga, cesión, otrosí o modificación')
-                        ->rows(2)->columnSpanFull(),
+                        Forms\Components\Select::make('tipo_contrato')
+                            ->label('Tipo de contrato')
+                            ->options(static::tiposContrato())
+                            ->searchable()->native(false)->required()->live()
+                            ->columnSpanFull(),
+                    ]),
 
-                    Forms\Components\TextInput::make('numero_contrato_convenio')
-                        ->label('Número de Contrato o Convenio (según aplique)'),
+                // ── Paso 2: Persona a contratar (solo CPS) ────────────────────
+                Forms\Components\Wizard\Step::make('Persona a contratar')
+                    ->icon('heroicon-o-user')
+                    ->schema([
+                        Forms\Components\Placeholder::make('nota_cps')
+                            ->label('')
+                            ->content('Este dato aplica únicamente para contratos de Prestación de Servicios (CPS).')
+                            ->visible(fn(Forms\Get $get) => ! static::esCps($get('tipo_contrato'))),
 
-                    Forms\Components\TextInput::make('presupuesto_oficial')
-                        ->label('Presupuesto Oficial')->numeric()->prefix('$')->required(),
+                        Forms\Components\TextInput::make('nombre_completo')
+                            ->label('Nombre completo de la persona a contratar')
+                            ->maxLength(255)
+                            ->required(fn(Forms\Get $get) => static::esCps($get('tipo_contrato')))
+                            ->visible(fn(Forms\Get $get) => static::esCps($get('tipo_contrato'))),
+                    ]),
 
-                    Forms\Components\TextInput::make('codigo_bpim_bpin')
-                        ->label('Línea de Plan de Desarrollo / Código BPIN - BPIM'),
+                // ── Paso 3: Detalles del contrato ─────────────────────────────
+                Forms\Components\Wizard\Step::make('Detalles del contrato')
+                    ->icon('heroicon-o-document-text')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('duracion_valor')
+                            ->label('Duración')->numeric()->minValue(1)->required()
+                            ->placeholder('Ej: 3'),
 
-                    Forms\Components\TextInput::make('codigo_paa')
-                        ->label('Código Plan Anual de Adquisiciones (SIIPAA)'),
+                        Forms\Components\Select::make('duracion_unidad')
+                            ->label('Unidad de duración')
+                            ->options(['DIAS' => 'Días', 'MESES' => 'Meses', 'AÑOS' => 'Años'])
+                            ->native(false)->required()->default('MESES'),
 
-                    Forms\Components\Textarea::make('observaciones')
-                        ->label('Observaciones (según aplique)')->rows(2)->columnSpanFull(),
+                        Forms\Components\Select::make('modalidad_seleccion')
+                            ->label('Modalidad de selección')
+                            ->options(static::modalidades())
+                            ->searchable()->native(false)->required(),
 
-                    Forms\Components\TextInput::make('nombre_completo')
-                        ->label('Nombre completo de quien avala')->maxLength(255)->columnSpanFull(),
-                ]),
+                        Forms\Components\Select::make('tipo_solicitud')
+                            ->label('Tipo de solicitud')
+                            ->options(static::tiposSolicitud())
+                            ->searchable()->native(false)->required(),
+
+                        Forms\Components\TextInput::make('numero_contrato_convenio')
+                            ->label('Número de contrato o convenio')
+                            ->helperText('Según aplique. Si no aplica, digite "NO APLICA".')->required(),
+
+                        Forms\Components\TextInput::make('presupuesto_oficial')
+                            ->label('Presupuesto oficial')->numeric()->prefix('$')->required(),
+
+                        Forms\Components\TextInput::make('codigo_bpim_bpin')
+                            ->label('Línea de plan de desarrollo / Código BPIN - BPIM')
+                            ->helperText('Solo aplica para proyectos de inversión. Si no aplica, digite "NO APLICA".')
+                            ->columnSpanFull(),
+
+                        Forms\Components\Select::make('codigo_paa')
+                            ->label('Código Plan Anual de Adquisiciones (SIIPAA)')
+                            ->helperText('Debe existir un Plan de Adquisiciones registrado. Seleccione la línea correspondiente.')
+                            ->options(fn(Forms\Get $get) => static::opcionesPaa($get('dependencia_id')))
+                            ->searchable()->native(false)
+                            ->columnSpanFull(),
+
+                        Forms\Components\Textarea::make('observaciones')
+                            ->label('Observaciones')
+                            ->helperText('Según aplique. Si no aplica, digite "NO APLICA".')
+                            ->rows(2)->columnSpanFull(),
+                    ]),
+            ])
+                ->skippable(false)
+                ->columnSpanFull(),
         ]);
+    }
+
+    /** Opciones de tipo de contrato. */
+    public static function tiposContrato(): array
+    {
+        return array_combine(
+            $o = [
+                'PRESTACIÓN DE SERVICIOS (CPS)', 'SERVICIOS EN GENERAL', 'OBRA PUBLICA', 'SUMINISTRO',
+                'ARRIENDO', 'INTERVENTORIA', 'CONSULTORIA', 'CONTRATO INTERADMINISTRATIVO',
+                'CONVENIO INTERADMINISTRATIVO', 'COMODATO',
+            ],
+            $o
+        );
+    }
+
+    public static function modalidades(): array
+    {
+        return array_combine(
+            $o = ['DIRECTA', 'MINIMA CUANTIA', 'MENOR CUANTIA', 'SUBASTA INVERSA', 'LICITACIÓN', 'LICITACIÓN OBRA PUBLICA', 'CONCURSO DE MERITOS'],
+            $o
+        );
+    }
+
+    public static function tiposSolicitud(): array
+    {
+        return array_combine(
+            $o = ['PROCESO NUEVO', 'ADICION', 'PRORROGA', 'CESION', 'SUSPENSION', 'MODIFICACIONES GENERALES', 'REINICIO'],
+            $o
+        );
+    }
+
+    /** ¿El tipo de contrato es Prestación de Servicios (CPS)? */
+    public static function esCps(?string $tipo): bool
+    {
+        return $tipo !== null && str_starts_with($tipo, 'PRESTACIÓN DE SERVICIOS');
+    }
+
+    /** Opciones del código PAA a partir de los planes de adquisiciones registrados. */
+    public static function opcionesPaa($dependenciaId = null): array
+    {
+        $q = \App\Models\Planadquisicione::query()->latest('id')->limit(500);
+        if ($dependenciaId) {
+            $q->where('dependencia_id', $dependenciaId);
+        }
+
+        return $q->get()->mapWithKeys(function ($p) {
+            $codigo = (string) $p->id;
+            $desc   = \Illuminate\Support\Str::limit((string) ($p->descripcioncont ?? ''), 60);
+            return [$codigo => $codigo . ($desc ? ' — ' . $desc : '')];
+        })->toArray();
     }
 
     public static function table(Table $table): Table
