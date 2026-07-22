@@ -81,8 +81,8 @@ class ActaNecesidadDocGenerator
         if ($qrPng && is_file($qrPng)) {
             $tp->setImageValue('qr_verificacion', [
                 'path'   => $qrPng,
-                'width'  => 58,
-                'height' => 58,
+                'width'  => 78,
+                'height' => 78,
                 'ratio'  => false,
             ]);
         } else {
@@ -98,9 +98,9 @@ class ActaNecesidadDocGenerator
         if ($firma && is_file($firma)) {
             $tp->setImageValue('firma_alcalde', [
                 'path'   => $firma,
-                'width'  => 85,
-                'height' => 30,
-                'ratio'  => false,
+                'width'  => 110,
+                'height' => 89,
+                'ratio'  => true,
             ]);
         } else {
             $tp->setValue('firma_alcalde', '');
@@ -151,14 +151,11 @@ class ActaNecesidadDocGenerator
         $profileDir = str_replace('\\', '/', sys_get_temp_dir() . '/lo_acta_' . uniqid());
         $loProfile  = 'file:///' . ltrim($profileDir, '/');
 
-        // El acta es un formulario de UNA sola página: se exporta solo la página 1
-        // (evita una segunda hoja en blanco por objetos anclados de la plantilla).
-        $filterData = [
-            'PageRange' => ['type' => 'string', 'value' => '1'],
-        ];
-
+        // El acta es un formulario de UNA sola página (no se usa PageRange: en algunas
+        // versiones de LibreOffice rompe la conversión por línea de comandos).
         if ($proteger) {
-            $filterData += [
+            // Exportar cifrado: solo impresión, sin modificar ni copiar/extraer.
+            $filterData = [
                 'EncryptFile'                           => ['type' => 'boolean', 'value' => 'true'],
                 'PermissionPassword'                    => ['type' => 'string',  'value' => $this->ownerPassword()],
                 'Printing'                              => ['type' => 'long',    'value' => '2'],   // 2 = impresión alta resolución permitida
@@ -166,9 +163,10 @@ class ActaNecesidadDocGenerator
                 'EnableCopyingOfContent'                => ['type' => 'boolean', 'value' => 'false'], // no copiar/extraer (ni la firma)
                 'EnableTextAccessForAccessibilityTools' => ['type' => 'boolean', 'value' => 'false'],
             ];
+            $convertTo = 'pdf:writer_pdf_Export:' . json_encode($filterData, JSON_UNESCAPED_SLASHES);
+        } else {
+            $convertTo = 'pdf';
         }
-
-        $convertTo = 'pdf:writer_pdf_Export:' . json_encode($filterData, JSON_UNESCAPED_SLASHES);
 
         $cmd = [
             $bin,
