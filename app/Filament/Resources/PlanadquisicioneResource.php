@@ -37,9 +37,23 @@ class PlanadquisicioneResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Wizard::make([
+            Forms\Components\Wizard::make(static::getWizardSteps())
+                ->columnSpanFull(),
+        ]);
+    }
+
+    /**
+     * Pasos del wizard, reutilizados por las páginas Create/Edit (trait HasWizard).
+     *
+     * @return array<\Filament\Forms\Components\Wizard\Step>
+     */
+    public static function getWizardSteps(): array
+    {
+        return [
                 Forms\Components\Wizard\Step::make('Datos del Contrato')
                     ->icon('heroicon-o-document-text')
+                    ->description('Descripción, valor y ubicación')
+                    ->completedIcon('heroicon-o-check-circle')
                     ->schema([
                         Forms\Components\TextInput::make('descripcioncont')->label('Descripción del Contrato')->required()->maxLength(500)->columnSpanFull(),
                         Forms\Components\TextInput::make('valorestimadocont')->label('Valor Total Estimado')->required()
@@ -104,6 +118,8 @@ class PlanadquisicioneResource extends Resource
 
                 Forms\Components\Wizard\Step::make('Clasificación')
                     ->icon('heroicon-o-tag')
+                    ->description('Modalidad, fuente y proceso')
+                    ->completedIcon('heroicon-o-check-circle')
                     ->schema([
                         Forms\Components\Grid::make(2)->schema([
                             Forms\Components\Select::make('tipoadquisicione_id')->label('Tipo de Adquisición')->relationship('tipoadquisicione', 'dettipoadquisicion')->searchable()->preload()->required(),
@@ -123,6 +139,8 @@ class PlanadquisicioneResource extends Resource
 
                 Forms\Components\Wizard\Step::make('Clasificación UNSPSC')
                     ->icon('heroicon-o-squares-2x2')
+                    ->description('Códigos de productos y servicios')
+                    ->completedIcon('heroicon-o-check-circle')
                     ->schema([
                         Forms\Components\Repeater::make('items')
                             ->relationship('items')
@@ -181,8 +199,7 @@ class PlanadquisicioneResource extends Resource
                             ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => collect($data)->only(['clase_id', 'producto_id'])->all())
                             ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => collect($data)->only(['clase_id', 'producto_id'])->all()),
                     ]),
-            ])->columnSpanFull(),
-        ]);
+        ];
     }
 
     public static function getEloquentQuery(): Builder
