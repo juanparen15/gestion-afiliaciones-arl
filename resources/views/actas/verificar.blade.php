@@ -75,7 +75,7 @@
                 <span class="text-sm font-bold text-gray-700 leading-tight">Alcaldía de<br>Puerto Boyacá</span>
             </div>
             <div class="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                <lord-icon src="https://cdn.lordicon.com/hcdqguwh.json" trigger="loop" state="loop-cycle" delay="3000" stroke="bold" colors="primary:#6b7280,secondary:#9ca3af" style="width:15px;height:15px;"></lord-icon>
+                <lord-icon src="https://cdn.lordicon.com/fihkmkwt.json" trigger="loop" delay="3000" stroke="bold" colors="primary:#6b7280,secondary:#9ca3af" style="width:15px;height:15px;"></lord-icon>
                 Portal de Verificación
             </div>
         </div>
@@ -97,7 +97,7 @@
             <div style="position:relative;z-index:2;">
                 <div class="bv-icon-ring" style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;margin-bottom:1.125rem;background:{{ $accentSoft }};border:1.5px solid {{ $accentBorder }};">
                     @if($valido)
-                        <lord-icon src="https://cdn.lordicon.com/xjsqfzte.json" trigger="loop" delay="800" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:50px;height:50px;"></lord-icon>
+                        <lord-icon src="https://cdn.lordicon.com/hcdqguwh.json" trigger="loop" state="loop-cycle" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:52px;height:52px;"></lord-icon>
                     @else
                         <lord-icon src="https://cdn.lordicon.com/tdrtiskw.json" trigger="loop" delay="800" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:48px;height:48px;"></lord-icon>
                     @endif
@@ -150,7 +150,7 @@
 
             <div class="section-card" style="--card-accent:#c9a84c;">
                 <div class="section-head">
-                    <lord-icon src="https://cdn.lordicon.com/hcdqguwh.json" trigger="loop" state="loop-cycle" delay="2000" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/fihkmkwt.json" trigger="loop" delay="2000" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
                     <span class="section-head-label">Integridad del Documento</span>
                 </div>
                 <div class="p-5 space-y-3">
