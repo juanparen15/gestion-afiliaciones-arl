@@ -119,7 +119,7 @@ class AfiliacionResource extends Resource
                                         ->label('Número de Documento')
                                         ->placeholder('Ej: 1234567890')
                                         ->required()
-                                        ->unique(ignoreRecord: true)
+                                        // Sin unique: un mismo contratista puede tener varias afiliaciones (nuevos contratos)
                                         ->minLength(5)
                                         ->maxLength(15)
                                         ->regex('/^[0-9]+$/')

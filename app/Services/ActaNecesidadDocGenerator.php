@@ -81,9 +81,9 @@ class ActaNecesidadDocGenerator
         if ($qrPng && is_file($qrPng)) {
             $tp->setImageValue('qr_verificacion', [
                 'path'   => $qrPng,
-                'width'  => 70,
-                'height' => 70,
-                'ratio'  => true,
+                'width'  => 58,
+                'height' => 58,
+                'ratio'  => false,
             ]);
         } else {
             $tp->setValue('qr_verificacion', '');
@@ -98,9 +98,9 @@ class ActaNecesidadDocGenerator
         if ($firma && is_file($firma)) {
             $tp->setImageValue('firma_alcalde', [
                 'path'   => $firma,
-                'width'  => 120,
-                'height' => 45,
-                'ratio'  => true,
+                'width'  => 85,
+                'height' => 30,
+                'ratio'  => false,
             ]);
         } else {
             $tp->setValue('firma_alcalde', '');
@@ -151,19 +151,24 @@ class ActaNecesidadDocGenerator
         $profileDir = str_replace('\\', '/', sys_get_temp_dir() . '/lo_acta_' . uniqid());
         $loProfile  = 'file:///' . ltrim($profileDir, '/');
 
+        // El acta es un formulario de UNA sola página: se exporta solo la página 1
+        // (evita una segunda hoja en blanco por objetos anclados de la plantilla).
+        $filterData = [
+            'PageRange' => ['type' => 'string', 'value' => '1'],
+        ];
+
         if ($proteger) {
-            $filterData = json_encode([
+            $filterData += [
                 'EncryptFile'                           => ['type' => 'boolean', 'value' => 'true'],
                 'PermissionPassword'                    => ['type' => 'string',  'value' => $this->ownerPassword()],
                 'Printing'                              => ['type' => 'long',    'value' => '2'],   // 2 = impresión alta resolución permitida
                 'Changes'                               => ['type' => 'long',    'value' => '0'],   // 0 = ningún cambio permitido
                 'EnableCopyingOfContent'                => ['type' => 'boolean', 'value' => 'false'], // no copiar/extraer (ni la firma)
                 'EnableTextAccessForAccessibilityTools' => ['type' => 'boolean', 'value' => 'false'],
-            ], JSON_UNESCAPED_SLASHES);
-            $convertTo = 'pdf:writer_pdf_Export:' . $filterData;
-        } else {
-            $convertTo = 'pdf';
+            ];
         }
+
+        $convertTo = 'pdf:writer_pdf_Export:' . json_encode($filterData, JSON_UNESCAPED_SLASHES);
 
         $cmd = [
             $bin,
