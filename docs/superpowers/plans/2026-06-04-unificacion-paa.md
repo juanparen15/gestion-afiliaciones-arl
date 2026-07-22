@@ -1,4 +1,4 @@
-# Unificación del módulo PAA — Implementation Plan
+# Unificación del módulo PAA - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -23,9 +23,9 @@
 ## File Structure
 
 **Migraciones nuevas** (`database/migrations/`):
-- `2026_06_04_000001_create_paa_catalog_tables.php` — UNSPSC + 12 lookups.
-- `2026_06_04_000002_create_planadquisiciones_table.php` — principal + pivote.
-- `2026_06_04_000003_add_planadquisicione_id_to_contratos_table.php` — vínculo.
+- `2026_06_04_000001_create_paa_catalog_tables.php` - UNSPSC + 12 lookups.
+- `2026_06_04_000002_create_planadquisiciones_table.php` - principal + pivote.
+- `2026_06_04_000003_add_planadquisicione_id_to_contratos_table.php` - vínculo.
 
 **Modelos** (`app/Models/`): `Segmento`, `Familia`, `Clase`, `Producto`, `Estadovigencia`, `Mese`, `Modalidade`, `Intervalo`, `Vigenfutura`, `Tipozona`, `Tipoproceso`, `Tipoadquisicione`, `Requiproyecto`, `Fuente`, `Tipoprioridade`, `Requipoai`, `Planadquisicione`. Modificar `Contrato`.
 
@@ -670,7 +670,7 @@ class PaaImport extends Command
 
 - [ ] **Step 3: Test del comando con datos sintéticos (TDD)**
 
-`tests/Feature/Paa/PaaImportTest.php` — usa una conexión sqlite secundaria como "legacy". Configurar en el test una conexión `paa_legacy` en memoria con tablas mínimas y verificar remapeo:
+`tests/Feature/Paa/PaaImportTest.php` - usa una conexión sqlite secundaria como "legacy". Configurar en el test una conexión `paa_legacy` en memoria con tablas mínimas y verificar remapeo:
 
 ```php
 <?php
@@ -1047,7 +1047,7 @@ class PlanadquisicioneResource extends Resource
 
 > NOTA `afterStateUpdated` con `&&`: la forma `fn (Set $set) => $set(...) && $set(...)` no encadena correctamente; reemplazar por closure de bloque: `function (Set $set) { $set('familia_id', null); $set('clase_id', null); }`.
 
-> **NOTA IMPORTANTE — `id_vigencia` NO es un año.** Verificado en `paa.sql`: es un entero secuencial legacy (fila 1→1, fila 2→2…), no la vigencia/año. La **vigencia (año) real se deriva de `created_at`** (los datos abarcan 2024–2026). Por eso el campo `id_vigencia` se omite del formulario (se conserva la columna en BD por compatibilidad, nullable para registros nuevos) y tanto la columna "Vigencia", el filtro como los widgets usan `created_at`. NO usar `id_vigencia` como año en ninguna consulta.
+> **NOTA IMPORTANTE - `id_vigencia` NO es un año.** Verificado en `paa.sql`: es un entero secuencial legacy (fila 1→1, fila 2→2…), no la vigencia/año. La **vigencia (año) real se deriva de `created_at`** (los datos abarcan 2024–2026). Por eso el campo `id_vigencia` se omite del formulario (se conserva la columna en BD por compatibilidad, nullable para registros nuevos) y tanto la columna "Vigencia", el filtro como los widgets usan `created_at`. NO usar `id_vigencia` como año en ninguna consulta.
 
 - [ ] **Step 3: Verificar nombres de roles**
 
@@ -1241,20 +1241,20 @@ Usar `php artisan make:filament-resource <Modelo> --generate` y ajustar `navigat
 | Modalidade | Configuración PAA | detmodalidad (Modalidad) | codigo |
 | Intervalo | Configuración PAA | intervalo (Intervalo) | codigo |
 | Vigenfutura | Configuración PAA | detvigencia (Vigencia Futura) | codigo |
-| Tipozona | Configuración PAA | tipozona (Tipo de Zona) | — |
-| Tipoproceso | Configuración PAA | dettipoproceso (Tipo de Proceso) | — |
-| Tipoadquisicione | Configuración PAA | dettipoadquisicion (Tipo de Adquisición) | — |
-| Requiproyecto | Configuración PAA | detproyeto (Requiere Proyecto) | — |
+| Tipozona | Configuración PAA | tipozona (Tipo de Zona) | - |
+| Tipoproceso | Configuración PAA | dettipoproceso (Tipo de Proceso) | - |
+| Tipoadquisicione | Configuración PAA | dettipoadquisicion (Tipo de Adquisición) | - |
+| Requiproyecto | Configuración PAA | detproyeto (Requiere Proyecto) | - |
 | Fuente | Configuración PAA | detfuente (Fuente) | codigo |
-| Tipoprioridade | Configuración PAA | detprioridad (Tipo de Prioridad) | — |
-| Requipoai | Configuración PAA | detpoai (Requiere POA-I) | — |
+| Tipoprioridade | Configuración PAA | detprioridad (Tipo de Prioridad) | - |
+| Requipoai | Configuración PAA | detpoai (Requiere POA-I) | - |
 
 - [ ] **Step 3: Resources UNSPSC (con relación y filtro padre)**
 
 `SegmentoResource` (grupo "Clasificación UNSPSC"): campo `detsegmento`, columna con `familias_count`.
 `FamiliaResource`: campo `detfamilia` + Select `segmento_id` (relationship 'segmento','detsegmento'); columna `segmento.detsegmento`; filtro por segmento.
 `ClaseResource`: campo `detclase` + Select `familia_id` (relationship 'familia','detfamilia'); columna `familia.detfamilia`.
-`ProductoResource` (grupo "Clasificación UNSPSC"): campo `detproducto` + Select `clase_id` (relationship 'clase','detclase'); tabla con `searchable()` en `detproducto` y columna `clase.detclase`. La tabla pagina (49k filas) — añadir `->deferLoading()` y búsqueda por defecto.
+`ProductoResource` (grupo "Clasificación UNSPSC"): campo `detproducto` + Select `clase_id` (relationship 'clase','detclase'); tabla con `searchable()` en `detproducto` y columna `clase.detclase`. La tabla pagina (49k filas) - añadir `->deferLoading()` y búsqueda por defecto.
 
 Ejemplo `FamiliaResource` form/table relevante:
 ```php
@@ -1268,7 +1268,7 @@ Tables\Columns\TextColumn::make('segmento.detsegmento')->label('Segmento')->sear
 
 - [ ] **Step 4: Smoke test de catálogos**
 
-`tests/Feature/Paa/CatalogResourcesTest.php` — verificar que las páginas index cargan para un admin:
+`tests/Feature/Paa/CatalogResourcesTest.php` - verificar que las páginas index cargan para un admin:
 ```php
 public function test_paginas_index_catalogos_cargan(): void
 {
@@ -1299,7 +1299,7 @@ git commit -m "feat(paa): resources de catálogos UNSPSC y lookups"
 
 ---
 
-## Task 9: Dashboard — Widgets ApexCharts
+## Task 9: Dashboard - Widgets ApexCharts
 
 **Files:**
 - Create: `app/Filament/Widgets/PaaStatsOverview.php`, `PlanesPorAreaChart.php`, `PlanesPorMesChart.php`

@@ -80,20 +80,20 @@ class ContratoResource extends Resource
 
     private static function opcionesTipoContrato(): array
     {
-        // Valores exactos del SECOP II — columna CN del Excel
+        // Valores exactos del SECOP II - columna CN del Excel
         return [
-            'C1 Prestación de Servicios Profesionales'   => 'C1 — Prestación de Servicios Profesionales',
-            'C2 Prestación de Servicios de Apoyo a la Gestión' => 'C2 — Apoyo a la Gestión',
-            'C3 Obra Pública'                            => 'C3 — Obra Pública',
-            'C4 Compraventa'                             => 'C4 — Compraventa',
-            'C5 Suministro'                              => 'C5 — Suministro',
-            'C6 Arrendamiento'                           => 'C6 — Arrendamiento',
-            'C7 Consultoría'                             => 'C7 — Consultoría',
-            'C8 Interventoría'                           => 'C8 — Interventoría',
-            'C9 Interadministrativo'                     => 'C9 — Interadministrativo',
-            'C10 Concesión'                              => 'C10 — Concesión',
-            'C11 Fiducia'                                => 'C11 — Fiducia',
-            'C12 Encargo Fiduciario'                     => 'C12 — Encargo Fiduciario',
+            'C1 Prestación de Servicios Profesionales'   => 'C1 - Prestación de Servicios Profesionales',
+            'C2 Prestación de Servicios de Apoyo a la Gestión' => 'C2 - Apoyo a la Gestión',
+            'C3 Obra Pública'                            => 'C3 - Obra Pública',
+            'C4 Compraventa'                             => 'C4 - Compraventa',
+            'C5 Suministro'                              => 'C5 - Suministro',
+            'C6 Arrendamiento'                           => 'C6 - Arrendamiento',
+            'C7 Consultoría'                             => 'C7 - Consultoría',
+            'C8 Interventoría'                           => 'C8 - Interventoría',
+            'C9 Interadministrativo'                     => 'C9 - Interadministrativo',
+            'C10 Concesión'                              => 'C10 - Concesión',
+            'C11 Fiducia'                                => 'C11 - Fiducia',
+            'C12 Encargo Fiduciario'                     => 'C12 - Encargo Fiduciario',
             'Comodato'                                   => 'Comodato',
             'NO APLICA'                                  => 'No Aplica',
         ];
@@ -101,22 +101,22 @@ class ContratoResource extends Resource
 
     private static function opcionesClase(): array
     {
-        // Valores exactos del SECOP II — columna CM del Excel
+        // Valores exactos del SECOP II - columna CM del Excel
         return [
-            'C1 PRESTACION DE SERVICIOS'  => 'C1 — Prestación de Servicios',
-            'C2 CONSULTORIA'              => 'C2 — Consultoría',
-            'C3 CONCESION'               => 'C3 — Concesión',
-            'C4 OBRA PUBLICA'            => 'C4 — Obra Pública',
-            'C5 ENCARGO FIDUCIARIO'      => 'C5 — Encargo Fiduciario',
-            'C6 SUMINISTROS'             => 'C6 — Suministros',
-            'C7 COMPRAVENTAS'            => 'C7 — Compraventas',
-            'C8 FIDUCIA'                 => 'C8 — Fiducia',
-            'C9 ARRENDAMIENTOS'          => 'C9 — Arrendamientos',
-            'C10 DONACIONES'             => 'C10 — Donaciones',
-            'C11 ASOCIACION'             => 'C11 — Asociación',
-            'C12 INTERADMINISTRATIVOS'   => 'C12 — Interadministrativos',
-            'C13 ACUERDOS MARCO'         => 'C13 — Acuerdos Marco',
-            'C14 INTERVENTORIAS'         => 'C14 — Interventorías',
+            'C1 PRESTACION DE SERVICIOS'  => 'C1 - Prestación de Servicios',
+            'C2 CONSULTORIA'              => 'C2 - Consultoría',
+            'C3 CONCESION'               => 'C3 - Concesión',
+            'C4 OBRA PUBLICA'            => 'C4 - Obra Pública',
+            'C5 ENCARGO FIDUCIARIO'      => 'C5 - Encargo Fiduciario',
+            'C6 SUMINISTROS'             => 'C6 - Suministros',
+            'C7 COMPRAVENTAS'            => 'C7 - Compraventas',
+            'C8 FIDUCIA'                 => 'C8 - Fiducia',
+            'C9 ARRENDAMIENTOS'          => 'C9 - Arrendamientos',
+            'C10 DONACIONES'             => 'C10 - Donaciones',
+            'C11 ASOCIACION'             => 'C11 - Asociación',
+            'C12 INTERADMINISTRATIVOS'   => 'C12 - Interadministrativos',
+            'C13 ACUERDOS MARCO'         => 'C13 - Acuerdos Marco',
+            'C14 INTERVENTORIAS'         => 'C14 - Interventorías',
             'COMODATO'                   => 'Comodato',
         ];
     }
@@ -180,7 +180,7 @@ class ContratoResource extends Resource
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // FORM — WIZARD
+    // FORM - WIZARD
     // ─────────────────────────────────────────────────────────────────────
 
     public static function form(Form $form): Form
@@ -189,7 +189,7 @@ class ContratoResource extends Resource
             Forms\Components\Wizard::make([
 
                 // ══════════════════════════════════════════════════════════
-                // PASO 1 — Identificación del Contrato
+                // PASO 1 - Identificación del Contrato
                 // ══════════════════════════════════════════════════════════
                 Forms\Components\Wizard\Step::make('Identificación')
                     ->icon('heroicon-o-identification')
@@ -238,7 +238,7 @@ class ContratoResource extends Resource
                                     ->options(self::opcionesTipoContrato())
                                     ->native(false)
                                     ->searchable()
-                                    ->helperText('Código SECOP — columna CN del Excel')
+                                    ->helperText('Código SECOP - columna CN del Excel')
                                     ->prefixIcon('heroicon-o-document-text'),
 
                                 Forms\Components\Select::make('clase')
@@ -246,13 +246,13 @@ class ContratoResource extends Resource
                                     ->options(self::opcionesClase())
                                     ->native(false)
                                     ->searchable()
-                                    ->helperText('Código SECOP — columna CM del Excel')
+                                    ->helperText('Código SECOP - columna CM del Excel')
                                     ->prefixIcon('heroicon-o-tag'),
 
                                 Forms\Components\TextInput::make('modalidad')
                                     ->label('Modalidad')
                                     ->placeholder('Ej: CD-CPS, LIC, SASI, SMC, CMA...')
-                                    ->helperText('Código corto de modalidad — columna CC del Excel')
+                                    ->helperText('Código corto de modalidad - columna CC del Excel')
                                     ->prefixIcon('heroicon-o-adjustments-horizontal'),
 
                                 Forms\Components\TextInput::make('misional_apoyo')
@@ -357,7 +357,7 @@ class ContratoResource extends Resource
 
                         Forms\Components\Section::make('Duración del Contrato')
                             ->icon('heroicon-o-calendar-days')
-                            ->description('Defina el plazo y las fechas de ejecución — la fecha de terminación se calcula automáticamente')
+                            ->description('Defina el plazo y las fechas de ejecución - la fecha de terminación se calcula automáticamente')
                             ->columns(2)
                             ->schema([
                                 // ── Plazo ─────────────────────────────────
@@ -432,7 +432,7 @@ class ContratoResource extends Resource
                     ]),
 
                 // ══════════════════════════════════════════════════════════
-                // PASO 2 — Contratista
+                // PASO 2 - Contratista
                 // ══════════════════════════════════════════════════════════
                 Forms\Components\Wizard\Step::make('Contratista')
                     ->icon('heroicon-o-user')
@@ -669,7 +669,7 @@ class ContratoResource extends Resource
                     ]),
 
                 // ══════════════════════════════════════════════════════════
-                // PASO 3 — Financiero
+                // PASO 3 - Financiero
                 // ══════════════════════════════════════════════════════════
                 Forms\Components\Wizard\Step::make('Financiero')
                     ->icon('heroicon-o-currency-dollar')
@@ -886,7 +886,7 @@ class ContratoResource extends Resource
                     ]),
 
                 // ══════════════════════════════════════════════════════════
-                // PASO 4 — Supervisión & Pólizas
+                // PASO 4 - Supervisión & Pólizas
                 // ══════════════════════════════════════════════════════════
                 Forms\Components\Wizard\Step::make('Supervisión & Pólizas')
                     ->icon('heroicon-o-shield-check')
@@ -915,7 +915,7 @@ class ContratoResource extends Resource
                                 Forms\Components\TextInput::make('tipo_supervision')
                                     ->label('Área de Supervisión')
                                     ->placeholder('Ej: GENERAL, PLANEACION, HACIENDA, SISTEMAS...')
-                                    ->helperText('Oficina/área designada — columna FC del Excel')
+                                    ->helperText('Oficina/área designada - columna FC del Excel')
                                     ->prefixIcon('heroicon-o-eye'),
 
                                 Forms\Components\Select::make('tipo_vinculacion_supervisor')
@@ -1013,7 +1013,7 @@ class ContratoResource extends Resource
                     ]),
 
                 // ══════════════════════════════════════════════════════════
-                // PASO 5 — Liquidación & Cierre
+                // PASO 5 - Liquidación & Cierre
                 // ══════════════════════════════════════════════════════════
                 Forms\Components\Wizard\Step::make('Liquidación & Cierre')
                     ->icon('heroicon-o-check-badge')
@@ -1156,7 +1156,7 @@ class ContratoResource extends Resource
                         $record->nombre_persona_natural
                         ?? $record->nombre_persona_juridica
                         ?? $record->integrante_1_consorcio
-                        ?? '—'
+                        ?? '-'
                     )
                     ->searchable(['nombre_persona_natural', 'nombre_persona_juridica'])
                     ->limit(30)
@@ -1184,7 +1184,7 @@ class ContratoResource extends Resource
                 Tables\Columns\TextColumn::make('dependencia_contrato')
                     ->label('Dependencia')
                     ->getStateUsing(fn ($record) =>
-                        $record->dependencia?->nombre ?? $record->dependencia_contrato ?? '—'
+                        $record->dependencia?->nombre ?? $record->dependencia_contrato ?? '-'
                     )
                     ->badge()
                     ->color('gray')
@@ -1393,7 +1393,7 @@ class ContratoResource extends Resource
                             ->searchable(),
                         Forms\Components\FileUpload::make('archivo')
                             ->label('Archivo Excel')
-                            ->helperText('Sube el archivo .xlsm, .xlsx o .xls — la validación se hace al importar.')
+                            ->helperText('Sube el archivo .xlsm, .xlsx o .xls - la validación se hace al importar.')
                             ->required()
                             ->disk('local')
                             ->directory('imports/contratos'),
@@ -1618,7 +1618,7 @@ class ContratoResource extends Resource
 
         // ── Fila de título general ──
         $sheet->mergeCells('A1:F1');
-        $sheet->setCellValue('A1', "⚠️  REPORTE DE ERRORES — Importación vigencia {$vigencia}   |   " . now()->format('d/m/Y H:i'));
+        $sheet->setCellValue('A1', "⚠️  REPORTE DE ERRORES - Importación vigencia {$vigencia}   |   " . now()->format('d/m/Y H:i'));
         $sheet->getStyle('A1')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 12, 'color' => ['rgb' => 'FFFFFF']],
             'fill'      => ['fillType' => 'solid', 'startColor' => ['rgb' => '922B21']],

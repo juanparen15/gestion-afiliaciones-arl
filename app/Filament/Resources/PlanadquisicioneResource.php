@@ -226,32 +226,32 @@ class PlanadquisicioneResource extends Resource
                     ->compact()
                     ->schema([
                         TextEntry::make('descripcioncont')->label('Descripción del Contrato')->columnSpanFull()->weight('bold'),
-                        TextEntry::make('id_vigencia')->label('N° de Registro')->placeholder('—'),
-                        TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('—'),
-                        TextEntry::make('area.nombre')->label('Área')->placeholder('—'),
+                        TextEntry::make('id_vigencia')->label('N° de Registro')->placeholder('-'),
+                        TextEntry::make('dependencia.nombre')->label('Dependencia')->placeholder('-'),
+                        TextEntry::make('area.nombre')->label('Área')->placeholder('-'),
                         TextEntry::make('created_at')->label('Vigencia')->date('Y'),
-                        TextEntry::make('codbpim')->label('Código BPIM')->placeholder('—'),
+                        TextEntry::make('codbpim')->label('Código BPIM')->placeholder('-'),
                         TextEntry::make('valorestimadocont')->label('Valor Estimado')->prefix('$ '),
                         TextEntry::make('valorestimadovig')->label('Valor Vigencia')->prefix('$ '),
                         TextEntry::make('duracont')->label('Duración (meses)'),
-                        TextEntry::make('user.name')->label('Registrado por')->placeholder('—'),
+                        TextEntry::make('user.name')->label('Registrado por')->placeholder('-'),
                     ])->columns(4),
 
                 Section::make('Clasificación del Proceso')
                     ->compact()
                     ->schema([
-                        TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('—'),
-                        TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('—'),
-                        TextEntry::make('tipozona.tipozona')->label('Tipo de Zona')->placeholder('—'),
-                        TextEntry::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->placeholder('—'),
-                        TextEntry::make('vigenfutura.detvigencia')->label('Vigencia Futura')->placeholder('—'),
-                        TextEntry::make('fuente.detfuente')->label('Fuente')->placeholder('—'),
-                        TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('—'),
-                        TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('—'),
-                        TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('—'),
-                        TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('—'),
-                        TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('—'),
-                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('—'),
+                        TextEntry::make('tipoadquisicione.dettipoadquisicion')->label('Tipo de Adquisición')->placeholder('-'),
+                        TextEntry::make('modalidade.detmodalidad')->label('Modalidad')->placeholder('-'),
+                        TextEntry::make('tipozona.tipozona')->label('Tipo de Zona')->placeholder('-'),
+                        TextEntry::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->placeholder('-'),
+                        TextEntry::make('vigenfutura.detvigencia')->label('Vigencia Futura')->placeholder('-'),
+                        TextEntry::make('fuente.detfuente')->label('Fuente')->placeholder('-'),
+                        TextEntry::make('mese.nommes')->label('Mes de Inicio')->placeholder('-'),
+                        TextEntry::make('intervalo.intervalo')->label('Intervalo')->placeholder('-'),
+                        TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('-'),
+                        TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('-'),
+                        TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('-'),
+                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('-'),
                     ])->columns(4),
 
                 Section::make('Clasificación UNSPSC')
@@ -261,10 +261,10 @@ class PlanadquisicioneResource extends Resource
                         RepeatableEntry::make('items')
                             ->hiddenLabel()
                             ->schema([
-                                TextEntry::make('segmento_nombre')->label('Segmento')->placeholder('—'),
-                                TextEntry::make('familia_nombre')->label('Familia')->placeholder('—'),
-                                TextEntry::make('clase_nombre')->label('Clase')->placeholder('—'),
-                                TextEntry::make('producto_nombre')->label('Producto')->placeholder('—'),
+                                TextEntry::make('segmento_nombre')->label('Segmento')->placeholder('-'),
+                                TextEntry::make('familia_nombre')->label('Familia')->placeholder('-'),
+                                TextEntry::make('clase_nombre')->label('Clase')->placeholder('-'),
+                                TextEntry::make('producto_nombre')->label('Producto')->placeholder('-'),
                             ])
                             ->columns(4),
                     ]),
@@ -313,7 +313,7 @@ class PlanadquisicioneResource extends Resource
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
                 Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable(),
                 Tables\Columns\TextColumn::make('dependencia.nombre')->label('Dependencia')->sortable()->searchable()->toggleable(),
-                Tables\Columns\TextColumn::make('area.nombre')->label('Área')->sortable()->searchable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('area.nombre')->label('Área')->sortable()->searchable()->placeholder('-'),
                 Tables\Columns\TextColumn::make('mese.nommes')->label('Mes')->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->badge()
                     ->color(fn (?string $state): string => match (true) {

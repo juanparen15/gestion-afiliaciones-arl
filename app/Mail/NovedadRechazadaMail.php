@@ -20,7 +20,7 @@ class NovedadRechazadaMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Adición/Prórroga Rechazada — Contrato ' . $this->afiliacion->numero_contrato,
+            subject: 'Adición/Prórroga Rechazada - Contrato ' . $this->afiliacion->numero_contrato,
         );
     }
 

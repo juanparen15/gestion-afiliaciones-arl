@@ -18,14 +18,14 @@
 
     <style>
         /* ══════════════════════════════════════════════════
-           DESIGN TOKENS — ui-ux-pro-max: government / institutional
+           DESIGN TOKENS - ui-ux-pro-max: government / institutional
            Palette: Professional blue + high contrast
            ══════════════════════════════════════════════════ */
         :root {
             --navy:     #050D1A;
             --navy-2:   #0B1829;
             --navy-3:   #0F2040;
-            --blue:     #0369A1;   /* sky-700 — CTA accesible, gobierno */
+            --blue:     #0369A1;   /* sky-700 - CTA accesible, gobierno */
             --blue-l:   #0EA5E9;   /* sky-500 */
             --blue-gl:  rgba(3,105,161,0.1);
             --em:       #059669;   /* emerald-600 */
@@ -49,8 +49,8 @@
             color: #1E293B;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            font-size: 1rem;        /* mínimo 16px — ui-ux-pro-max: readable-font-size */
-            line-height: 1.65;      /* 1.5–1.75 — ui-ux-pro-max: line-height */
+            font-size: 1rem;        /* mínimo 16px - ui-ux-pro-max: readable-font-size */
+            line-height: 1.65;      /* 1.5–1.75 - ui-ux-pro-max: line-height */
         }
 
         /* ── Skip link (accesibilidad teclado) ── */
@@ -64,14 +64,14 @@
         }
         .skip-link:focus { top: 1rem; }
 
-        /* ── Focus rings (3–4px, alto contraste) — ui-ux-pro-max: focus-states ── */
+        /* ── Focus rings (3–4px, alto contraste) - ui-ux-pro-max: focus-states ── */
         :focus-visible {
             outline: 3px solid var(--blue-l);
             outline-offset: 3px;
             border-radius: 4px;
         }
 
-        /* ── prefers-reduced-motion — ui-ux-pro-max: reduced-motion ── */
+        /* ── prefers-reduced-motion - ui-ux-pro-max: reduced-motion ── */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -221,7 +221,7 @@
         .hero-noise { display: none; }
 
         /* ══════════════════════════════════════════════════
-           HERO INTRO — sección debajo del Spline
+           HERO INTRO - sección debajo del Spline
            ══════════════════════════════════════════════════ */
         .hero-intro {
             background: white;
@@ -314,7 +314,7 @@
         }
 
         /* ══════════════════════════════════════════════════
-           TRUST BAR — nuevo: prueba social / normativa
+           TRUST BAR - nuevo: prueba social / normativa
            ══════════════════════════════════════════════════ */
         .trust-bar {
             background: white;
@@ -519,7 +519,7 @@
         .footer-sch-val { font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.75rem; }
 
         /* ══════════════════════════════════════════════════
-           RESPONSIVE — ui-ux-pro-max: 375 / 768 / 1024 / 1440
+           RESPONSIVE - ui-ux-pro-max: 375 / 768 / 1024 / 1440
            ══════════════════════════════════════════════════ */
         @media (max-width: 1100px) {
             .features-grid { grid-template-columns: repeat(2, 1fr); }
@@ -551,14 +551,14 @@
 </head>
 <body>
 
-{{-- ── Skip link (accesibilidad teclado) — ui-ux-pro-max ── --}}
+{{-- ── Skip link (accesibilidad teclado) - ui-ux-pro-max ── --}}
 <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
 {{-- ── NAVBAR FLOTANTE ── --}}
 <nav class="nav scrolled" id="main-nav" role="navigation" aria-label="Navegación principal">
     <div class="nav-inner">
 
-        <a href="#inicio" class="nav-brand" aria-label="Inicio — Alcaldía Municipal de Puerto Boyacá">
+        <a href="#inicio" class="nav-brand" aria-label="Inicio - Alcaldía Municipal de Puerto Boyacá">
             <img src="{{ asset('images/logo-puerto-boyaca.png') }}" alt="Escudo de Puerto Boyacá">
             <div>
                 <div class="nav-name">Alcaldía Municipal</div>
@@ -650,7 +650,7 @@
     </div>
 </section>
 
-{{-- ── TRUST BAR — nuevo: prueba de cumplimiento normativo ── --}}
+{{-- ── TRUST BAR - nuevo: prueba de cumplimiento normativo ── --}}
 <div class="trust-bar" role="region" aria-label="Cumplimiento normativo">
     <div class="trust-bar-inner">
         <div class="trust-item">
@@ -915,12 +915,12 @@
 })();
 
 // ════════════════════════════════════════════════
-//  prefers-reduced-motion — ui-ux-pro-max: reduced-motion
+//  prefers-reduced-motion - ui-ux-pro-max: reduced-motion
 // ════════════════════════════════════════════════
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ════════════════════════════════════════════════
-//  SCROLL REVEAL — ui-ux-pro-max: animation
+//  SCROLL REVEAL - ui-ux-pro-max: animation
 // ════════════════════════════════════════════════
 if (!prefersReducedMotion) {
     const revealEls = document.querySelectorAll('.reveal');

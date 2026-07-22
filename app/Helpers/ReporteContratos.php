@@ -82,7 +82,7 @@ class ReporteContratos
             ->setCreator('Sistema ARL – Alcaldía de Puerto Boyacá');
 
         // ════════════════════════════════════════
-        // HOJA 1 — RESUMEN POR PERÍODO
+        // HOJA 1 - RESUMEN POR PERÍODO
         // ════════════════════════════════════════
         $ws = $spreadsheet->getActiveSheet()->setTitle('Resumen');
 
@@ -98,7 +98,7 @@ class ReporteContratos
         $lastLetter = Coordinate::stringFromColumnIndex($numCols);
 
         // Fila 1 – Título
-        $tituloTexto = "Reporte de Contratos — Vigencia {$vigencia} — "
+        $tituloTexto = "Reporte de Contratos - Vigencia {$vigencia} - "
             . match ($periodo) {
                 'mensual'    => 'Mensual',
                 'trimestral' => 'Trimestral',
@@ -197,7 +197,7 @@ class ReporteContratos
         }
 
         // ════════════════════════════════════════
-        // HOJA 2 — DETALLE DE CONTRATOS (opcional)
+        // HOJA 2 - DETALLE DE CONTRATOS (opcional)
         // ════════════════════════════════════════
         if (in_array('contratos', $incluir)) {
             $ws2 = $spreadsheet->createSheet()->setTitle('Contratos');

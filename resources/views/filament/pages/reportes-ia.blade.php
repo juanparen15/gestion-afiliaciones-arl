@@ -2,7 +2,7 @@
 @php
     $uid = 'ia_' . substr(md5(uniqid()), 0, 8);
 
-    /* Embers (light mode) — blue sparks */
+    /* Embers (light mode) - blue sparks */
     $emberColors = ['30,64,175', '59,130,246', '96,165,250', '147,197,253', '79,70,229', '99,102,241'];
     $embers = [];
     for ($i = 0; $i < 24; $i++) {
@@ -286,7 +286,7 @@ html:not(.dark) .ia-error-box{background:rgba(254,226,226,.6);border-color:rgba(
     <div class="ia-a2">
         <div class="ia-rule">
             <div class="ia-rule-line ia-rule-line-c"></div>
-            <span class="ia-rule-label t-dl">Preguntas sugeridas — haz clic para usarlas</span>
+            <span class="ia-rule-label t-dl">Preguntas sugeridas - haz clic para usarlas</span>
             <div class="ia-rule-line ia-rule-line-c"></div>
         </div>
 

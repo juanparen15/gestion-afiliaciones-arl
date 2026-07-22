@@ -6,8 +6,8 @@
 
 ## Resumen
 
-Migrar el módulo "Plan Anual de Adquisiciones" (PAA) —actualmente en el proyecto
-legacy Laravel 7 `paa2023V1` y parcialmente reescrito en `paa-v4` (Filament v4)—
+Migrar el módulo "Plan Anual de Adquisiciones" (PAA) -actualmente en el proyecto
+legacy Laravel 7 `paa2023V1` y parcialmente reescrito en `paa-v4` (Filament v4)-
 al proyecto `gestion-afiliaciones-arl` (Laravel 12, **Filament v3**), unificando
 ambos sistemas en una sola base de datos (`gestion_arl`) para poder vincular cada
 línea del Plan de Adquisición con sus contratos.
@@ -24,7 +24,7 @@ El objetivo de la unificación es enlazar `Planadquisicione` → `Contrato`.
 | Fuente de datos | Dump de **producción** `C:\Users\User\Downloads\paa.sql` (NO la BD local `paa`) |
 | Tablas compartidas (areas/dependencias/users) | Reusar las de `gestion_arl` + **remapear** por nombre/email |
 | Usuarios PAA sin match | **Crearlos** en `gestion_arl` durante el import (misma organización; rol básico + password aleatorio) |
-| Vínculo Plan↔Contrato | **1:N** — un plan tiene varios contratos; `planadquisicione_id` en `contratos` |
+| Vínculo Plan↔Contrato | **1:N** - un plan tiene varios contratos; `planadquisicione_id` en `contratos` |
 | Mecanismo de importación | **Staging + comando artisan** idempotente con reporte de no-coincidencias |
 | Versión Filament | **v3** (la del proyecto destino); se porta el trabajo escrito en v4 |
 | Datos de referencia | Ambos sistemas son de la **misma entidad** (Alcaldía de Puerto Boyacá). Para desarrollo/pruebas se cargan en local los dos dumps de producción: `paa.sql` → `paa_legacy`, `gestion_arl.sql` → `gestion_arl` |
@@ -66,7 +66,7 @@ Volúmenes aprox. (dump producción): ~586 planes, ~49.022 productos, ~3.818 cla
 
 ## Componentes
 
-### 1. Capa de datos — migraciones nuevas
+### 1. Capa de datos - migraciones nuevas
 
 **Se REUSAN (no se tocan):** `areas`, `dependencias`, `users`, `contratos`.
 
@@ -92,7 +92,7 @@ contratos del PAA legacy (no usado; tablas inexistentes en producción).
 etc.). Convención de nombres del legacy preservada (`Planadquisicione`, `Mese`,
 `Modalidade`, `Requipoai`, etc.) para alinear con datos y FKs.
 
-### 2. Importación de datos — Enfoque A (staging + comando)
+### 2. Importación de datos - Enfoque A (staging + comando)
 
 1. **Staging:** cargar `paa.sql` en una BD temporal `paa_legacy` (manual o documentado
    en el plan).
@@ -152,7 +152,7 @@ etc.). Convención de nombres del legacy preservada (`Planadquisicione`, `Mese`,
   los contratos vinculados (número, objeto, estado, fechas) con acción de attach/detach
   o edición del campo.
 
-### 6. Dashboard — widgets ApexCharts (v3)
+### 6. Dashboard - widgets ApexCharts (v3)
 Portar la lógica del `HomeController` legacy como widgets Filament
 (`leandrocfe/filament-apex-charts` v3):
 - **StatsOverview**: conteos (planes de la vigencia, productos, áreas, usuarios) y

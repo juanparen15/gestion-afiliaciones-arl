@@ -121,7 +121,7 @@
     <div class="wrapper">
         <div class="header">
             <h1>⏳ Afiliaciones Pendientes de Validación</h1>
-            <p>Sistema de Gestión ARL — Alcaldía Municipal de Puerto Boyacá</p>
+            <p>Sistema de Gestión ARL - Alcaldía Municipal de Puerto Boyacá</p>
         </div>
 
         <div class="summary-box">
@@ -153,7 +153,7 @@
                         <td>{{ $i + 1 }}</td>
                         <td><strong>{{ $afiliacion->nombre_contratista }}</strong></td>
                         <td>{{ $afiliacion->numero_contrato }}</td>
-                        <td>{{ $afiliacion->dependencia?->nombre ?? '—' }}</td>
+                        <td>{{ $afiliacion->dependencia?->nombre ?? '-' }}</td>
                         <td>{{ $afiliacion->created_at?->format('d/m/Y') }}</td>
                         <td><span class="badge-pendiente">Pendiente</span></td>
                     </tr>

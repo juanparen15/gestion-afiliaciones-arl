@@ -25,7 +25,7 @@ class ColombiaApi
                         ->toArray();
                 }
             } catch (\Throwable) {
-                // API no disponible — devolver vacío para no romper el formulario
+                // API no disponible - devolver vacío para no romper el formulario
             }
 
             return [];

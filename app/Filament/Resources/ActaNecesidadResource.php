@@ -232,7 +232,7 @@ class ActaNecesidadResource extends Resource
         return $q->get()->mapWithKeys(function ($p) {
             $codigo = (string) $p->id;
             $desc   = \Illuminate\Support\Str::limit((string) ($p->descripcioncont ?? ''), 60);
-            return [$codigo => $codigo . ($desc ? ' — ' . $desc : '')];
+            return [$codigo => $codigo . ($desc ? ' - ' . $desc : '')];
         })->toArray();
     }
 
@@ -242,7 +242,7 @@ class ActaNecesidadResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('consecutivo')
                     ->label('No. Acta')
-                    ->formatStateUsing(fn($state) => $state ? '0' . $state : '—')
+                    ->formatStateUsing(fn($state) => $state ? '0' . $state : '-')
                     ->sortable()->searchable(),
 
                 Tables\Columns\TextColumn::make('nombre_solicitante')
@@ -465,12 +465,12 @@ class ActaNecesidadResource extends Resource
 
         if ($correoOk) {
             Notification::make()->success()
-                ->title('Acta aprobada — No 0' . $consecutivo)
+                ->title('Acta aprobada - No 0' . $consecutivo)
                 ->body('El PDF fue generado y enviado al solicitante.')
                 ->send();
         } else {
             Notification::make()->warning()
-                ->title('Acta aprobada — No 0' . $consecutivo . ' (correo NO enviado)')
+                ->title('Acta aprobada - No 0' . $consecutivo . ' (correo NO enviado)')
                 ->body('El PDF se generó, pero el correo al solicitante falló. Use la acción "Reenviar correo" en la tabla.')
                 ->persistent()
                 ->send();

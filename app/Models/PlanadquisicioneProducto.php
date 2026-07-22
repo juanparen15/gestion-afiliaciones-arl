@@ -45,27 +45,27 @@ class PlanadquisicioneProducto extends Model
     {
         $s = $this->claseEfectiva()?->familia?->segmento;
 
-        return $s ? "{$s->id} — {$s->detsegmento}" : null;
+        return $s ? "{$s->id} - {$s->detsegmento}" : null;
     }
 
     public function getFamiliaNombreAttribute(): ?string
     {
         $f = $this->claseEfectiva()?->familia;
 
-        return $f ? "{$f->id} — {$f->detfamilia}" : null;
+        return $f ? "{$f->id} - {$f->detfamilia}" : null;
     }
 
     public function getClaseNombreAttribute(): ?string
     {
         $c = $this->claseEfectiva();
 
-        return $c ? "{$c->id} — {$c->detclase}" : null;
+        return $c ? "{$c->id} - {$c->detclase}" : null;
     }
 
     public function getProductoNombreAttribute(): ?string
     {
         $p = $this->producto;
 
-        return $p ? "{$p->id} — {$p->detproducto}" : null;
+        return $p ? "{$p->id} - {$p->detproducto}" : null;
     }
 }

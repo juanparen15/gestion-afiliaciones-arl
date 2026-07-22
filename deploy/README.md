@@ -1,4 +1,4 @@
-# Despliegue — Notas de infraestructura
+# Despliegue - Notas de infraestructura
 
 Configuración del servidor para funcionalidades que dependen de servicios externos.
 

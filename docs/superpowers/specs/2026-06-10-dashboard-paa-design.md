@@ -1,4 +1,4 @@
-# Dashboard PAA con filtros globales — Diseño
+# Dashboard PAA con filtros globales - Diseño
 
 **Fecha:** 2026-06-10
 **Proyecto:** gestion-afiliaciones-arl (Filament v3.2, Laravel 12)
@@ -47,7 +47,7 @@ viven en el PaaDashboard.
 
 En `app/Models/Planadquisicione.php`:
 
-- `scopeVisibleTo(Builder $q, ?User $user): Builder` — réplica exacta de la
+- `scopeVisibleTo(Builder $q, ?User $user): Builder` - réplica exacta de la
   lógica actual de `PlanadquisicioneResource::getEloquentQuery()`:
   - sin usuario → `whereRaw('1=0')`.
   - super_admin o SSST → sin filtro.
@@ -55,7 +55,7 @@ En `app/Models/Planadquisicione.php`:
   - con `dependencia_id` → `dependencia_id` directo OR `whereHas('area')` de esa
     dependencia.
   - else → `whereRaw('1=0')`.
-- `scopeApplyDashboardFilters(Builder $q, array $filters): Builder` — aplica:
+- `scopeApplyDashboardFilters(Builder $q, array $filters): Builder` - aplica:
   - `vigencia` → `whereYear('created_at', ...)` (driver-agnóstico vía helper).
   - `area_id`, `dependencia_id`, `tipoadquisicione_id` si están presentes.
 
@@ -78,7 +78,7 @@ Todos: leen los filtros vía `Filament\Widgets\Concerns\InteractsWithPageFilters
 
 | Widget | Tipo | Contenido |
 |---|---|---|
-| `PaaStatsOverview` (mejora) | Stats | N° de planes, **Valor estimado total $**, productos UNSPSC, áreas — respetando filtros + rol |
+| `PaaStatsOverview` (mejora) | Stats | N° de planes, **Valor estimado total $**, productos UNSPSC, áreas - respetando filtros + rol |
 | `PlanesValorPorDependenciaChart` (nuevo) | Barras horizontales | Suma de valor $ por dependencia. `canView()` solo para quien ve todo (super_admin/SSST) |
 | `PlanesPorAreaChart` (refactor) | Barras horizontales | Conteo de planes por oficina productora (área) |
 | `PlanesPorTipoAdquisicionChart` (nuevo) | Dona | Distribución por tipo de adquisición |

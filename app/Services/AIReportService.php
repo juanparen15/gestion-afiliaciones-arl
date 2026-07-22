@@ -207,7 +207,7 @@ class AIReportService
 
                "COMPORTAMIENTO CONVERSACIONAL E INTERACTIVO:\n" .
                "- Cuando la pregunta sea ambigua, PRIMERO haz UNA pregunta predictiva con opciones seleccionables ANTES de consultar datos.\n" .
-               "- AMBIGÜEDAD PRINCIPAL — la palabra 'contrato' puede significar dos cosas DISTINTAS:\n" .
+               "- AMBIGÜEDAD PRINCIPAL - la palabra 'contrato' puede significar dos cosas DISTINTAS:\n" .
                "  * Contratos SECOP: registros de contratación pública (tabla contratos)\n" .
                "  * Valor de contrato en Afiliaciones ARL: el valor declarado en cada afiliación (tabla afiliaciones)\n" .
                "  * Si el usuario dice solo 'contrato' sin especificar, PREGUNTA con opciones.\n" .
@@ -241,7 +241,7 @@ class AIReportService
                "NUNCA digas frases como 'no tengo esa capacidad', 'mis herramientas no permiten', 'no puedo determinar'. " .
                "Si necesitas varios datos, llama VARIAS herramientas en paralelo o en rondas sucesivas.\n\n" .
 
-               "HERRAMIENTA COMODÍN: consulta_libre — úsala para CUALQUIER pregunta analítica que las otras herramientas no cubran exactamente:\n" .
+               "HERRAMIENTA COMODÍN: consulta_libre - úsala para CUALQUIER pregunta analítica que las otras herramientas no cubran exactamente:\n" .
                "- 'quién tiene el mayor valor de contrato SECOP' → consulta_libre(entidad=contratos, operacion=ranking, campo=valor_contrato, agrupar_por=nombre_persona_natural)\n" .
                "- 'cuál es el contrato SECOP más caro' → consulta_libre(entidad=contratos, operacion=maximo, campo=valor_contrato)\n" .
                "- 'quién tiene el mayor valor en afiliaciones' → consulta_libre(entidad=afiliaciones, operacion=maximo, campo=valor_contrato)\n" .
@@ -297,7 +297,7 @@ class AIReportService
                "afiliaciones_rechazadas, estadisticas_afiliaciones, top_contratistas_afiliaciones\n" .
                "BÚSQUEDA: buscar_contratista, buscar_contrato, buscar_por_documento\n" .
                "CRUCE: cruce_contrato_afiliacion\n" .
-               "FLEXIBLE: consulta_libre (rankings, máximos, mínimos, totales, conteos — CUALQUIER pregunta no cubierta por las anteriores)\n" .
+               "FLEXIBLE: consulta_libre (rankings, máximos, mínimos, totales, conteos - CUALQUIER pregunta no cubierta por las anteriores)\n" .
                "EXPORTAR: exportar_excel (para listas largas o cuando pidan 'archivo', 'Excel', 'plano')\n\n" .
 
                "REGLAS DE USO DE HERRAMIENTAS:\n" .

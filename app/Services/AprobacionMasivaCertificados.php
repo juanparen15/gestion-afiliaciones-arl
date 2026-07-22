@@ -73,7 +73,7 @@ class AprobacionMasivaCertificados
                 'pdf_arl'          => $ruta,
             ]);
 
-            $aprobadas[] = $match->numero_documento . ' — ' . $match->nombre_contratista;
+            $aprobadas[] = $match->numero_documento . ' - ' . $match->nombre_contratista;
         }
 
         return [

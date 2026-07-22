@@ -558,7 +558,7 @@ class AfiliacionResource extends Resource
                                         ->prefixIcon('heroicon-o-calendar-days'),
 
                                     Forms\Components\FileUpload::make('pdf_arl')
-                                        ->label('PDF ARL — Afiliación inicial')
+                                        ->label('PDF ARL - Afiliación inicial')
                                         ->acceptedFileTypes(['application/pdf'])
                                         ->maxSize(10240)
                                         ->directory('afiliaciones/pdfs-arl')
@@ -571,7 +571,7 @@ class AfiliacionResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\FileUpload::make('pdf_arl_novedad')
-                                        ->label('PDF ARL — Adición / Prórroga')
+                                        ->label('PDF ARL - Adición / Prórroga')
                                         ->acceptedFileTypes(['application/pdf'])
                                         ->maxSize(10240)
                                         ->directory('afiliaciones/pdfs-arl-novedad')
@@ -854,7 +854,7 @@ class AfiliacionResource extends Resource
                     ->label('Fecha Novedad')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->placeholder('—')
+                    ->placeholder('-')
                     ->toggleable()
                     ->tooltip(fn($record) => $record->novedadRegistradaPor?->name
                         ? 'Registrada por: ' . $record->novedadRegistradaPor->name
@@ -1423,7 +1423,7 @@ class AfiliacionResource extends Resource
                     ->label('Adición / Prórroga')
                     ->icon('heroicon-o-document-plus')
                     ->color('info')
-                    ->modalHeading(fn(Afiliacion $record) => 'Novedades — Contrato ' . $record->numero_contrato)
+                    ->modalHeading(fn(Afiliacion $record) => 'Novedades - Contrato ' . $record->numero_contrato)
                     ->modalDescription('Registre adiciones de valor o prórrogas de plazo al contrato de esta afiliación.')
                     ->modalWidth('2xl')
                     ->modalSubmitActionLabel('Guardar novedad')
@@ -1455,8 +1455,8 @@ class AfiliacionResource extends Resource
                                             '<div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">' .
                                             '<p><strong>Contratista:</strong> ' . e($record->nombre_contratista) . '</p>' .
                                             '<p><strong>Valor contrato:</strong> $' . number_format($record->valor_contrato ?? 0, 0, ',', '.') . '</p>' .
-                                            '<p><strong>Fecha inicio:</strong> ' . ($record->fecha_inicio?->format('d/m/Y') ?? '—') . '</p>' .
-                                            '<p><strong>Fecha fin original:</strong> ' . ($record->fecha_fin?->format('d/m/Y') ?? '—') . '</p>' .
+                                            '<p><strong>Fecha inicio:</strong> ' . ($record->fecha_inicio?->format('d/m/Y') ?? '-') . '</p>' .
+                                            '<p><strong>Fecha fin original:</strong> ' . ($record->fecha_fin?->format('d/m/Y') ?? '-') . '</p>' .
                                             ($record->nueva_fecha_fin_prorroga
                                                 ? '<p><strong>Fecha fin con prórroga:</strong> ' . $record->nueva_fecha_fin_prorroga->format('d/m/Y') . '</p>'
                                                 : '') .
@@ -1602,7 +1602,7 @@ class AfiliacionResource extends Resource
                             ->visible(fn() => Auth::user()->hasRole(['super_admin', 'SSST']))
                             ->schema([
                                 Forms\Components\FileUpload::make('pdf_arl_novedad')
-                                    ->label('PDF ARL — Adición / Prórroga')
+                                    ->label('PDF ARL - Adición / Prórroga')
                                     ->acceptedFileTypes(['application/pdf'])
                                     ->maxSize(10240)
                                     ->directory('afiliaciones/pdfs-arl-novedad')
@@ -1654,7 +1654,7 @@ class AfiliacionResource extends Resource
                             \App\Models\User::role('SSST')->each(function ($u) use ($record) {
                                 Notification::make()
                                     ->warning()
-                                    ->title('Novedad registrada — Afiliación pendiente de revisión')
+                                    ->title('Novedad registrada - Afiliación pendiente de revisión')
                                     ->body("Se registró una adición/prórroga en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere carga del PDF de novedad ARL y aprobación.")
                                     ->sendToDatabase($u);
                             });
