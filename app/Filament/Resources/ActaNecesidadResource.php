@@ -166,7 +166,7 @@ class ActaNecesidadResource extends Resource
                         ->helperText('Debe existir un Plan de Adquisiciones registrado. Seleccione la línea correspondiente.')
                         ->options(fn(Forms\Get $get) => static::opcionesPaa($get('dependencia_id')))
                         ->searchable()->native(false)
-                        // ->required()
+                        ->required()
                         ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('observaciones')
