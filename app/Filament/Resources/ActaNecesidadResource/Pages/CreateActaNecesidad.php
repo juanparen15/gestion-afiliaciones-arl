@@ -37,6 +37,9 @@ class CreateActaNecesidad extends CreateRecord
         $data['estado'] = 'pendiente';
         $data['fecha_solicitud'] = now();
 
+        // Asignar el No. de Acta (consecutivo) desde el registro, no en la aprobación
+        $data['consecutivo'] = \App\Models\ActaNecesidad::siguienteConsecutivo();
+
         // Denormalizar nombres para el documento
         $data['dependencia_nombre'] = Dependencia::find($data['dependencia_id'] ?? null)?->nombre;
         $data['area_nombre'] = Area::find($data['area_id'] ?? null)?->nombre;

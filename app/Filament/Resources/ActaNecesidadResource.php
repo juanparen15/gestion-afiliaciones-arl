@@ -165,7 +165,8 @@ class ActaNecesidadResource extends Resource
                         ->label('Código Plan Anual de Adquisiciones (SIIPAA)')
                         ->helperText('Debe existir un Plan de Adquisiciones registrado. Seleccione la línea correspondiente.')
                         ->options(fn(Forms\Get $get) => static::opcionesPaa($get('dependencia_id')))
-                        ->searchable()->native(false)->required()
+                        ->searchable()->native(false)
+                        // ->required()
                         ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('observaciones')
@@ -367,7 +368,8 @@ class ActaNecesidadResource extends Resource
     /** Aprobar: asigna consecutivo, genera PDF, envía correo + notificación. */
     public static function aprobar(ActaNecesidad $record): void
     {
-        $consecutivo = ActaNecesidad::siguienteConsecutivo();
+        // El consecutivo ya se asigna al registrar; si por alguna razón falta, se asigna aquí.
+        $consecutivo = $record->consecutivo ?: ActaNecesidad::siguienteConsecutivo();
         $cfg = ConfiguracionActa::actual();
 
         $record->consecutivo = $consecutivo;
