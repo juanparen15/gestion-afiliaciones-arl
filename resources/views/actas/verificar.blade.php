@@ -75,7 +75,7 @@
                 <span class="text-sm font-bold text-gray-700 leading-tight">Alcaldía de<br>Puerto Boyacá</span>
             </div>
             <div class="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                <lord-icon src="https://cdn.lordicon.com/fihkmkwt.json" trigger="loop" delay="3000" stroke="bold" colors="primary:#6b7280,secondary:#9ca3af" style="width:15px;height:15px;"></lord-icon>
+                <lord-icon src="https://cdn.lordicon.com/hcdqguwh.json" trigger="loop" state="loop-cycle" delay="3000" stroke="bold" colors="primary:#6b7280,secondary:#9ca3af" style="width:15px;height:15px;"></lord-icon>
                 Portal de Verificación
             </div>
         </div>
@@ -150,7 +150,7 @@
 
             <div class="section-card" style="--card-accent:#c9a84c;">
                 <div class="section-head">
-                    <lord-icon src="https://cdn.lordicon.com/fihkmkwt.json" trigger="loop" delay="2000" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/hcdqguwh.json" trigger="loop" state="loop-cycle" delay="2000" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
                     <span class="section-head-label">Integridad del Documento</span>
                 </div>
                 <div class="p-5 space-y-3">
