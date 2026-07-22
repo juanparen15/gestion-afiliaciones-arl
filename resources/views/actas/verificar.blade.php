@@ -117,7 +117,7 @@
 
             <div class="section-card" style="--card-accent:{{ $accent }};">
                 <div class="section-head">
-                    <lord-icon src="https://cdn.lordicon.com/hmpomorl.json" trigger="hover" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
+                    <lord-icon src="https://cdn.lordicon.com/hmpomorl.json" trigger="loop" state="loop-cycle" stroke="bold" colors="primary:{{ $accent }},secondary:{{ $accent }}" style="width:20px;height:20px;flex-shrink:0;"></lord-icon>
                     <span class="section-head-label">Acta de Necesidad</span>
                 </div>
                 <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-4">
