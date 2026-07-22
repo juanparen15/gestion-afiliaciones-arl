@@ -73,45 +73,12 @@ class ActaNecesidadDocGenerator
             $tp->setValue($macro, (string) $valor);
         }
 
-        // Código QR de verificación (celda FIRMA)
-        $qrPng = null;
-        if (! empty($datos['url_verificacion'])) {
-            $qrPng = $this->generarQrPng($datos['url_verificacion']);
-        }
-        if ($qrPng && is_file($qrPng)) {
-            $tp->setImageValue('qr_verificacion', [
-                'path'   => $qrPng,
-                'width'  => 78,
-                'height' => 78,
-                'ratio'  => false,
-            ]);
-        } else {
-            $tp->setValue('qr_verificacion', '');
-        }
-
-        // Firma del alcalde (imagen configurable). Si no hay, usa la firma por defecto.
-        $firma = $datos['firma_alcalde_path'] ?? null;
-        if (! $firma || ! is_file($firma)) {
-            $default = public_path('images/actas/firma-alcalde.png');
-            $firma = is_file($default) ? $default : null;
-        }
-        if ($firma && is_file($firma)) {
-            $tp->setImageValue('firma_alcalde', [
-                'path'   => $firma,
-                'width'  => 110,
-                'height' => 89,
-                'ratio'  => true,
-            ]);
-        } else {
-            $tp->setValue('firma_alcalde', '');
-        }
+        // Nota: la plantilla oficial ya trae la firma del alcalde. La verificación
+        // se realiza por el código y la página pública (el QR embebido rompía el
+        // ajuste a una sola hoja de la plantilla).
 
         $docxTmp = tempnam(sys_get_temp_dir(), 'acta_') . '.docx';
         $tp->saveAs($docxTmp);
-
-        if ($qrPng && is_file($qrPng)) {
-            @unlink($qrPng);
-        }
 
         return $docxTmp;
     }
