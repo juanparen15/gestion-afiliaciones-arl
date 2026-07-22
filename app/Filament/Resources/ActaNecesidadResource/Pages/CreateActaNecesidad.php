@@ -8,12 +8,41 @@ use App\Models\Dependencia;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class CreateActaNecesidad extends CreateRecord
 {
+    use HasWizard;
+
     protected static string $resource = ActaNecesidadResource::class;
+
+    protected function getSteps(): array
+    {
+        return ActaNecesidadResource::getWizardSteps();
+    }
+
+    /** "Crear y crear otro" disponible junto al wizard (Crear y Cancelar van en el último paso). */
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateAnotherFormAction(),
+        ];
+    }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['created_by'] = Auth::id();
+        $data['estado'] = 'pendiente';
+        $data['fecha_solicitud'] = now();
+
+        // Denormalizar nombres para el documento
+        $data['dependencia_nombre'] = Dependencia::find($data['dependencia_id'] ?? null)?->nombre;
+        $data['area_nombre'] = Area::find($data['area_id'] ?? null)?->nombre;
+
+        return $data;
+    }
 
     protected function afterCreate(): void
     {
@@ -40,19 +69,6 @@ class CreateActaNecesidad extends CreateRecord
                 }
             }
         });
-    }
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['created_by'] = Auth::id();
-        $data['estado'] = 'pendiente';
-        $data['fecha_solicitud'] = now();
-
-        // Denormalizar nombres para el documento
-        $data['dependencia_nombre'] = Dependencia::find($data['dependencia_id'] ?? null)?->nombre;
-        $data['area_nombre'] = Area::find($data['area_id'] ?? null)?->nombre;
-
-        return $data;
     }
 
     protected function getRedirectUrl(): string

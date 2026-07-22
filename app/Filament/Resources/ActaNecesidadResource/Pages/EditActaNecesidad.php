@@ -6,10 +6,18 @@ use App\Filament\Resources\ActaNecesidadResource;
 use App\Models\Area;
 use App\Models\Dependencia;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\EditRecord\Concerns\HasWizard;
 
 class EditActaNecesidad extends EditRecord
 {
+    use HasWizard;
+
     protected static string $resource = ActaNecesidadResource::class;
+
+    protected function getSteps(): array
+    {
+        return ActaNecesidadResource::getWizardSteps();
+    }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
