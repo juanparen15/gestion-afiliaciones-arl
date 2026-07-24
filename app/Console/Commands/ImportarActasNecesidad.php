@@ -184,6 +184,9 @@ class ImportarActasNecesidad extends Command
             'ALMACEN'                                     => 'ALMACEN MUNICIPAL',
             'INSTITUTO MUNICIPAL DE DEPORTE Y RECREACION' => 'IMDR',
             'SALUD PUBLICA'                               => 'SALUD',
+            'DESARROLLO SOCIAL - AREA DE SALUD PUBLICA'   => 'SALUD',
+            'SECRETARIA DE DESARROLLO SOCIAL - AREA DE SISBEN' => 'SISBEN',
+            'OFICINA DE SISTEMAS'                         => 'AREA DE SISTEMAS',
             'CULTURA'                                     => 'CASA DE LA CULTURA - GUILLERMO CANO ISAZA',
         ];
     }
