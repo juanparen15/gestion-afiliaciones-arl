@@ -13,7 +13,8 @@ class ImportarActasNecesidad extends Command
 {
     protected $signature = 'actas:importar-excel {archivo : Ruta al .xlsx de respuestas}
         {--fresh : Borra DEFINITIVAMENTE todas las actas actuales antes de importar}
-        {--force : No pedir confirmación para --fresh}';
+        {--force : No pedir confirmación para --fresh}
+        {--dry-run : Solo reporta lo que se importaría (no borra ni escribe nada)}';
 
     protected $description = 'Importa las actas de necesidad existentes desde el Excel de respuestas (columna Q = consecutivo).';
 
@@ -25,7 +26,9 @@ class ImportarActasNecesidad extends Command
             return self::FAILURE;
         }
 
-        if ($this->option('fresh')) {
+        $dryRun = $this->option('dry-run');
+
+        if ($this->option('fresh') && ! $dryRun) {
             $total = ActaNecesidad::withTrashed()->count();
             if (! $this->option('force')
                 && ! $this->confirm("Se BORRARÁN definitivamente {$total} actas actuales antes de importar. ¿Continuar?")) {
@@ -37,6 +40,10 @@ class ImportarActasNecesidad extends Command
             $this->warn("Actas borradas: {$total}.");
         }
 
+        if ($dryRun) {
+            $this->warn('MODO DRY-RUN: no se borra ni escribe nada.');
+        }
+
         $reader = IOFactory::createReaderForFile($ruta);
         $reader->setReadDataOnly(true);
         $sheet = $reader->load($ruta)->getSheet(0);
@@ -46,7 +53,8 @@ class ImportarActasNecesidad extends Command
         $deps  = Dependencia::all()->keyBy(fn($d) => $this->norm($d->nombre));
         $areas = Area::all()->keyBy(fn($a) => $this->norm($a->nombre));
 
-        $creadas = 0; $saltadas = 0;
+        $creadas = 0; $saltadas = 0; $sinCodigo = 0;
+        $depSinVincular = []; $areaSinVincular = [];
         $bar = $this->output->createProgressBar($max - 1);
         $bar->start();
 
@@ -54,11 +62,13 @@ class ImportarActasNecesidad extends Command
             $bar->advance();
             $codigo = trim((string) $sheet->getCell('Q' . $i)->getValue());
             if ($codigo === '' || ! is_numeric($codigo)) {
+                $sinCodigo++;
                 continue;
             }
             $consecutivo = (int) $codigo;
 
-            if (ActaNecesidad::where('consecutivo', $consecutivo)->exists()) {
+            // En dry-run se evalúan todas las filas (simula una importación fresca).
+            if (! $dryRun && ActaNecesidad::where('consecutivo', $consecutivo)->exists()) {
                 $saltadas++;
                 continue;
             }
@@ -66,11 +76,21 @@ class ImportarActasNecesidad extends Command
             $depNombre  = trim((string) $sheet->getCell('C' . $i)->getValue());
             $areaNombre = trim((string) $sheet->getCell('D' . $i)->getValue());
 
+            $depId  = $deps[$this->norm($depNombre)]->id ?? null;
+            $areaId = $areas[$this->norm($areaNombre)]->id ?? null;
+            if ($depNombre !== '' && $depId === null)  $depSinVincular[$depNombre]  = ($depSinVincular[$depNombre] ?? 0) + 1;
+            if ($areaNombre !== '' && $areaId === null) $areaSinVincular[$areaNombre] = ($areaSinVincular[$areaNombre] ?? 0) + 1;
+
+            if ($dryRun) {
+                $creadas++;
+                continue;
+            }
+
             ActaNecesidad::create([
                 'consecutivo'              => $consecutivo,
                 'email_solicitante'        => trim((string) $sheet->getCell('B' . $i)->getValue()) ?: null,
-                'dependencia_id'           => $deps[$this->norm($depNombre)]->id ?? null,
-                'area_id'                  => $areas[$this->norm($areaNombre)]->id ?? null,
+                'dependencia_id'           => $depId,
+                'area_id'                  => $areaId,
                 'dependencia_nombre'       => $depNombre ?: null,
                 'area_nombre'              => $areaNombre ?: null,
                 'nombre_solicitante'       => trim((string) $sheet->getCell('E' . $i)->getValue()) ?: null,
@@ -94,7 +114,33 @@ class ImportarActasNecesidad extends Command
 
         $bar->finish();
         $this->newLine(2);
-        $this->info("Actas importadas: {$creadas} | Saltadas (ya existían): {$saltadas}");
+
+        $verbo = $dryRun ? 'Se importarían' : 'Actas importadas';
+        $this->info("{$verbo}: {$creadas} | Saltadas (ya existían): {$saltadas} | Sin consecutivo (se omiten): {$sinCodigo}");
+
+        if ($depSinVincular) {
+            $this->newLine();
+            $this->warn('Dependencias del Excel SIN vincular a FK (se guardan como texto, se ven bien igual):');
+            arsort($depSinVincular);
+            foreach ($depSinVincular as $n => $c) {
+                $this->line("  [{$c}] {$n}");
+            }
+        }
+        if ($areaSinVincular) {
+            $this->newLine();
+            $this->warn('Áreas del Excel SIN vincular a FK (' . count($areaSinVincular) . ' distintas, se guardan como texto):');
+            arsort($areaSinVincular);
+            $k = 0;
+            foreach ($areaSinVincular as $n => $c) {
+                $this->line("  [{$c}] {$n}");
+                if (++$k >= 30) {
+                    $this->line('  ...(' . (count($areaSinVincular) - 30) . ' más)');
+                    break;
+                }
+            }
+        }
+
+        $this->newLine();
         $this->info('Próximo consecutivo: ' . ActaNecesidad::siguienteConsecutivo());
 
         return self::SUCCESS;
