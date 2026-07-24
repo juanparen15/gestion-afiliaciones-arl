@@ -336,7 +336,9 @@ class ActaNecesidadResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Regenerar PDF del acta')
                     ->modalDescription('Vuelve a generar el PDF con la plantilla y la firma actuales. No crea una nueva solicitud ni reenvía el correo.')
-                    ->visible(fn(ActaNecesidad $record) => Auth::user()->hasRole('super_admin') && $record->estado === 'aprobado')
+                    ->visible(fn(ActaNecesidad $record) => Auth::user()->hasRole('super_admin')
+                        && $record->consecutivo
+                        && in_array($record->estado, ['aprobado', 'anulado'], true))
                     ->action(function (ActaNecesidad $record) {
                         try {
                             $record->asegurarCodigoVerificacion();
