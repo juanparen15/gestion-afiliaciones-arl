@@ -73,34 +73,84 @@ class ActaNecesidadDocGenerator
             $tp->setValue($macro, (string) $valor);
         }
 
-        // QR de verificación (celda FIRMA)
-        $qrPng = ! empty($datos['url_verificacion']) ? $this->generarQrPng($datos['url_verificacion']) : null;
-        if ($qrPng && is_file($qrPng)) {
-            $tp->setImageValue('qr_verificacion', ['path' => $qrPng, 'width' => 46, 'height' => 46, 'ratio' => false]);
-        } else {
-            $tp->setValue('qr_verificacion', '');
-        }
-
-        // Firma del alcalde (encima del texto). Configurable; si no, la de por defecto.
-        $firma = $datos['firma_alcalde_path'] ?? null;
-        if (! $firma || ! is_file($firma)) {
-            $default = public_path('images/actas/firma-alcalde.png');
-            $firma = is_file($default) ? $default : null;
-        }
-        if ($firma && is_file($firma)) {
-            $tp->setImageValue('firma_alcalde', ['path' => $firma, 'width' => 72, 'height' => 58, 'ratio' => true]);
-        } else {
-            $tp->setValue('firma_alcalde', '');
-        }
-
         $docxTmp = tempnam(sys_get_temp_dir(), 'acta_') . '.docx';
         $tp->saveAs($docxTmp);
 
-        if ($qrPng && is_file($qrPng)) {
-            @unlink($qrPng);
+        // QR de verificación como imagen FLOTANTE en la celda FIRMA (no crece la tabla).
+        if (! empty($datos['url_verificacion'])) {
+            $qrPng = $this->generarQrPng($datos['url_verificacion']);
+            if ($qrPng && is_file($qrPng)) {
+                $this->insertarQrFlotante($docxTmp, $qrPng);
+                @unlink($qrPng);
+            }
         }
 
         return $docxTmp;
+    }
+
+    /**
+     * Inserta el QR como imagen flotante (anclada) sobre la celda FIRMA del documento,
+     * clonando el patrón de la firma del alcalde. No modifica el flujo de la tabla.
+     */
+    private function insertarQrFlotante(string $docxPath, string $qrPng): void
+    {
+        try {
+            $zip = new \ZipArchive();
+            if ($zip->open($docxPath) !== true) {
+                return;
+            }
+
+            // 1) Agregar la imagen del QR al paquete
+            $zip->addFile($qrPng, 'word/media/qr_acta.png');
+
+            // 2) Relación en document.xml.rels
+            $relsName = 'word/_rels/document.xml.rels';
+            $rels = $zip->getFromName($relsName);
+            $rid = 'rIdQrActa';
+            if ($rels !== false && strpos($rels, $rid) === false) {
+                $rels = str_replace(
+                    '</Relationships>',
+                    '<Relationship Id="' . $rid . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/qr_acta.png"/></Relationships>',
+                    $rels
+                );
+                $zip->addFromString($relsName, $rels);
+            }
+
+            // 3) Anclar el dibujo en el párrafo de la celda FIRMA (4a celda de la fila de datos)
+            $doc = $zip->getFromName('word/document.xml');
+            $i = strpos($doc, 'ACTA DE NECESIDAD');
+            $i = $i !== false ? strpos($doc, 'FIRMA', $i) : false; // encabezado FIRMA
+            // La celda FIRMA de datos: 4a celda de la fila que contiene el nombre del solicitante.
+            // Se ancla en la última celda de esa fila.
+            $anchorPar = strpos($doc, '</w:tr>', (int) $i); // fin de la fila de encabezados
+            $rowStart  = $anchorPar !== false ? strpos($doc, '<w:tr', $anchorPar) : false; // fila de datos
+            if ($rowStart !== false) {
+                $rowEnd = strpos($doc, '</w:tr>', $rowStart);
+                $insertPos = strrpos(substr($doc, 0, $rowEnd), '</w:p>');
+                if ($insertPos !== false) {
+                    $cx = 620000; $cy = 620000; // ~0.68in
+                    $drawing = '<w:r><w:drawing><wp:anchor behindDoc="0" distT="0" distB="0" distL="0" distR="0" simplePos="0" locked="0" layoutInCell="1" allowOverlap="1" relativeHeight="5">'
+                        . '<wp:simplePos x="0" y="0"/>'
+                        . '<wp:positionH relativeFrom="column"><wp:posOffset>60000</wp:posOffset></wp:positionH>'
+                        . '<wp:positionV relativeFrom="paragraph"><wp:posOffset>-40000</wp:posOffset></wp:positionV>'
+                        . '<wp:extent cx="' . $cx . '" cy="' . $cy . '"/>'
+                        . '<wp:effectExtent l="0" t="0" r="0" b="0"/>'
+                        . '<wp:wrapNone/>'
+                        . '<wp:docPr id="777" name="QR"/>'
+                        . '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+                        . '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="777" name="qr_acta.png"/><pic:cNvPicPr/></pic:nvPicPr>'
+                        . '<pic:blipFill><a:blip r:embed="' . $rid . '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+                        . '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' . $cx . '" cy="' . $cy . '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'
+                        . '</a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>';
+                    $doc = substr($doc, 0, $insertPos) . $drawing . substr($doc, $insertPos);
+                    $zip->addFromString('word/document.xml', $doc);
+                }
+            }
+
+            $zip->close();
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** Genera un PNG temporal con el código QR de verificación. */
