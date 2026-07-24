@@ -76,23 +76,23 @@ class ActaNecesidadDocGenerator
         $docxTmp = tempnam(sys_get_temp_dir(), 'acta_') . '.docx';
         $tp->saveAs($docxTmp);
 
-        // QR de verificación como imagen FLOTANTE en la celda FIRMA (no crece la tabla).
-        if (! empty($datos['url_verificacion'])) {
-            $qrPng = $this->generarQrPng($datos['url_verificacion']);
-            if ($qrPng && is_file($qrPng)) {
-                $this->insertarQrFlotante($docxTmp, $qrPng);
-                @unlink($qrPng);
-            }
+        // Firma del alcalde y QR de verificación como imágenes FLOTANTES (no crecen la tabla).
+        $qrPng = ! empty($datos['url_verificacion']) ? $this->generarQrPng($datos['url_verificacion']) : null;
+        $this->insertarImagenesFlotantes($docxTmp, $qrPng, $datos['firma_alcalde_path'] ?? null);
+        if ($qrPng && is_file($qrPng)) {
+            @unlink($qrPng);
         }
 
         return $docxTmp;
     }
 
     /**
-     * Inserta el QR como imagen flotante (anclada) sobre la celda FIRMA del documento,
-     * clonando el patrón de la firma del alcalde. No modifica el flujo de la tabla.
+     * Coloca la firma del alcalde (sobre "Vo Bo. Alcalde Municipal") y el QR de
+     * verificación (esquina inferior derecha) como imágenes FLOTANTES ancladas.
+     * Al ser flotantes (wrapNone) no crecen la tabla ni empujan a otra hoja.
+     * También elimina la firma mal posicionada que trae la plantilla.
      */
-    private function insertarQrFlotante(string $docxPath, string $qrPng): void
+    private function insertarImagenesFlotantes(string $docxPath, ?string $qrPng, ?string $firmaPath): void
     {
         try {
             $zip = new \ZipArchive();
@@ -100,57 +100,93 @@ class ActaNecesidadDocGenerator
                 return;
             }
 
-            // 1) Agregar la imagen del QR al paquete
-            $zip->addFile($qrPng, 'word/media/qr_acta.png');
-
-            // 2) Relación en document.xml.rels
             $relsName = 'word/_rels/document.xml.rels';
             $rels = $zip->getFromName($relsName);
-            $rid = 'rIdQrActa';
-            if ($rels !== false && strpos($rels, $rid) === false) {
-                $rels = str_replace(
-                    '</Relationships>',
-                    '<Relationship Id="' . $rid . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/qr_acta.png"/></Relationships>',
-                    $rels
-                );
-                $zip->addFromString($relsName, $rels);
+            $doc  = $zip->getFromName('word/document.xml');
+            if ($rels === false || $doc === false) {
+                $zip->close();
+                return;
             }
 
-            // 3) Anclar el dibujo en el párrafo de la celda FIRMA (4a celda de la fila de datos)
-            $doc = $zip->getFromName('word/document.xml');
-            $i = strpos($doc, 'ACTA DE NECESIDAD');
-            $i = $i !== false ? strpos($doc, 'FIRMA', $i) : false; // encabezado FIRMA
-            // La celda FIRMA de datos: 4a celda de la fila que contiene el nombre del solicitante.
-            // Se ancla en la última celda de esa fila.
-            $anchorPar = strpos($doc, '</w:tr>', (int) $i); // fin de la fila de encabezados
-            $rowStart  = $anchorPar !== false ? strpos($doc, '<w:tr', $anchorPar) : false; // fila de datos
-            if ($rowStart !== false) {
-                $rowEnd = strpos($doc, '</w:tr>', $rowStart);
-                $insertPos = strrpos(substr($doc, 0, $rowEnd), '</w:p>');
-                if ($insertPos !== false) {
-                    $cx = 620000; $cy = 620000; // ~0.68in
-                    $drawing = '<w:r><w:drawing><wp:anchor behindDoc="0" distT="0" distB="0" distL="0" distR="0" simplePos="0" locked="0" layoutInCell="1" allowOverlap="1" relativeHeight="5">'
-                        . '<wp:simplePos x="0" y="0"/>'
-                        . '<wp:positionH relativeFrom="column"><wp:posOffset>60000</wp:posOffset></wp:positionH>'
-                        . '<wp:positionV relativeFrom="paragraph"><wp:posOffset>-40000</wp:posOffset></wp:positionV>'
-                        . '<wp:extent cx="' . $cx . '" cy="' . $cy . '"/>'
-                        . '<wp:effectExtent l="0" t="0" r="0" b="0"/>'
-                        . '<wp:wrapNone/>'
-                        . '<wp:docPr id="777" name="QR"/>'
-                        . '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
-                        . '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="777" name="qr_acta.png"/><pic:cNvPicPr/></pic:nvPicPr>'
-                        . '<pic:blipFill><a:blip r:embed="' . $rid . '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
-                        . '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' . $cx . '" cy="' . $cy . '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'
-                        . '</a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>';
-                    $doc = substr($doc, 0, $insertPos) . $drawing . substr($doc, $insertPos);
-                    $zip->addFromString('word/document.xml', $doc);
+            $imgType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image';
+
+            // Firma: usar la configurable si existe; si no, la image2.png de la plantilla (rId6).
+            $firmaRid = 'rId6';
+            if ($firmaPath && is_file($firmaPath)) {
+                $zip->addFile($firmaPath, 'word/media/firma_alcalde.png');
+                $firmaRid = 'rIdFirmaAlcalde';
+                if (strpos($rels, $firmaRid) === false) {
+                    $rels = str_replace('</Relationships>',
+                        '<Relationship Id="' . $firmaRid . '" Type="' . $imgType . '" Target="media/firma_alcalde.png"/></Relationships>', $rels);
                 }
             }
 
+            // QR
+            $qrRid = 'rIdQrActa';
+            if ($qrPng && is_file($qrPng)) {
+                $zip->addFile($qrPng, 'word/media/qr_acta.png');
+                if (strpos($rels, $qrRid) === false) {
+                    $rels = str_replace('</Relationships>',
+                        '<Relationship Id="' . $qrRid . '" Type="' . $imgType . '" Target="media/qr_acta.png"/></Relationships>', $rels);
+                }
+            }
+            $zip->addFromString($relsName, $rels);
+
+            // 1) Quitar la firma mal posicionada que trae la plantilla (único <w:drawing> del cuerpo).
+            $doc = preg_replace('/<w:drawing>.*?<\/w:drawing>/s', '', $doc, 1);
+
+            // 2) Firma flotante sobre "Alcalde Municipal" (encima del texto, tipo firma real).
+            $firma = $this->anchorImagenXml($firmaRid, 1450000, 1100000, 'column', 'paragraph', 180000, -820000, 801, 'FirmaAlcalde', 1);
+            $doc = $this->anclarEnParrafoDe($doc, 'Alcalde Municipal', $firma);
+
+            // 3) QR flotante en la esquina superior derecha (simétrico al escudo de la izquierda).
+            //    Se ancla en el párrafo posterior a la tabla (fuera de celda) para que
+            //    LibreOffice respete la posición relativa a la página (horizontal 11x8.5").
+            if ($qrPng && is_file($qrPng)) {
+                $qr  = $this->anchorImagenXml($qrRid, 850000, 850000, 'page', 'page', 8300000, 350000, 802, 'QRVerificacion', 0);
+                $tbl = strrpos($doc, '</w:tbl>');
+                if ($tbl !== false && ($pEnd = strpos($doc, '</w:p>', $tbl)) !== false) {
+                    $doc = substr($doc, 0, $pEnd) . $qr . substr($doc, $pEnd);
+                }
+            }
+
+            $zip->addFromString('word/document.xml', $doc);
             $zip->close();
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    /** Construye el XML de una imagen flotante anclada (wrapNone). */
+    private function anchorImagenXml(string $rid, int $cx, int $cy, string $relH, string $relV, int $offX, int $offY, int $id, string $name, int $layoutInCell): string
+    {
+        return '<w:r><w:drawing><wp:anchor behindDoc="0" distT="0" distB="0" distL="0" distR="0" simplePos="0" locked="0" layoutInCell="' . $layoutInCell . '" allowOverlap="1" relativeHeight="' . $id . '">'
+            . '<wp:simplePos x="0" y="0"/>'
+            . '<wp:positionH relativeFrom="' . $relH . '"><wp:posOffset>' . $offX . '</wp:posOffset></wp:positionH>'
+            . '<wp:positionV relativeFrom="' . $relV . '"><wp:posOffset>' . $offY . '</wp:posOffset></wp:positionV>'
+            . '<wp:extent cx="' . $cx . '" cy="' . $cy . '"/>'
+            . '<wp:effectExtent l="0" t="0" r="0" b="0"/>'
+            . '<wp:wrapNone/>'
+            . '<wp:docPr id="' . $id . '" name="' . $name . '"/>'
+            . '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+            . '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="' . $id . '" name="' . $name . '.png"/><pic:cNvPicPr/></pic:nvPicPr>'
+            . '<pic:blipFill><a:blip r:embed="' . $rid . '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+            . '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' . $cx . '" cy="' . $cy . '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'
+            . '</a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>';
+    }
+
+    /** Inserta un run (imagen anclada) dentro del párrafo que contiene $labelTexto. */
+    private function anclarEnParrafoDe(string $doc, string $labelTexto, string $runXml): string
+    {
+        $pos = strpos($doc, $labelTexto);
+        if ($pos === false) {
+            return $doc;
+        }
+        $pEnd = strpos($doc, '</w:p>', $pos);
+        if ($pEnd === false) {
+            return $doc;
+        }
+        return substr($doc, 0, $pEnd) . $runXml . substr($doc, $pEnd);
     }
 
     /** Genera un PNG temporal con el código QR de verificación. */
