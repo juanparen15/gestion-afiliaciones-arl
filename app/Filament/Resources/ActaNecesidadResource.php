@@ -324,7 +324,9 @@ class ActaNecesidadResource extends Resource
                 Action::make('descargar')
                     ->label('PDF')
                     ->icon('heroicon-o-arrow-down-tray')->color('gray')
-                    ->url(fn(ActaNecesidad $record) => $record->pdf_path ? Storage::disk('public')->url($record->pdf_path) : null)
+                    ->url(fn(ActaNecesidad $record) => $record->pdf_path
+                        ? Storage::disk('public')->url($record->pdf_path) . '?t=' . optional($record->fecha_generado)->timestamp
+                        : null)
                     ->openUrlInNewTab()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->pdf_path),
 
@@ -346,7 +348,7 @@ class ActaNecesidadResource extends Resource
                             $record->fecha_generado = now();
                             $record->save();
 
-                            $url = Storage::disk('public')->url($record->pdf_path);
+                            $url = Storage::disk('public')->url($record->pdf_path) . '?t=' . now()->timestamp;
                             Notification::make()->success()
                                 ->title('PDF regenerado')
                                 ->body('Se regeneró el PDF del acta No 0' . $record->consecutivo . '.')
