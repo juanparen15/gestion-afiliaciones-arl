@@ -76,8 +76,12 @@ class ImportarActasNecesidad extends Command
             $depNombre  = trim((string) $sheet->getCell('C' . $i)->getValue());
             $areaNombre = trim((string) $sheet->getCell('D' . $i)->getValue());
 
-            $depId  = $deps[$this->norm($depNombre)]->id ?? null;
-            $areaId = $areas[$this->norm($areaNombre)]->id ?? null;
+            $depNorm  = $this->norm($depNombre);
+            $areaNorm = $this->norm($areaNombre);
+            $depKey   = $this->aliasDep()[$depNorm] ?? $depNorm;
+            $areaKey  = $this->aliasArea()[$areaNorm] ?? $areaNorm;
+            $depId    = $deps[$depKey]->id ?? null;
+            $areaId   = $areas[$areaKey]->id ?? null;
             if ($depNombre !== '' && $depId === null)  $depSinVincular[$depNombre]  = ($depSinVincular[$depNombre] ?? 0) + 1;
             if ($areaNombre !== '' && $areaId === null) $areaSinVincular[$areaNombre] = ($areaSinVincular[$areaNombre] ?? 0) + 1;
 
@@ -148,8 +152,40 @@ class ImportarActasNecesidad extends Command
 
     private function norm(?string $s): string
     {
-        $s = mb_strtoupper(trim((string) $s));
+        // Sin acentos, mayúsculas y espacios colapsados para comparar nombres.
+        $s = \Illuminate\Support\Str::ascii((string) $s);
+        $s = mb_strtoupper(trim($s));
         return preg_replace('/\s+/', ' ', $s);
+    }
+
+    /** Alias nombre-corto (Excel) → nombre oficial (BD) para dependencias. Claves y valores normalizados. */
+    private function aliasDep(): array
+    {
+        return [
+            'SECRETARIA DE DESARROLLO'           => 'SECRETARIA DE DESARROLLO SOCIAL Y COMUNITARIO',
+            'SECRETARIA DE GOBIERNO'             => 'SECRETARIA DE GOBIERNO MUNICIPAL Y CONVIVENCIA CIUDADANA',
+            'SECRETARIA DE GENERAL'              => 'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS',
+            'SECRETARIA GENERAL'                 => 'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS',
+            'SECRETARIA DE PLANEACION'           => 'SECRETARIA DE PLANEACION MUNICIPAL',
+            'DIRECCION DE TRANSITO Y TRANSPORTE' => 'INSPECCION DE TRANSITO Y TRANSPORTE',
+            'UMATA'                              => 'UNIDAD DE ASISTENCIA TECNICA -UMATA',
+            'DESPACHO ALCALDE'                   => 'DESPACHO',
+        ];
+    }
+
+    /** Alias (Excel) → nombre oficial (BD) para áreas. Solo los inequívocos; el resto queda como texto. */
+    private function aliasArea(): array
+    {
+        return [
+            'SISTEMAS'                                    => 'AREA DE SISTEMAS',
+            'BANCO PROYECTOS'                             => 'BANCO DE PROYECTOS',
+            'ARCHIVO'                                     => 'ARCHIVO CENTRAL',
+            'PERSONAL'                                    => 'AREA DE PERSONAL',
+            'ALMACEN'                                     => 'ALMACEN MUNICIPAL',
+            'INSTITUTO MUNICIPAL DE DEPORTE Y RECREACION' => 'IMDR',
+            'SALUD PUBLICA'                               => 'SALUD',
+            'CULTURA'                                     => 'CASA DE LA CULTURA - GUILLERMO CANO ISAZA',
+        ];
     }
 
     private function numero($valor): ?float
