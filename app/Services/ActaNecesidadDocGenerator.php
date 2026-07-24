@@ -135,19 +135,20 @@ class ActaNecesidadDocGenerator
             // 1) Quitar la firma mal posicionada que trae la plantilla (único <w:drawing> del cuerpo).
             $doc = preg_replace('/<w:drawing>.*?<\/w:drawing>/s', '', $doc, 1);
 
-            // 2) Firma flotante sobre "Alcalde Municipal" (encima del texto, tipo firma real).
-            $firma = $this->anchorImagenXml($firmaRid, 1450000, 1100000, 'column', 'paragraph', 180000, -820000, 801, 'FirmaAlcalde', 1);
-            $doc = $this->anclarEnParrafoDe($doc, 'Alcalde Municipal', $firma);
-
-            // 3) QR flotante en la esquina superior derecha (simétrico al escudo de la izquierda).
-            //    Se ancla en el párrafo posterior a la tabla (fuera de celda) para que
-            //    LibreOffice respete la posición relativa a la página (horizontal 11x8.5").
+            // 2) Firma y QR como imágenes flotantes con posición ABSOLUTA en la página,
+            //    ancladas en el párrafo posterior a la tabla (fuera de las celdas). Así
+            //    no alteran la fila de firmas: el texto "Vo Bo. Alcalde Municipal" queda
+            //    alineado con los otros tres. Página horizontal (11x8.5").
+            $extras = '';
+            // Firma sobre "Vo Bo. Alcalde Municipal" (2a celda de la fila de firmas).
+            $extras .= $this->anchorImagenXml($firmaRid, 1400000, 1100000, 'page', 'page', 3150000, 4650000, 801, 'FirmaAlcalde', 0);
+            // QR en la esquina superior derecha (simétrico al escudo de la izquierda).
             if ($qrPng && is_file($qrPng)) {
-                $qr  = $this->anchorImagenXml($qrRid, 850000, 850000, 'page', 'page', 8300000, 350000, 802, 'QRVerificacion', 0);
-                $tbl = strrpos($doc, '</w:tbl>');
-                if ($tbl !== false && ($pEnd = strpos($doc, '</w:p>', $tbl)) !== false) {
-                    $doc = substr($doc, 0, $pEnd) . $qr . substr($doc, $pEnd);
-                }
+                $extras .= $this->anchorImagenXml($qrRid, 850000, 850000, 'page', 'page', 8300000, 350000, 802, 'QRVerificacion', 0);
+            }
+            $tbl = strrpos($doc, '</w:tbl>');
+            if ($tbl !== false && ($pEnd = strpos($doc, '</w:p>', $tbl)) !== false) {
+                $doc = substr($doc, 0, $pEnd) . $extras . substr($doc, $pEnd);
             }
 
             $zip->addFromString('word/document.xml', $doc);
