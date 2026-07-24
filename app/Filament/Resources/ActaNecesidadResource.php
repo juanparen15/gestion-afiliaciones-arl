@@ -328,6 +328,40 @@ class ActaNecesidadResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->pdf_path),
 
+                // Solo super admin: regenera el PDF con la plantilla/firma actuales
+                // sin crear una nueva solicitud (útil para probar cambios de diseño).
+                Action::make('regenerar_pdf')
+                    ->label('Regenerar PDF')
+                    ->icon('heroicon-o-arrow-path')->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Regenerar PDF del acta')
+                    ->modalDescription('Vuelve a generar el PDF con la plantilla y la firma actuales. No crea una nueva solicitud ni reenvía el correo.')
+                    ->visible(fn(ActaNecesidad $record) => Auth::user()->hasRole('super_admin') && $record->estado === 'aprobado')
+                    ->action(function (ActaNecesidad $record) {
+                        try {
+                            $record->asegurarCodigoVerificacion();
+                            $record->pdf_path = static::generarPdfDeRecord($record);
+                            $record->fecha_generado = now();
+                            $record->save();
+
+                            $url = Storage::disk('public')->url($record->pdf_path);
+                            Notification::make()->success()
+                                ->title('PDF regenerado')
+                                ->body('Se regeneró el PDF del acta No 0' . $record->consecutivo . '.')
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('ver')
+                                        ->label('Ver PDF')
+                                        ->url($url, shouldOpenInNewTab: true),
+                                ])
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()->danger()
+                                ->title('Error al regenerar el PDF')
+                                ->body($e->getMessage())
+                                ->persistent()->send();
+                        }
+                    }),
+
                 Action::make('reenviar_correo')
                     ->label(fn(ActaNecesidad $record) => $record->correo_enviado ? 'Reenviar correo' : 'Enviar correo')
                     ->icon('heroicon-o-envelope')
@@ -406,12 +440,39 @@ class ActaNecesidadResource extends Resource
             ->emptyStateIcon('heroicon-o-document-check');
     }
 
+    /** Construye los datos del acta y genera (o regenera) el PDF. Devuelve la ruta relativa. */
+    public static function generarPdfDeRecord(ActaNecesidad $record): string
+    {
+        $cfg = ConfiguracionActa::actual();
+        $consecutivo = $record->consecutivo ?: ActaNecesidad::siguienteConsecutivo();
+
+        return app(ActaNecesidadDocGenerator::class)->generarPdf([
+            'CODIGO'             => (string) $consecutivo,
+            'FECHA_SOLICITADO'   => optional($record->fecha_solicitud)->translatedFormat('d \d\e F \d\e Y') ?? now()->translatedFormat('d \d\e F \d\e Y'),
+            'DEPENDENCIA'        => $record->dependencia_texto,
+            'AREA'               => $record->area_texto,
+            'NOMBRE_SOLICITANTE' => (string) $record->nombre_solicitante,
+            'OBJETO'             => (string) $record->objeto_contrato,
+            'TIPO_CONTRATO'      => (string) $record->tipo_contrato,
+            'DURACION'           => (string) $record->duracion,
+            'MODALIDAD'          => (string) $record->modalidad_seleccion,
+            'TIPO_SOLICITUD'     => (string) $record->tipo_solicitud,
+            'NUMERO_CONTRATO'    => (string) $record->numero_contrato_convenio,
+            'PRESUPUESTO'        => number_format((float) $record->presupuesto_oficial, 0, ',', '.'),
+            'BPIM_BPIN'          => (string) $record->codigo_bpim_bpin,
+            'CODIGO_PAA'         => (string) $record->codigo_paa,
+            'OBSERVACIONES'      => (string) $record->observaciones,
+            'label_alcalde'      => $cfg->label_alcalde,
+            'firma_alcalde_path' => $cfg->firmaAbsoluta(),
+            'url_verificacion'   => $record->urlVerificacion(),
+        ]);
+    }
+
     /** Aprobar: asigna consecutivo, genera PDF, envía correo + notificación. */
     public static function aprobar(ActaNecesidad $record): void
     {
         // El consecutivo ya se asigna al registrar; si por alguna razón falta, se asigna aquí.
         $consecutivo = $record->consecutivo ?: ActaNecesidad::siguienteConsecutivo();
-        $cfg = ConfiguracionActa::actual();
 
         $record->consecutivo = $consecutivo;
         $record->estado = 'aprobado';
@@ -421,27 +482,7 @@ class ActaNecesidadResource extends Resource
         $record->asegurarCodigoVerificacion();
 
         try {
-            $pdfRel = app(ActaNecesidadDocGenerator::class)->generarPdf([
-                'CODIGO'             => (string) $consecutivo,
-                'FECHA_SOLICITADO'   => optional($record->fecha_solicitud)->translatedFormat('d \d\e F \d\e Y') ?? now()->translatedFormat('d \d\e F \d\e Y'),
-                'DEPENDENCIA'        => $record->dependencia_texto,
-                'AREA'               => $record->area_texto,
-                'NOMBRE_SOLICITANTE' => (string) $record->nombre_solicitante,
-                'OBJETO'             => (string) $record->objeto_contrato,
-                'TIPO_CONTRATO'      => (string) $record->tipo_contrato,
-                'DURACION'           => (string) $record->duracion,
-                'MODALIDAD'          => (string) $record->modalidad_seleccion,
-                'TIPO_SOLICITUD'     => (string) $record->tipo_solicitud,
-                'NUMERO_CONTRATO'    => (string) $record->numero_contrato_convenio,
-                'PRESUPUESTO'        => number_format((float) $record->presupuesto_oficial, 0, ',', '.'),
-                'BPIM_BPIN'          => (string) $record->codigo_bpim_bpin,
-                'CODIGO_PAA'         => (string) $record->codigo_paa,
-                'OBSERVACIONES'      => (string) $record->observaciones,
-                'label_alcalde'      => $cfg->label_alcalde,
-                'firma_alcalde_path' => $cfg->firmaAbsoluta(),
-                'url_verificacion'   => $record->urlVerificacion(),
-            ]);
-            $record->pdf_path = $pdfRel;
+            $record->pdf_path = static::generarPdfDeRecord($record);
         } catch (\Throwable $e) {
             Notification::make()->danger()
                 ->title('Error al generar el PDF del acta')
