@@ -11,7 +11,9 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class ImportarActasNecesidad extends Command
 {
-    protected $signature = 'actas:importar-excel {archivo : Ruta al .xlsx de respuestas}';
+    protected $signature = 'actas:importar-excel {archivo : Ruta al .xlsx de respuestas}
+        {--fresh : Borra DEFINITIVAMENTE todas las actas actuales antes de importar}
+        {--force : No pedir confirmación para --fresh}';
 
     protected $description = 'Importa las actas de necesidad existentes desde el Excel de respuestas (columna Q = consecutivo).';
 
@@ -21,6 +23,18 @@ class ImportarActasNecesidad extends Command
         if (! is_file($ruta)) {
             $this->error("No existe el archivo: {$ruta}");
             return self::FAILURE;
+        }
+
+        if ($this->option('fresh')) {
+            $total = ActaNecesidad::withTrashed()->count();
+            if (! $this->option('force')
+                && ! $this->confirm("Se BORRARÁN definitivamente {$total} actas actuales antes de importar. ¿Continuar?")) {
+                $this->warn('Operación cancelada.');
+                return self::FAILURE;
+            }
+            // Borrado físico (bypass soft-delete) para no saltar consecutivos al reimportar.
+            \Illuminate\Support\Facades\DB::table('actas_necesidad')->delete();
+            $this->warn("Actas borradas: {$total}.");
         }
 
         $reader = IOFactory::createReaderForFile($ruta);
