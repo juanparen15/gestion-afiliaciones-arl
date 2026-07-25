@@ -40,6 +40,30 @@ class AdminPanelProvider extends PanelProvider
             fn(): string => '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>',
         );
 
+        // Open Graph / Twitter: escudo + título al compartir el enlace (WhatsApp, redes).
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            function (): string {
+                $img   = asset('images/actas/logo-alcaldia.png');
+                $title = 'Gestión de Afiliaciones ARL — Alcaldía de Puerto Boyacá';
+                $desc  = 'Sistema de gestión de afiliaciones ARL y actas de necesidad de la Alcaldía Municipal de Puerto Boyacá.';
+                return <<<HTML
+                <meta property="og:type" content="website"/>
+                <meta property="og:site_name" content="Alcaldía de Puerto Boyacá"/>
+                <meta property="og:title" content="{$title}"/>
+                <meta property="og:description" content="{$desc}"/>
+                <meta property="og:image" content="{$img}"/>
+                <meta property="og:image:width" content="300"/>
+                <meta property="og:image:height" content="300"/>
+                <meta name="twitter:card" content="summary"/>
+                <meta name="twitter:title" content="{$title}"/>
+                <meta name="twitter:description" content="{$desc}"/>
+                <meta name="twitter:image" content="{$img}"/>
+                <link rel="apple-touch-icon" href="{$img}"/>
+                HTML;
+            },
+        );
+
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
             // chart-export.js se retiró: inyectaba un botón de descarga en cada
@@ -82,6 +106,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
+            ->favicon(asset('images/actas/logo-alcaldia.png'))
+            ->brandName('Alcaldía de Puerto Boyacá')
             ->colors([
                 'primary' => Color::Blue,
             ])

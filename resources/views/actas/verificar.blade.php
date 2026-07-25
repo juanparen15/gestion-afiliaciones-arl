@@ -34,6 +34,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificación de Autenticidad · Alcaldía de Puerto Boyacá</title>
     <link rel="icon" href="{{ asset('images/actas/logo-alcaldia.png') }}" type="image/png">
+    {{-- Open Graph / Twitter: escudo + título al compartir (WhatsApp, redes) --}}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Alcaldía de Puerto Boyacá">
+    <meta property="og:title" content="Verificación de Autenticidad · Alcaldía de Puerto Boyacá">
+    <meta property="og:description" content="Verifique la autenticidad de las actas de necesidad de la Alcaldía Municipal de Puerto Boyacá.">
+    <meta property="og:image" content="{{ asset('images/actas/logo-alcaldia.png') }}">
+    <meta property="og:image:width" content="300">
+    <meta property="og:image:height" content="300">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="{{ asset('images/actas/logo-alcaldia.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.lordicon.com/lordicon.js"></script>
     <style>
