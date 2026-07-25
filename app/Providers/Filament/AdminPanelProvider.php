@@ -44,7 +44,8 @@ class AdminPanelProvider extends PanelProvider
         FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_END,
             function (): string {
-                $img   = asset('images/actas/logo-alcaldia.png');
+                $img   = asset('images/actas/og-banner.png');
+                $icon  = asset('images/actas/logo-alcaldia.png');
                 $title = 'Gestión de Afiliaciones ARL — Alcaldía de Puerto Boyacá';
                 $desc  = 'Sistema de gestión de afiliaciones ARL y actas de necesidad de la Alcaldía Municipal de Puerto Boyacá.';
                 return <<<HTML
@@ -53,13 +54,13 @@ class AdminPanelProvider extends PanelProvider
                 <meta property="og:title" content="{$title}"/>
                 <meta property="og:description" content="{$desc}"/>
                 <meta property="og:image" content="{$img}"/>
-                <meta property="og:image:width" content="300"/>
-                <meta property="og:image:height" content="300"/>
-                <meta name="twitter:card" content="summary"/>
+                <meta property="og:image:width" content="1200"/>
+                <meta property="og:image:height" content="630"/>
+                <meta name="twitter:card" content="summary_large_image"/>
                 <meta name="twitter:title" content="{$title}"/>
                 <meta name="twitter:description" content="{$desc}"/>
                 <meta name="twitter:image" content="{$img}"/>
-                <link rel="apple-touch-icon" href="{$img}"/>
+                <link rel="apple-touch-icon" href="{$icon}"/>
                 HTML;
             },
         );
