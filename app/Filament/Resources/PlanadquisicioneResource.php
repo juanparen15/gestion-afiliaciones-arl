@@ -338,7 +338,10 @@ class PlanadquisicioneResource extends Resource
                     })
                     ->default((string) now()->year)
                     ->query(fn (Builder $query, array $data) => empty($data['value']) ? $query : $query->whereYear('created_at', $data['value'])),
-                Tables\Filters\SelectFilter::make('area_id')->label('Área')->relationship('area', 'nombre')->searchable()->preload(),
+                // El filtro de Área solo aplica a usuarios que ven varias áreas.
+                // Si el usuario ya está limitado a un área, sobra (siempre ve la suya).
+                Tables\Filters\SelectFilter::make('area_id')->label('Área')->relationship('area', 'nombre')->searchable()->preload()
+                    ->visible(fn () => ! (($u = Auth::user()) && $u->area_id && ! $u->hasRole('super_admin') && ! $u->hasRole('SSST'))),
                 Tables\Filters\SelectFilter::make('estadovigencia_id')->label('Estado Vigencia')->relationship('estadovigencia', 'detestadovigencia'),
             ])
             ->filtersLayout(\Filament\Tables\Enums\FiltersLayout::AboveContent)
