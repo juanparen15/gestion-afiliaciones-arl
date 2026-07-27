@@ -39,7 +39,8 @@ class ActaNecesidadPolicy
      */
     public function update(User $user, ActaNecesidad $actaNecesidad): bool
     {
-        return $user->can('update_acta::necesidad');
+        // El toggle "puede aprobar actas" también habilita editar el acta.
+        return $user->puede_aprobar_actas || $user->can('update_acta::necesidad');
     }
 
     /**
