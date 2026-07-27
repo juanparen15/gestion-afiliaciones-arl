@@ -327,6 +327,39 @@ class ActaNecesidadResource extends Resource
                     ->searchable()->preload()->native(false),
             ])
             ->actions([
+                // Genera el PDF para revisarlo ANTES de aprobar/rechazar.
+                // No aprueba, no cambia el estado ni envía correo.
+                Action::make('previsualizar_pdf')
+                    ->label('Vista previa PDF')
+                    ->icon('heroicon-o-document-magnifying-glass')->color('info')
+                    ->visible(fn(ActaNecesidad $record) => $record->estado === 'pendiente'
+                        && (Auth::user()->puede_aprobar_actas || Auth::user()->hasRole('super_admin')))
+                    ->action(function (ActaNecesidad $record) {
+                        try {
+                            $record->asegurarCodigoVerificacion();
+                            $pdfRel = static::generarPdfDeRecord($record);
+                            // Guarda la ruta para poder abrirla, sin cambiar el estado.
+                            $record->pdf_path = $pdfRel;
+                            $record->saveQuietly();
+
+                            $url = Storage::disk('public')->url($pdfRel) . '?t=' . now()->timestamp;
+                            Notification::make()->success()
+                                ->title('Vista previa generada')
+                                ->body('Revise el documento antes de aprobar o rechazar.')
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('ver')
+                                        ->label('Ver PDF')
+                                        ->url($url, shouldOpenInNewTab: true),
+                                ])
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()->danger()
+                                ->title('Error al generar la vista previa')
+                                ->body($e->getMessage())
+                                ->persistent()->send();
+                        }
+                    }),
+
                 Action::make('aprobar')
                     ->label('Aprobar')
                     ->icon('heroicon-o-check-circle')->color('success')
