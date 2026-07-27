@@ -29,7 +29,7 @@ class ActaNecesidadDocGenerator
     {
         $docxTmp = $this->generarDocx($datos);
 
-        $nombre  = 'ACTA-0' . ($datos['CODIGO'] ?? 'SN');
+        $nombre  = 'ACTA-0' . ($datos['CODIGO'] ?? 'SN') . (! empty($datos['borrador']) ? '-BORRADOR' : '');
         $pdfRel  = 'actas-necesidad/pdf/' . $this->slug($nombre) . '.pdf';
         $pdfAbs  = Storage::disk('public')->path($pdfRel);
 
@@ -78,7 +78,7 @@ class ActaNecesidadDocGenerator
 
         // Firma del alcalde y QR de verificación como imágenes FLOTANTES (no crecen la tabla).
         $qrPng = ! empty($datos['url_verificacion']) ? $this->generarQrPng($datos['url_verificacion']) : null;
-        $this->insertarImagenesFlotantes($docxTmp, $qrPng, $datos['firma_alcalde_path'] ?? null);
+        $this->insertarImagenesFlotantes($docxTmp, $qrPng, $datos['firma_alcalde_path'] ?? null, (bool) ($datos['borrador'] ?? false));
         if ($qrPng && is_file($qrPng)) {
             @unlink($qrPng);
         }
@@ -92,7 +92,7 @@ class ActaNecesidadDocGenerator
      * Al ser flotantes (wrapNone) no crecen la tabla ni empujan a otra hoja.
      * También elimina la firma mal posicionada que trae la plantilla.
      */
-    private function insertarImagenesFlotantes(string $docxPath, ?string $qrPng, ?string $firmaPath): void
+    private function insertarImagenesFlotantes(string $docxPath, ?string $qrPng, ?string $firmaPath, bool $borrador = false): void
     {
         try {
             $zip = new \ZipArchive();
@@ -130,6 +130,17 @@ class ActaNecesidadDocGenerator
                         '<Relationship Id="' . $qrRid . '" Type="' . $imgType . '" Target="media/qr_acta.png"/></Relationships>', $rels);
                 }
             }
+
+            // Marca de agua "BORRADOR" (solo vista previa antes de aprobar).
+            $borradorRid = 'rIdBorrador';
+            $borradorPng = public_path('images/actas/borrador-watermark.png');
+            if ($borrador && is_file($borradorPng)) {
+                $zip->addFile($borradorPng, 'word/media/borrador_watermark.png');
+                if (strpos($rels, $borradorRid) === false) {
+                    $rels = str_replace('</Relationships>',
+                        '<Relationship Id="' . $borradorRid . '" Type="' . $imgType . '" Target="media/borrador_watermark.png"/></Relationships>', $rels);
+                }
+            }
             $zip->addFromString($relsName, $rels);
 
             // 1) Quitar la firma mal posicionada que trae la plantilla (único <w:drawing> del cuerpo).
@@ -145,6 +156,10 @@ class ActaNecesidadDocGenerator
             // QR en la esquina superior derecha (simétrico al escudo de la izquierda).
             if ($qrPng && is_file($qrPng)) {
                 $extras .= $this->anchorImagenXml($qrRid, 850000, 850000, 'page', 'page', 8300000, 350000, 802, 'QRVerificacion', 0);
+            }
+            // Sello "BORRADOR" diagonal centrado en la página (semitransparente, encima del texto).
+            if ($borrador && is_file($borradorPng)) {
+                $extras .= $this->anchorImagenXml($borradorRid, 8000000, 3500000, 'page', 'page', 1000000, 2100000, 803, 'Borrador', 0);
             }
             $tbl = strrpos($doc, '</w:tbl>');
             if ($tbl !== false && ($pEnd = strpos($doc, '</w:p>', $tbl)) !== false) {

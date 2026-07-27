@@ -337,10 +337,9 @@ class ActaNecesidadResource extends Resource
                     ->action(function (ActaNecesidad $record) {
                         try {
                             $record->asegurarCodigoVerificacion();
-                            $pdfRel = static::generarPdfDeRecord($record);
-                            // Guarda la ruta para poder abrirla, sin cambiar el estado.
-                            $record->pdf_path = $pdfRel;
-                            $record->saveQuietly();
+                            // borrador=true → estampa el sello "BORRADOR". No cambia el
+                            // estado ni toca pdf_path (al aprobar se regenera el oficial).
+                            $pdfRel = static::generarPdfDeRecord($record, true);
 
                             $url = Storage::disk('public')->url($pdfRel) . '?t=' . now()->timestamp;
                             Notification::make()->success()
@@ -509,12 +508,13 @@ class ActaNecesidadResource extends Resource
     }
 
     /** Construye los datos del acta y genera (o regenera) el PDF. Devuelve la ruta relativa. */
-    public static function generarPdfDeRecord(ActaNecesidad $record): string
+    public static function generarPdfDeRecord(ActaNecesidad $record, bool $borrador = false): string
     {
         $cfg = ConfiguracionActa::actual();
         $consecutivo = $record->consecutivo ?: ActaNecesidad::siguienteConsecutivo();
 
         return app(ActaNecesidadDocGenerator::class)->generarPdf([
+            'borrador'           => $borrador,
             'CODIGO'             => (string) $consecutivo,
             'FECHA_SOLICITADO'   => optional($record->fecha_solicitud)->translatedFormat('d \d\e F \d\e Y') ?? now()->translatedFormat('d \d\e F \d\e Y'),
             'DEPENDENCIA'        => $record->dependencia_texto,
