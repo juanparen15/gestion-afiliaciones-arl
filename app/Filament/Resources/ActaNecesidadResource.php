@@ -127,12 +127,23 @@ class ActaNecesidadResource extends Resource
                 ->schema([
                     Forms\Components\TextInput::make('duracion_valor')
                         ->label('Duración')->numeric()->minValue(1)->required()
-                        ->placeholder('Ej: 3'),
+                        ->placeholder('Ej: 4'),
 
                     Forms\Components\Select::make('duracion_unidad')
                         ->label('Unidad de duración')
                         ->options(['DIAS' => 'Días', 'MESES' => 'Meses', 'AÑOS' => 'Años'])
                         ->native(false)->required()->default('MESES'),
+
+                    Forms\Components\TextInput::make('duracion_valor_2')
+                        ->label('Duración adicional (opcional)')->numeric()->minValue(1)
+                        ->placeholder('Ej: 15')
+                        ->helperText('Para duraciones compuestas, ej. "4 meses y 15 días".'),
+
+                    Forms\Components\Select::make('duracion_unidad_2')
+                        ->label('Unidad adicional (opcional)')
+                        ->options(['DIAS' => 'Días', 'MESES' => 'Meses', 'AÑOS' => 'Años'])
+                        ->native(false)
+                        ->requiredWith('duracion_valor_2'),
 
                     Forms\Components\Select::make('modalidad_seleccion')
                         ->label('Modalidad de selección')

@@ -29,6 +29,8 @@ class ActaNecesidad extends Model
         'duracion',
         'duracion_valor',
         'duracion_unidad',
+        'duracion_valor_2',
+        'duracion_unidad_2',
         'modalidad_seleccion',
         'tipo_solicitud',
         'numero_contrato_convenio',
@@ -74,10 +76,15 @@ class ActaNecesidad extends Model
 
     protected static function booted(): void
     {
-        // Componer la duración textual (ej. "3 MESES") a partir de valor + unidad
+        // Componer la duración textual (ej. "3 MESES" o "4 MESES Y 15 DIAS")
+        // a partir de valor + unidad, con una segunda parte opcional.
         static::saving(function (ActaNecesidad $acta) {
             if ($acta->duracion_valor && $acta->duracion_unidad) {
-                $acta->duracion = trim($acta->duracion_valor . ' ' . $acta->duracion_unidad);
+                $d = trim($acta->duracion_valor . ' ' . $acta->duracion_unidad);
+                if ($acta->duracion_valor_2 && $acta->duracion_unidad_2) {
+                    $d .= ' Y ' . trim($acta->duracion_valor_2 . ' ' . $acta->duracion_unidad_2);
+                }
+                $acta->duracion = $d;
             }
         });
     }
