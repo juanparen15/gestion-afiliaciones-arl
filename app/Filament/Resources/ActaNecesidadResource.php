@@ -275,6 +275,9 @@ class ActaNecesidadResource extends Resource
                 Tables\Columns\TextColumn::make('nombre_solicitante')
                     ->label('Solicitante')->searchable()->limit(28),
 
+                Tables\Columns\TextColumn::make('nombre_completo')
+                    ->label('Persona a contratar')->searchable()->limit(28)->placeholder('-'),
+
                 Tables\Columns\TextColumn::make('dependencia_texto')
                     ->label('Dependencia')->badge()->color('info')->toggleable(),
 
