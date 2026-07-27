@@ -161,11 +161,12 @@ class ActaNecesidadResource extends Resource
                         ->helperText('Solo aplica para proyectos de inversión. Si no aplica, digite "NO APLICA".')
                         ->columnSpanFull(),
 
-                    Forms\Components\Select::make('codigo_paa')
+                    // Por ahora es un campo numérico simple (aún no se vincula al
+                    // Plan de Adquisiciones). Ver static::opcionesPaa() para reactivar el Select.
+                    Forms\Components\TextInput::make('codigo_paa')
                         ->label('Código Plan Anual de Adquisiciones (SIIPAA)')
-                        ->helperText('Debe existir un Plan de Adquisiciones registrado. Seleccione la línea correspondiente.')
-                        ->options(fn(Forms\Get $get) => static::opcionesPaa($get('dependencia_id')))
-                        ->searchable()->native(false)
+                        ->helperText('Digite el código del Plan Anual de Adquisiciones.')
+                        ->numeric()
                         ->required()
                         ->columnSpanFull(),
 
