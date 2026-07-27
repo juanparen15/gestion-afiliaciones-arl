@@ -17,7 +17,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td width="56" valign="middle">
-                                        <img src="{{ asset('images/actas/logo-alcaldia.png') }}" alt="Alcaldía de Puerto Boyacá" width="48" style="display:block; width:48px; height:auto;">
+                                        <img src="{{ $message->embed(public_path('images/actas/logo-alcaldia.png')) }}" alt="Alcaldía de Puerto Boyacá" width="48" style="display:block; width:48px; height:auto;">
                                     </td>
                                     <td valign="middle" style="padding-left:12px;">
                                         <div style="color:#ffffff; font-size:15px; font-weight:bold; line-height:1.3;">Alcaldía Municipal de Puerto Boyacá</div>
