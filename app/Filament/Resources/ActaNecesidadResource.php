@@ -132,18 +132,33 @@ class ActaNecesidadResource extends Resource
                     Forms\Components\Select::make('duracion_unidad')
                         ->label('Unidad de duración')
                         ->options(['DIAS' => 'Días', 'MESES' => 'Meses', 'AÑOS' => 'Años'])
-                        ->native(false)->required()->default('MESES'),
+                        ->native(false)->required()->default('MESES')
+                        ->live()
+                        // Al cambiar la unidad principal se limpia la parte adicional
+                        // (evita combinaciones inválidas, ej. "meses y meses").
+                        ->afterStateUpdated(function (Forms\Set $set) {
+                            $set('duracion_valor_2', null);
+                            $set('duracion_unidad_2', null);
+                        }),
 
+                    // Parte adicional: solo con unidad principal MESES o AÑOS.
+                    // AÑOS → (Meses, Días); MESES → (Días); DIAS → oculto.
                     Forms\Components\TextInput::make('duracion_valor_2')
                         ->label('Duración adicional (opcional)')->numeric()->minValue(1)
                         ->placeholder('Ej: 15')
-                        ->helperText('Para duraciones compuestas, ej. "4 meses y 15 días".'),
+                        ->helperText('Para duraciones compuestas, ej. "4 meses y 15 días".')
+                        ->visible(fn(Forms\Get $get) => in_array($get('duracion_unidad'), ['AÑOS', 'MESES'], true)),
 
                     Forms\Components\Select::make('duracion_unidad_2')
                         ->label('Unidad adicional (opcional)')
-                        ->options(['DIAS' => 'Días', 'MESES' => 'Meses', 'AÑOS' => 'Años'])
+                        ->options(fn(Forms\Get $get) => match ($get('duracion_unidad')) {
+                            'AÑOS'  => ['MESES' => 'Meses', 'DIAS' => 'Días'],
+                            'MESES' => ['DIAS' => 'Días'],
+                            default => [],
+                        })
                         ->native(false)
-                        ->requiredWith('duracion_valor_2'),
+                        ->requiredWith('duracion_valor_2')
+                        ->visible(fn(Forms\Get $get) => in_array($get('duracion_unidad'), ['AÑOS', 'MESES'], true)),
 
                     Forms\Components\Select::make('modalidad_seleccion')
                         ->label('Modalidad de selección')
