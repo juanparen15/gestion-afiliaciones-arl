@@ -403,7 +403,11 @@ class ActaNecesidadResource extends Resource
                     ->action(fn(ActaNecesidad $record, array $data) => static::anular($record, $data['motivo_anulacion'])),
 
                 Tables\Actions\EditAction::make()
-                    ->visible(fn(ActaNecesidad $record) => $record->estado === 'pendiente'),
+                    // Pendientes: las edita quien pueda. Aprobadas/anuladas (p. ej. las
+                    // importadas con campos vacíos): solo aprobadores o super admin.
+                    ->visible(fn(ActaNecesidad $record) => $record->estado === 'pendiente'
+                        || Auth::user()->puede_aprobar_actas
+                        || Auth::user()->hasRole('super_admin')),
                 Tables\Actions\ViewAction::make(),
             ])
             ->headerActions([
