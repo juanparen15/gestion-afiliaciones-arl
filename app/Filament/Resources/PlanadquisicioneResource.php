@@ -310,6 +310,7 @@ class PlanadquisicioneResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id_vigencia')->label('N° Reg.')->badge()->color('primary')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Vigencia')->date('Y')->badge()->color('info')->sortable(),
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
                 Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable(),
                 Tables\Columns\TextColumn::make('dependencia.nombre')->label('Dependencia')->sortable()->searchable()->toggleable(),
@@ -322,7 +323,6 @@ class PlanadquisicioneResource extends Resource
                         str_contains(strtolower($state), 'cerrad') => 'danger',
                         default => 'warning',
                     }),
-                Tables\Columns\TextColumn::make('created_at')->label('Vigencia')->date('Y')->sortable(),
                 Tables\Columns\TextColumn::make('user.name')->label('Registrado por')->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('contratos_count')->counts('contratos')->label('Contratos')->badge(),
             ])
@@ -340,6 +340,7 @@ class PlanadquisicioneResource extends Resource
                 Tables\Filters\SelectFilter::make('area_id')->label('Área')->relationship('area', 'nombre')->searchable()->preload(),
                 Tables\Filters\SelectFilter::make('estadovigencia_id')->label('Estado Vigencia')->relationship('estadovigencia', 'detestadovigencia'),
             ])
+            ->filtersLayout(\Filament\Tables\Enums\FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->url(fn ($record): string => static::getUrl('view', ['record' => $record])),
