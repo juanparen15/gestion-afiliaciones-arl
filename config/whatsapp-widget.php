@@ -20,5 +20,5 @@ return [
     'key' => env('WHATSAPP_KEY'),
 
     // Widget position on the screen (left or right)
-    'position' => 'left',
+    'position' => 'right',
 ];

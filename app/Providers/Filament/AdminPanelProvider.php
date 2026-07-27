@@ -142,17 +142,17 @@ class AdminPanelProvider extends PanelProvider
                 // veía rota. El Escritorio usa widgets propios más limpios.
                 FilamentErrorPagesPlugin::make(),
                 // LightSwitchPlugin::make(),
-                FilamentSentryFeedbackPlugin::make()
-                    // ->sentryUser(function (): ?SentryUser {
-                    //     return new SentryUser(auth()->user()->name, auth()->user()->email);
-                    // }),
-                    ->colorScheme(ColorScheme::Auto)
-                    ->showBranding(false)
-                    ->showName(true)
-                    ->showEmail(true)
-                    ->isEmailRequired(true)
-                    ->isNameRequired(true)
-                    ->enableScreenshot(true),
+                // FilamentSentryFeedbackPlugin::make()
+                //     // ->sentryUser(function (): ?SentryUser {
+                //     //     return new SentryUser(auth()->user()->name, auth()->user()->email);
+                //     // }),
+                //     ->colorScheme(ColorScheme::Auto)
+                //     ->showBranding(false)
+                //     ->showName(true)
+                //     ->showEmail(true)
+                //     ->isEmailRequired(true)
+                //     ->isNameRequired(true)
+                //     ->enableScreenshot(true),
                 WhatsappWidgetPlugin::make(),
                 FilamentNotificationSoundPlugin::make()
                     ->volume(1.0)
