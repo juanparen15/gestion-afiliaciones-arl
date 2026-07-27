@@ -357,15 +357,15 @@ class ActaNecesidadResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn(ActaNecesidad $record) => $record->estado === 'aprobado' && $record->pdf_path),
 
-                // Solo super admin: regenera el PDF con la plantilla/firma actuales
-                // sin crear una nueva solicitud (útil para probar cambios de diseño).
+                // Aprobadores y super admin: regenera el PDF con la plantilla/firma
+                // actuales sin crear una nueva solicitud (útil para corregir/probar).
                 Action::make('regenerar_pdf')
                     ->label('Regenerar PDF')
                     ->icon('heroicon-o-arrow-path')->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Regenerar PDF del acta')
                     ->modalDescription('Vuelve a generar el PDF con la plantilla y la firma actuales. No crea una nueva solicitud ni reenvía el correo.')
-                    ->visible(fn(ActaNecesidad $record) => Auth::user()->hasRole('super_admin')
+                    ->visible(fn(ActaNecesidad $record) => (Auth::user()->puede_aprobar_actas || Auth::user()->hasRole('super_admin'))
                         && $record->consecutivo
                         && in_array($record->estado, ['aprobado', 'anulado'], true))
                     ->action(function (ActaNecesidad $record) {
