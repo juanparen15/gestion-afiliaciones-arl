@@ -216,10 +216,10 @@ class ActaNecesidadResource extends Resource
                         ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
                             ? \App\Models\Planadquisicione::whereYear('created_at', $get('paa_vigencia'))
                                 ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
-                                ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . \Illuminate\Support\Str::limit((string) $p->descripcioncont, 60)])
+                                ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . $p->descripcioncont])
                             : [])
                         ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::where('id_vigencia', $value)->first())
-                            ? $p->id_vigencia . ' - ' . \Illuminate\Support\Str::limit((string) $p->descripcioncont, 60)
+                            ? $p->id_vigencia . ' - ' . $p->descripcioncont
                             : $value)
                         ->searchable()->native(false)
                         ->required()
