@@ -187,12 +187,41 @@ class ActaNecesidadResource extends Resource
                         ->helperText('Solo aplica para proyectos de inversión. Si no aplica, digite "NO APLICA".')
                         ->columnSpanFull(),
 
-                    // Por ahora es un campo numérico simple (aún no se vincula al
-                    // Plan de Adquisiciones). Ver static::opcionesPaa() para reactivar el Select.
-                    Forms\Components\TextInput::make('codigo_paa')
-                        ->label('Código Plan Anual de Adquisiciones (SIIPAA)')
-                        ->helperText('Digite el código del Plan Anual de Adquisiciones.')
-                        ->numeric()
+                    // PAA: primero se elige la vigencia (año); luego el registro del
+                    // Plan de esa vigencia, buscable por N° Reg (id_vigencia) o descripción.
+                    Forms\Components\Select::make('paa_vigencia')
+                        ->label('Vigencia del PAA')
+                        ->options(function () {
+                            $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                            $yearExpr = $driver === 'sqlite'
+                                ? "CAST(strftime('%Y', created_at) AS INTEGER)"
+                                : 'YEAR(created_at)';
+                            return \App\Models\Planadquisicione::selectRaw("{$yearExpr} as y")
+                                ->whereNotNull('created_at')->distinct()->orderBy('y', 'desc')
+                                ->pluck('y', 'y')->toArray();
+                        })
+                        ->native(false)->live()->dehydrated(false)
+                        ->afterStateUpdated(fn (Forms\Set $set) => $set('codigo_paa', null))
+                        ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                            $cod = $get('codigo_paa');
+                            if (filled($cod) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $cod)->first())) {
+                                $set('paa_vigencia', (int) optional($p->created_at)->format('Y'));
+                            }
+                        })
+                        ->columnSpanFull(),
+
+                    Forms\Components\Select::make('codigo_paa')
+                        ->label('Código Plan Anual de Adquisiciones (N° Reg)')
+                        ->helperText('Seleccione primero la vigencia; luego busque por N° Reg o descripción.')
+                        ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
+                            ? \App\Models\Planadquisicione::whereYear('created_at', $get('paa_vigencia'))
+                                ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
+                                ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . \Illuminate\Support\Str::limit((string) $p->descripcioncont, 60)])
+                            : [])
+                        ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::where('id_vigencia', $value)->first())
+                            ? $p->id_vigencia . ' - ' . \Illuminate\Support\Str::limit((string) $p->descripcioncont, 60)
+                            : $value)
+                        ->searchable()->native(false)
                         ->required()
                         ->columnSpanFull(),
 

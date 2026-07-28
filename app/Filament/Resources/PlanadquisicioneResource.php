@@ -150,11 +150,14 @@ class PlanadquisicioneResource extends Resource
                             ->defaultItems(1)
                             ->columns(2)
                             ->itemLabel(fn (array $state): ?string => filled($state['clase_id'] ?? null)
-                                ? optional(Clase::find($state['clase_id']))->detclase
+                                ? (($c = Clase::find($state['clase_id'])) ? $c->id . ' - ' . $c->detclase : null)
                                 : null)
                             ->schema([
+                                // El id de cada registro ES el código UNSPSC. Se muestra
+                                // "código - descripción" para poder buscar por ambos.
                                 Forms\Components\Select::make('segmento_id')->label('Segmento')
-                                    ->options(fn () => Segmento::orderBy('detsegmento')->pluck('detsegmento', 'id'))
+                                    ->options(fn () => Segmento::orderBy('id')->get()
+                                        ->mapWithKeys(fn ($s) => [$s->id => $s->id . ' - ' . $s->detsegmento]))
                                     ->searchable()->live()->dehydrated(false)
                                     ->afterStateUpdated(function (Set $set) {
                                         $set('familia_id', null);
@@ -163,7 +166,8 @@ class PlanadquisicioneResource extends Resource
                                     }),
                                 Forms\Components\Select::make('familia_id')->label('Familia')
                                     ->options(fn (Get $get) => $get('segmento_id')
-                                        ? Familia::where('segmento_id', $get('segmento_id'))->orderBy('detfamilia')->pluck('detfamilia', 'id')
+                                        ? Familia::where('segmento_id', $get('segmento_id'))->orderBy('id')->get()
+                                            ->mapWithKeys(fn ($f) => [$f->id => $f->id . ' - ' . $f->detfamilia])
                                         : [])
                                     ->searchable()->live()->dehydrated(false)
                                     ->afterStateUpdated(function (Set $set) {
@@ -172,13 +176,15 @@ class PlanadquisicioneResource extends Resource
                                     }),
                                 Forms\Components\Select::make('clase_id')->label('Clase')
                                     ->options(fn (Get $get) => $get('familia_id')
-                                        ? Clase::where('familia_id', $get('familia_id'))->orderBy('detclase')->pluck('detclase', 'id')
+                                        ? Clase::where('familia_id', $get('familia_id'))->orderBy('id')->get()
+                                            ->mapWithKeys(fn ($c) => [$c->id => $c->id . ' - ' . $c->detclase])
                                         : [])
                                     ->searchable()->live()->required()
                                     ->afterStateUpdated(fn (Set $set) => $set('producto_id', null)),
                                 Forms\Components\Select::make('producto_id')->label('Producto (opcional)')
                                     ->options(fn (Get $get) => $get('clase_id')
-                                        ? Producto::where('clase_id', $get('clase_id'))->orderBy('detproducto')->pluck('detproducto', 'id')
+                                        ? Producto::where('clase_id', $get('clase_id'))->orderBy('id')->get()
+                                            ->mapWithKeys(fn ($p) => [$p->id => $p->id . ' - ' . $p->detproducto])
                                         : [])
                                     ->searchable()
                                     ->nullable(),
