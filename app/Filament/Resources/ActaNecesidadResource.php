@@ -204,25 +204,34 @@ class ActaNecesidadResource extends Resource
                         ->afterStateUpdated(fn (Forms\Set $set) => $set('codigo_paa', null))
                         ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
                             $cod = $get('codigo_paa');
-                            if (filled($cod) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $cod)->first())) {
+                            // Un acta puede tener varios códigos (coma-separados); tomo el primero.
+                            $first = is_array($cod) ? ($cod[0] ?? null)
+                                : (filled($cod) ? trim(explode(',', (string) $cod)[0]) : null);
+                            if (filled($first) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $first)->first())) {
                                 $set('paa_vigencia', (int) optional($p->created_at)->format('Y'));
                             }
                         })
                         ->columnSpanFull(),
 
                     Forms\Components\Select::make('codigo_paa')
-                        ->label('Código Plan Anual de Adquisiciones (N° Reg)')
-                        ->helperText('Seleccione primero la vigencia; luego busque por N° Reg o descripción.')
+                        ->label('Código(s) Plan Anual de Adquisiciones (N° Reg)')
+                        ->helperText('Seleccione la vigencia; luego uno o varios registros (busca por N° Reg o descripción).')
+                        ->multiple()
                         ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
                             ? \App\Models\Planadquisicione::whereYear('created_at', $get('paa_vigencia'))
                                 ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
                                 ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . $p->descripcioncont])
                             : [])
-                        ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::where('id_vigencia', $value)->first())
-                            ? $p->id_vigencia . ' - ' . $p->descripcioncont
-                            : $value)
+                        ->getOptionLabelsUsing(fn (array $values) => \App\Models\Planadquisicione::whereIn('id_vigencia', $values)->get()
+                            ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . $p->descripcioncont])
+                            ->toArray())
                         ->searchable()->native(false)
                         ->required()
+                        // Se guarda como texto coma-separado (la columna es string).
+                        ->formatStateUsing(fn ($state) => is_array($state)
+                            ? $state
+                            : (filled($state) ? array_map('trim', explode(',', (string) $state)) : []))
+                        ->dehydrateStateUsing(fn ($state) => is_array($state) ? implode(', ', $state) : $state)
                         ->columnSpanFull(),
 
                     Forms\Components\Textarea::make('observaciones')
