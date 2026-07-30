@@ -457,6 +457,29 @@ php artisan tinker
 
 ---
 
+## Comandos del Módulo de Actas
+
+### Importar Actas de Necesidad desde Excel
+
+```bash
+# Revisar sin escribir nada (recomendado primero)
+php artisan actas:importar-excel ruta/al/archivo.xlsx --dry-run
+
+# Importar (omite las que ya existen por consecutivo)
+php artisan actas:importar-excel ruta/al/archivo.xlsx
+
+# Borrar TODAS las actas actuales y reimportar
+php artisan actas:importar-excel ruta/al/archivo.xlsx --fresh
+```
+
+| Opción | Efecto |
+|--------|--------|
+| `--dry-run` | Reporta cuántas se importarían y qué dependencias/áreas no se vinculan. No escribe. |
+| `--fresh` | Borra definitivamente las actas actuales antes de importar. |
+| `--force` | Omite la confirmación de `--fresh`. |
+
+---
+
 ## Próximos Pasos
 
 - [Solución de Problemas](/docs/referencia/troubleshooting/)
