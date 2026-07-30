@@ -14,9 +14,10 @@ export default defineConfig({
     starlight({
       title: 'Gestión Afiliaciones ARL',
       logo: {
-        src: '/favicon.svg',
-        alt: 'Logo',
+        src: './src/assets/escudo.png',
+        alt: 'Alcaldía de Puerto Boyacá',
       },
+      favicon: '/escudo.png',
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/juanparen15/gestion-afiliaciones-arl' },
       ],
@@ -28,6 +29,10 @@ export default defineConfig({
         {
           label: 'Instalación',
           autogenerate: { directory: 'instalacion' },
+        },
+        {
+          label: 'Operación y Servidor',
+          autogenerate: { directory: 'operacion' },
         },
         {
           label: 'Guía de Usuario',
