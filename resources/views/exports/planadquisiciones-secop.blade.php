@@ -14,6 +14,7 @@
             <th>¿Se requieren vigencias futuras?</th>
             <th>Estado de solicitud de vigencias futuras</th>
             <th>Unidad de contratación (referencia)</th>
+            <th>Area</th>
             <th>Ubicación</th>
             <th>Nombre del responsable</th>
             <th>Teléfono del responsable</th>
@@ -44,7 +45,8 @@
                 <td>{{ $planadquisicion->valorestimadovig }}</td>
                 <td>{{ optional($planadquisicion->vigenfutura)->codigo }}</td>
                 <td>{{ optional($planadquisicion->estadovigencia)->codigo }}</td>
-                <td>{{ $planadquisicion->unidadContratacion ?? '' }}</td>
+                <td>{{ $planadquisicion->dependencia?->nombreSecop() ?? '' }}</td>
+                <td>{{ optional($planadquisicion->area)->nombre ?? '' }}</td>
                 <td>{{ $planadquisicion->ubicacion ?? 'CO-BOY-15572' }}</td>
                 <td>{{ optional($planadquisicion->area)->nombre ?? optional($planadquisicion->dependencia)->nombre ?? 'N/A' }}</td>
                 <td>{{ optional($planadquisicion->user)->telefono ?? '3103127401' }}</td>

@@ -60,4 +60,31 @@ class Dependencia extends Model
     {
         return $query->where('activo', true);
     }
+
+    /**
+     * Nombre de la dependencia tal como debe aparecer en la columna
+     * "Unidad de contratación (referencia)" del formato de SECOP II.
+     * Si no hay mapeo, devuelve el nombre propio.
+     */
+    public function nombreSecop(): string
+    {
+        $norm = \Illuminate\Support\Str::of((string) $this->nombre)
+            ->ascii()->upper()->replaceMatches('/\s+/', ' ')->trim()->value();
+
+        $map = [
+            'SECRETARIA DE HACIENDA'                                    => 'Secretaria de Hacienda',
+            'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS'         => 'Secretaria General y Servicios Administrativos',
+            'BIBILIOTECA MUNICIPAL'                                     => 'Biblioteca Municipal',
+            'BIBLIOTECA MUNICIPAL'                                      => 'Biblioteca Municipal',
+            'INSPECCION DE TRANSITO Y TRANSPORTE'                       => 'Inspección de Transito',
+            'SECRETARIA DE OBRAS PUBLICAS'                             => 'Secretaria Obras Publicas',
+            'UNIDAD DE ASISTENCIA TECNICA -UMATA'                       => 'UMATA',
+            'UNIDAD DE ASISTENCIA TECNICA - UMATA'                      => 'UMATA',
+            'SECRETARIA DE DESARROLLO SOCIAL Y COMUNITARIO'             => 'Secretaria de Desarrollo',
+            'SECRETARIA DE GOBIERNO MUNICIPAL Y CONVIVENCIA CIUDADANA'  => 'Secretaria de Gobierno',
+            'SECRETARIA DE PLANEACION MUNICIPAL'                        => 'Secretaria de Planeación',
+        ];
+
+        return $map[$norm] ?? (string) $this->nombre;
+    }
 }

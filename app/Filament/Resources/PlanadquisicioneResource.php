@@ -59,13 +59,7 @@ class PlanadquisicioneResource extends Resource
                         Forms\Components\TextInput::make('valorestimadocont')->label('Valor Total Estimado')->required()
                             ->prefix('$')
                             ->mask(RawJs::make("\$money(\$input, ',', '.', 0)"))
-                            ->placeholder('Escriba el Valor Total Estimado')
-                            ->live(debounce: 600)
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if ($id = static::tipoProcesoSegunValor($state)) {
-                                    $set('tipoproceso_id', $id);
-                                }
-                            }),
+                            ->placeholder('Escriba el Valor Total Estimado'),
                         Forms\Components\TextInput::make('valorestimadovig')->label('Valor Estimado en Vigencia Actual')->required()
                             ->prefix('$')
                             ->mask(RawJs::make("\$money(\$input, ',', '.', 0)"))
@@ -128,12 +122,12 @@ class PlanadquisicioneResource extends Resource
                             Forms\Components\Select::make('estadovigencia_id')->label('Estado Vigencia')->relationship('estadovigencia', 'detestadovigencia')->searchable()->preload()->required(),
                             Forms\Components\Select::make('vigenfutura_id')->label('Vigencia Futura')->relationship('vigenfutura', 'detvigencia')->searchable()->preload()->required(),
                             Forms\Components\Select::make('fuente_id')->label('Fuente')->relationship('fuente', 'detfuente')->searchable()->preload()->required(),
-                            Forms\Components\Select::make('mese_id')->label('Mes de Inicio')->relationship('mese', 'nommes')->searchable()->preload()->required(),
+                            Forms\Components\Select::make('mese_id')->label('Mes de Inicio')
+                                ->relationship('mese', 'nommes', fn ($query) => $query->orderBy('id'))
+                                ->searchable()->preload()->required(),
                             Forms\Components\Select::make('tipoprioridade_id')->label('Tipo de Prioridad')->relationship('tipoprioridade', 'detprioridad')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requiproyecto_id')->label('Requiere Proyecto')->relationship('requiproyecto', 'detproyeto')->searchable()->preload()->required(),
                             Forms\Components\Select::make('requipoai_id')->label('Requiere POA-I')->relationship('requipoai', 'detpoai')->searchable()->preload()->required(),
-                            Forms\Components\Select::make('tipoproceso_id')->label('Tipo de Proceso')->relationship('tipoproceso', 'dettipoproceso')->searchable()->preload()
-                                ->helperText('Se autoselecciona según el valor estimado (cuantía); puedes ajustarlo.'),
                         ]),
                     ]),
 
@@ -257,7 +251,6 @@ class PlanadquisicioneResource extends Resource
                         TextEntry::make('tipoprioridade.detprioridad')->label('Prioridad')->placeholder('-'),
                         TextEntry::make('requiproyecto.detproyeto')->label('Req. Proyecto')->placeholder('-'),
                         TextEntry::make('requipoai.detpoai')->label('Req. POA-I')->placeholder('-'),
-                        TextEntry::make('tipoproceso.dettipoproceso')->label('Tipo de Proceso')->placeholder('-'),
                     ])->columns(4),
 
                 Section::make('Clasificación UNSPSC')
@@ -277,52 +270,20 @@ class PlanadquisicioneResource extends Resource
             ]);
     }
 
-    /**
-     * Devuelve el tipoproceso_id correspondiente a un valor estimado, según la cuantía.
-     * Lee los umbrales directamente de los nombres del catálogo tipoprocesos
-     * (p. ej. "Mínima cuantía ($1 hasta $36.400.000)"), así se adapta si se actualizan.
-     */
-    public static function tipoProcesoSegunValor($valor): ?int
-    {
-        $monto = (int) preg_replace('/\D/', '', (string) $valor);
-        if ($monto <= 0) {
-            return null;
-        }
-
-        $tipos = \App\Models\Tipoproceso::all()
-            ->map(function ($t) {
-                preg_match_all('/[\d.]+/', (string) $t->dettipoproceso, $m);
-                $umbral = 0;
-                foreach ($m[0] as $num) {
-                    $n = (int) preg_replace('/\D/', '', $num);
-                    $umbral = max($umbral, $n);
-                }
-                return ['id' => $t->id, 'umbral' => $umbral];
-            })
-            ->sortBy('umbral')
-            ->values();
-
-        foreach ($tipos as $t) {
-            if ($t['umbral'] >= $monto) {
-                return $t['id'];
-            }
-        }
-
-        return $tipos->last()['id'] ?? null;
-    }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id_vigencia')->label('N° Reg.')->badge()->color('primary')->sortable(),
+                Tables\Columns\TextColumn::make('id_vigencia')->label('N° Reg.')->badge()->color('primary')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('created_at')->label('Vigencia')->date('Y')->badge()->color('info')->sortable(),
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
-                Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable(),
+                Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('codbpim')->label('Código BPIM')->searchable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('dependencia.nombre')->label('Dependencia')->sortable()->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('area.nombre')->label('Área')->sortable()->searchable()->placeholder('-'),
-                Tables\Columns\TextColumn::make('mese.nommes')->label('Mes')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->badge()
+                Tables\Columns\TextColumn::make('mese.nommes')->label('Mes')->searchable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('estadovigencia.detestadovigencia')->label('Estado Vigencia')->badge()->searchable()
                     ->color(fn (?string $state): string => match (true) {
                         $state === null => 'gray',
                         str_contains(strtolower($state), 'vigente') => 'success',
