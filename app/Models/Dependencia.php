@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ProtegeBorrado;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
@@ -10,6 +11,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Dependencia extends Model
 {
     use LogsActivity;
+    use ProtegeBorrado;
 
     protected $fillable = [
         'nombre',
@@ -24,37 +26,6 @@ class Dependencia extends Model
     protected $casts = [
         'activo' => 'boolean',
     ];
-
-    protected static function booted(): void
-    {
-        // Blindaje: impide eliminar una dependencia con datos asociados.
-        // Antes, borrar una dependencia arrastraba (cascade) sus afiliaciones
-        // y áreas. Ahora se bloquea con un mensaje claro; primero hay que
-        // reasignar o eliminar esos registros.
-        static::deleting(function (Dependencia $dependencia) {
-            $conteos = [
-                'áreas'                 => $dependencia->areas()->count(),
-                'afiliaciones'          => $dependencia->afiliaciones()->count(),
-                'contratos'             => $dependencia->contratos()->count(),
-                'usuarios'              => $dependencia->users()->count(),
-                'actas de necesidad'    => \App\Models\ActaNecesidad::where('dependencia_id', $dependencia->id)->count(),
-                'planes de adquisición' => \App\Models\Planadquisicione::where('dependencia_id', $dependencia->id)->count(),
-            ];
-
-            $bloqueos = collect($conteos)
-                ->filter(fn ($n) => $n > 0)
-                ->map(fn ($n, $tipo) => "{$n} {$tipo}")
-                ->values()
-                ->all();
-
-            if ($bloqueos) {
-                throw new \RuntimeException(
-                    'No se puede eliminar la dependencia "' . $dependencia->nombre . '" porque tiene ' .
-                    implode(', ', $bloqueos) . ' asociados. Reasigne o elimine esos registros primero.'
-                );
-            }
-        });
-    }
 
     // Activity Log Configuration
     public function getActivitylogOptions(): LogOptions

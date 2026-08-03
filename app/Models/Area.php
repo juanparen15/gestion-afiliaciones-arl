@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ProtegeBorrado;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,7 @@ use Spatie\Activitylog\LogOptions;
 class Area extends Model
 {
     use LogsActivity;
+    use ProtegeBorrado;
 
     protected $table = 'areas';
 
