@@ -63,6 +63,51 @@ class Dependencia extends Model
         return $query->where('activo', true);
     }
 
+    /** Normaliza un nombre (sin acentos, mayúsculas, espacios colapsados). */
+    public static function normalizarNombre(?string $s): string
+    {
+        $s = \Illuminate\Support\Str::ascii((string) $s);
+        return preg_replace('/\s+/', ' ', mb_strtoupper(trim($s)));
+    }
+
+    /** Alias (nombre corto/variante normalizado → nombre oficial normalizado). */
+    public static function aliasNombres(): array
+    {
+        return [
+            'OBRAS'                              => 'SECRETARIA DE OBRAS PUBLICAS',
+            'SECRETARIA DE OBRAS PUBLICA'        => 'SECRETARIA DE OBRAS PUBLICAS',
+            'GOBIERNO'                           => 'SECRETARIA DE GOBIERNO MUNICIPAL Y CONVIVENCIA CIUDADANA',
+            'SECRETARIA DE GOBIERNO'             => 'SECRETARIA DE GOBIERNO MUNICIPAL Y CONVIVENCIA CIUDADANA',
+            'GENERAL'                            => 'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS',
+            'SECRETARIA GENERAL'                 => 'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS',
+            'SECRETARIA DE GENERAL'              => 'SECRETARIA GENERAL Y DE SERVICIOS ADMINISTRATIVOS',
+            'DESARROLLO'                         => 'SECRETARIA DE DESARROLLO SOCIAL Y COMUNITARIO',
+            'SECRETARIA DE DESARROLLO'           => 'SECRETARIA DE DESARROLLO SOCIAL Y COMUNITARIO',
+            'HACIENDA'                           => 'SECRETARIA DE HACIENDA',
+            'PLANEACION'                         => 'SECRETARIA DE PLANEACION MUNICIPAL',
+            'SECRETARIA DE PLANEACION'           => 'SECRETARIA DE PLANEACION MUNICIPAL',
+            'TRANSITO'                           => 'INSPECCION DE TRANSITO Y TRANSPORTE',
+            'DIRECCION DE TRANSITO Y TRANSPORTE' => 'INSPECCION DE TRANSITO Y TRANSPORTE',
+            'UMATA'                              => 'UNIDAD DE ASISTENCIA TECNICA -UMATA',
+            'BIBLIOTECA'                         => 'BIBLIOTECA MUNICIPAL',
+            'BIBILIOTECA MUNICIPAL'              => 'BIBLIOTECA MUNICIPAL',
+        ];
+    }
+
+    /** Busca la dependencia por nombre (con normalización y alias). Null si no existe. */
+    public static function buscarPorNombre(?string $nombre): ?self
+    {
+        $norm = static::normalizarNombre($nombre);
+        if ($norm === '') {
+            return null;
+        }
+        static $porNombre = null;
+        $porNombre ??= static::all()->keyBy(fn ($d) => static::normalizarNombre($d->nombre));
+        $key = static::aliasNombres()[$norm] ?? $norm;
+
+        return $porNombre[$key] ?? $porNombre[$norm] ?? null;
+    }
+
     /**
      * Nombre de la dependencia tal como debe aparecer en la columna
      * "Unidad de contratación (referencia)" del formato de SECOP II.
