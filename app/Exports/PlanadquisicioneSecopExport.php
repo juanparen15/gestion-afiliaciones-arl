@@ -23,7 +23,7 @@ class PlanadquisicioneSecopExport implements FromView
                 'mese', 'intervalo', 'modalidade', 'fuente', 'vigenfutura',
                 'estadovigencia', 'area', 'dependencia', 'user', 'productos', 'clases',
             ])
-            ->whereYear('created_at', $this->vigencia)
+            ->where('vigencia', $this->vigencia)
             ->orderBy('id_vigencia')
             ->get();
 

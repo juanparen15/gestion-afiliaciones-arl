@@ -48,11 +48,11 @@ class ImportarProcesosSeleccion extends Command
             $this->warn('MODO DRY-RUN: no se escribe nada.');
         }
 
-        // Índice del PAA (año + N° Reg) → id, para vincular.
+        // Índice del PAA (vigencia + N° Reg) → id, para vincular.
         $paa = Planadquisicione::query()
-            ->selectRaw('id, id_vigencia, YEAR(created_at) as anio')
-            ->get()
-            ->keyBy(fn ($p) => $p->anio . '-' . $p->id_vigencia);
+            ->whereNotNull('vigencia')
+            ->get(['id', 'id_vigencia', 'vigencia'])
+            ->keyBy(fn ($p) => $p->vigencia . '-' . $p->id_vigencia);
 
         $reader = IOFactory::createReaderForFile($ruta);
         $reader->setReadDataOnly(true);

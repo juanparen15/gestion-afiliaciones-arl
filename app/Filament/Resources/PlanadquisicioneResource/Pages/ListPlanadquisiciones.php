@@ -28,13 +28,8 @@ class ListPlanadquisiciones extends ListRecords
                     Select::make('vigencia')
                         ->label('Vigencia (Año)')
                         ->options(function (): array {
-                            $driver = DB::getDriverName();
-                            $yearExpr = $driver === 'sqlite'
-                                ? "CAST(strftime('%Y', created_at) AS INTEGER)"
-                                : 'YEAR(created_at)';
-
-                            $años = Planadquisicione::selectRaw("{$yearExpr} as year")
-                                ->distinct()->orderBy('year', 'desc')->pluck('year', 'year')->toArray();
+                            $años = Planadquisicione::whereNotNull('vigencia')
+                                ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray();
 
                             return $años ?: [date('Y') => date('Y')];
                         })

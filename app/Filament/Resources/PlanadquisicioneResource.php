@@ -55,6 +55,10 @@ class PlanadquisicioneResource extends Resource
                     ->description('Descripción, valor y ubicación')
                     ->completedIcon('heroicon-o-check-circle')
                     ->schema([
+                        Forms\Components\TextInput::make('vigencia')->label('Vigencia (Año)')
+                            ->numeric()->minValue(2020)->maxValue(2100)
+                            ->default((int) date('Y'))->required()
+                            ->helperText('Año del Plan de Adquisiciones al que pertenece este registro.'),
                         Forms\Components\TextInput::make('descripcioncont')->label('Descripción del Contrato')->required()->maxLength(500)->columnSpanFull(),
                         Forms\Components\TextInput::make('valorestimadocont')->label('Valor Total Estimado')->required()
                             ->prefix('$')
@@ -276,7 +280,7 @@ class PlanadquisicioneResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id_vigencia')->label('N° Reg.')->badge()->color('primary')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->label('Vigencia')->date('Y')->badge()->color('info')->sortable(),
+                Tables\Columns\TextColumn::make('vigencia')->label('Vigencia')->badge()->color('info')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('descripcioncont')->label('Descripción')->searchable()->sortable()->limit(60)->tooltip(fn ($record) => $record->descripcioncont),
                 Tables\Columns\TextColumn::make('valorestimadocont')->label('Valor Estimado')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('codbpim')->label('Código BPIM')->searchable()->toggleable(isToggledHiddenByDefault: true),
@@ -295,16 +299,10 @@ class PlanadquisicioneResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('vigencia')->label('Vigencia (Año)')
-                    ->options(function () {
-                        // Año derivado de created_at; compatible con SQLite (tests) y MySQL (prod)
-                        $driver = DB::getDriverName();
-                        $yearExpr = $driver === 'sqlite'
-                            ? "CAST(strftime('%Y', created_at) AS INTEGER)"
-                            : 'YEAR(created_at)';
-                        return Planadquisicione::selectRaw("{$yearExpr} as year")->distinct()->orderBy('year', 'desc')->pluck('year', 'year')->toArray();
-                    })
+                    ->options(fn () => Planadquisicione::whereNotNull('vigencia')
+                        ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
                     ->default((string) now()->year)
-                    ->query(fn (Builder $query, array $data) => empty($data['value']) ? $query : $query->whereYear('created_at', $data['value'])),
+                    ->query(fn (Builder $query, array $data) => empty($data['value']) ? $query : $query->where('vigencia', $data['value'])),
                 // El filtro de Área solo aplica a usuarios que ven varias áreas.
                 // Si el usuario ya está limitado a un área, sobra (siempre ve la suya).
                 Tables\Filters\SelectFilter::make('area_id')->label('Área')->relationship('area', 'nombre')->searchable()->preload()
@@ -336,7 +334,7 @@ class PlanadquisicioneResource extends Resource
                                     Column::make('fuente.detfuente')->heading('Fuente'),
                                     Column::make('mese.nommes')->heading('Mes'),
                                     Column::make('codbpim')->heading('Código BPIM'),
-                                    Column::make('created_at')->heading('Vigencia')->formatStateUsing(fn ($state) => $state?->format('Y')),
+                                    Column::make('vigencia')->heading('Vigencia'),
                                     Column::make('user.name')->heading('Registrado por'),
                                 ])
                                 ->withFilename('plan-adquisiciones-' . now()->format('Y-m-d')),

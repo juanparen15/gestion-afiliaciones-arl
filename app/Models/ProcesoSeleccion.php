@@ -69,6 +69,6 @@ class ProcesoSeleccion extends Model
         }
         [$anio, $nreg] = [(int) $m[1], (int) $m[2]];
 
-        return Planadquisicione::whereYear('created_at', $anio)->where('id_vigencia', $nreg)->first();
+        return Planadquisicione::where('vigencia', $anio)->where('id_vigencia', $nreg)->first();
     }
 }
