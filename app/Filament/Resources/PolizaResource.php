@@ -33,24 +33,35 @@ class PolizaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('consecutivo')->label('Consecutivo')->maxLength(50),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
-                Forms\Components\TextInput::make('contrato_texto')->label('Contrato')
-                    ->placeholder('Ej: 468 de 2025')->maxLength(100),
-                Forms\Components\TextInput::make('estado')->label('Estado')
-                    ->maxLength(100)
-                    ->placeholder('Ej: INICIO, ADICIÓN, PRÓRROGA, FINAL...')
-                    ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s)) ?: null),
-                Forms\Components\Select::make('dependencia_id')->label('Dependencia')
-                    ->relationship('dependencia', 'nombre')->searchable()->preload(),
-                Forms\Components\Select::make('aprobador_id')->label('Quién proyecta / aprueba')
-                    ->relationship('aprobador', 'nombre')->searchable()->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('nombre')->required()
-                            ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
-                    ]),
-                Forms\Components\Textarea::make('observaciones')->label('Observación')->rows(2)->columnSpanFull(),
-            ])->columns(2);
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Datos de la póliza')
+                        ->icon('heroicon-o-shield-check')
+                        ->schema([
+                            Forms\Components\TextInput::make('consecutivo')->label('Consecutivo')->maxLength(50),
+                            Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
+                            Forms\Components\TextInput::make('contrato_texto')->label('Contrato')
+                                ->placeholder('Ej: 468 de 2025')->maxLength(100),
+                            Forms\Components\TextInput::make('estado')->label('Estado')
+                                ->maxLength(100)
+                                ->placeholder('Ej: INICIO, ADICIÓN, PRÓRROGA, FINAL...')
+                                ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s)) ?: null),
+                        ])->columns(2),
+
+                    Forms\Components\Wizard\Step::make('Responsable')
+                        ->icon('heroicon-o-user-group')
+                        ->schema([
+                            Forms\Components\Select::make('dependencia_id')->label('Dependencia')
+                                ->relationship('dependencia', 'nombre')->searchable()->preload(),
+                            Forms\Components\Select::make('aprobador_id')->label('Quién proyecta / aprueba')
+                                ->relationship('aprobador', 'nombre')->searchable()->preload()
+                                ->createOptionForm([
+                                    Forms\Components\TextInput::make('nombre')->required()
+                                        ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
+                                ]),
+                            Forms\Components\Textarea::make('observaciones')->label('Observación')->rows(2)->columnSpanFull(),
+                        ])->columns(2),
+                ])->columnSpanFull(),
+            ]);
     }
 
     public static function table(Table $table): Table

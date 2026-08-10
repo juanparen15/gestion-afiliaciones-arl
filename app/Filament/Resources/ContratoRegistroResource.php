@@ -33,53 +33,64 @@ class ContratoRegistroResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('tipo')
-                    ->label('Tipo')->options(ContratoRegistro::TIPOS)
-                    ->native(false)->required()->default('CONTRATO'),
-                Forms\Components\TextInput::make('numero')->label('N° / Ítem')->maxLength(50),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
-                Forms\Components\TextInput::make('contratista')->label('Contratista')->maxLength(255)->columnSpanFull(),
-                Forms\Components\TextInput::make('proceso_texto')->label('Proceso')->placeholder('Ej: CD-CPS 001 DE 2026')->maxLength(255),
-                Forms\Components\TextInput::make('modalidad')->label('Modalidad')->maxLength(100),
-                Forms\Components\Select::make('dependencia_id')
-                    ->label('Dependencia')->relationship('dependencia', 'nombre')->searchable()->preload(),
-                Forms\Components\Select::make('elaborador_id')
-                    ->label('Quién elaboró')->relationship('elaborador', 'nombre')->searchable()->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('nombre')->required()
-                            ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
-                    ]),
-                Forms\Components\Select::make('paa_vigencia')
-                    ->label('Vigencia del PAA')
-                    ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
-                        ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
-                    ->native(false)->live()->dehydrated(false)
-                    ->afterStateUpdated(fn (Forms\Set $set) => $set('planadquisicione_id', null))
-                    ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
-                        if ($pid = $get('planadquisicione_id')) {
-                            $set('paa_vigencia', optional(\App\Models\Planadquisicione::find($pid))->vigencia);
-                        }
-                    }),
-                Forms\Components\Select::make('planadquisicione_id')
-                    ->label('Registro del PAA (N° Reg)')
-                    ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
-                        ? \App\Models\Planadquisicione::where('vigencia', $get('paa_vigencia'))
-                            ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
-                            ->mapWithKeys(fn ($p) => [$p->id => $p->id_vigencia . ' - ' . $p->descripcioncont])
-                        : [])
-                    ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::find($value))
-                        ? $p->id_vigencia . ' - ' . $p->descripcioncont : $value)
-                    ->searchable()->native(false)->live()
-                    ->helperText('Seleccione la vigencia y luego el registro del Plan.')
-                    ->afterStateUpdated(function (Forms\Set $set, $state) {
-                        if ($p = \App\Models\Planadquisicione::find($state)) {
-                            $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
-                        }
-                    }),
-                Forms\Components\Hidden::make('consecutivo_paa'),
-                Forms\Components\TextInput::make('valor')->label('Valor')->numeric()->prefix('$'),
-                Forms\Components\Textarea::make('observaciones')->label('Observaciones')->rows(2)->columnSpanFull(),
-            ])->columns(2);
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Datos del contrato')
+                        ->icon('heroicon-o-document-text')
+                        ->schema([
+                            Forms\Components\Select::make('tipo')
+                                ->label('Tipo')->options(ContratoRegistro::TIPOS)
+                                ->native(false)->required()->default('CONTRATO'),
+                            Forms\Components\TextInput::make('numero')->label('N° / Ítem')->maxLength(50),
+                            Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
+                            Forms\Components\TextInput::make('valor')->label('Valor')->numeric()->prefix('$'),
+                            Forms\Components\TextInput::make('contratista')->label('Contratista')->maxLength(255)->columnSpanFull(),
+                            Forms\Components\TextInput::make('proceso_texto')->label('Proceso')->placeholder('Ej: CD-CPS 001 DE 2026')->maxLength(255),
+                            Forms\Components\TextInput::make('modalidad')->label('Modalidad')->maxLength(100),
+                        ])->columns(2),
+
+                    Forms\Components\Wizard\Step::make('Responsable y PAA')
+                        ->icon('heroicon-o-user-group')
+                        ->schema([
+                            Forms\Components\Select::make('dependencia_id')
+                                ->label('Dependencia')->relationship('dependencia', 'nombre')->searchable()->preload(),
+                            Forms\Components\Select::make('elaborador_id')
+                                ->label('Quién elaboró')->relationship('elaborador', 'nombre')->searchable()->preload()
+                                ->createOptionForm([
+                                    Forms\Components\TextInput::make('nombre')->required()
+                                        ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
+                                ]),
+                            Forms\Components\Select::make('paa_vigencia')
+                                ->label('Vigencia del PAA')
+                                ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
+                                    ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
+                                ->native(false)->live()->dehydrated(false)
+                                ->afterStateUpdated(fn (Forms\Set $set) => $set('planadquisicione_id', null))
+                                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                                    if ($pid = $get('planadquisicione_id')) {
+                                        $set('paa_vigencia', optional(\App\Models\Planadquisicione::find($pid))->vigencia);
+                                    }
+                                }),
+                            Forms\Components\Select::make('planadquisicione_id')
+                                ->label('Registro del PAA (N° Reg)')
+                                ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
+                                    ? \App\Models\Planadquisicione::where('vigencia', $get('paa_vigencia'))
+                                        ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
+                                        ->mapWithKeys(fn ($p) => [$p->id => $p->id_vigencia . ' - ' . $p->descripcioncont])
+                                    : [])
+                                ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::find($value))
+                                    ? $p->id_vigencia . ' - ' . $p->descripcioncont : $value)
+                                ->searchable()->native(false)->live()
+                                ->helperText('Seleccione la vigencia y luego el registro del Plan.')
+                                ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                    if ($p = \App\Models\Planadquisicione::find($state)) {
+                                        $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
+                                    }
+                                }),
+                            Forms\Components\Hidden::make('consecutivo_paa'),
+                            Forms\Components\Textarea::make('observaciones')->label('Observaciones')->rows(2)->columnSpanFull(),
+                        ])->columns(2),
+                ])->columnSpanFull(),
+            ]);
     }
 
     public static function table(Table $table): Table

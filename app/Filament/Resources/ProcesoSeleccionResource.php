@@ -33,76 +33,87 @@ class ProcesoSeleccionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('modalidad')
-                    ->label('Modalidad')
-                    ->options(ProcesoSeleccion::MODALIDADES)
-                    ->native(false)->required()->live()
-                    ->helperText(fn (Forms\Get $get) => filled($get('modalidad'))
-                        ? 'Código: ' . (ProcesoSeleccion::PREFIJOS[$get('modalidad')] ?? '') . ' ### DE ' . ($get('vigencia') ?: date('Y'))
-                        : null),
-                Forms\Components\TextInput::make('vigencia')->label('Vigencia (Año)')
-                    ->numeric()->minValue(2020)->maxValue(2100)->default((int) date('Y'))->required()->live(),
-                Forms\Components\Placeholder::make('codigo_view')
-                    ->label('Consecutivo / Código')
-                    ->content(fn (?ProcesoSeleccion $record) => $record?->codigo
-                        ?? 'Se asignará automáticamente al guardar (según modalidad y vigencia).'),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
-                Forms\Components\Select::make('estado')->label('Estado')
-                    ->options([
-                        'EN PROCESO' => 'En proceso',
-                        'ADJUDICADO' => 'Adjudicado',
-                        'DESIERTO'   => 'Desierto',
-                        'SUSPENDIDO' => 'Suspendido',
-                        'CANCELADO'  => 'Cancelado',
-                        'TERMINADO'  => 'Terminado',
-                    ])->native(false)->placeholder('Seleccione un estado'),
-                Forms\Components\Textarea::make('objeto')
-                    ->label('Objeto (abreviado)')->rows(2)->columnSpanFull(),
-                Forms\Components\Select::make('dependencia_id')
-                    ->label('Dependencia')
-                    ->relationship('dependencia', 'nombre')
-                    ->searchable()->preload(),
-                Forms\Components\Select::make('elaborador_id')
-                    ->label('Quién elaboró')
-                    ->relationship('elaborador', 'nombre')
-                    ->searchable()->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('nombre')->required()
-                            ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
-                    ]),
-                // PAA: primero la vigencia, luego el registro del Plan (busca por N° Reg).
-                Forms\Components\Select::make('paa_vigencia')
-                    ->label('Vigencia del PAA')
-                    ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
-                        ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
-                    ->native(false)->live()->dehydrated(false)
-                    ->afterStateUpdated(fn (Forms\Set $set) => $set('planadquisicione_id', null))
-                    ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
-                        if ($pid = $get('planadquisicione_id')) {
-                            $set('paa_vigencia', optional(\App\Models\Planadquisicione::find($pid))->vigencia);
-                        }
-                    }),
-                Forms\Components\Select::make('planadquisicione_id')
-                    ->label('Registro del PAA (N° Reg)')
-                    ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
-                        ? \App\Models\Planadquisicione::where('vigencia', $get('paa_vigencia'))
-                            ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
-                            ->mapWithKeys(fn ($p) => [$p->id => $p->id_vigencia . ' - ' . $p->descripcioncont])
-                        : [])
-                    ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::find($value))
-                        ? $p->id_vigencia . ' - ' . $p->descripcioncont : $value)
-                    ->searchable()->native(false)
-                    ->helperText('Seleccione la vigencia y luego el registro del Plan.')
-                    ->live()
-                    ->afterStateUpdated(function (Forms\Set $set, $state) {
-                        if ($p = \App\Models\Planadquisicione::find($state)) {
-                            $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
-                        }
-                    }),
-                Forms\Components\Hidden::make('consecutivo_paa'),
-                Forms\Components\Textarea::make('observaciones')
-                    ->label('Observaciones')->rows(2)->columnSpanFull(),
-            ])->columns(2);
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Datos del proceso')
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->schema([
+                            Forms\Components\Select::make('modalidad')
+                                ->label('Modalidad')
+                                ->options(ProcesoSeleccion::MODALIDADES)
+                                ->native(false)->required()->live()
+                                ->helperText(fn (Forms\Get $get) => filled($get('modalidad'))
+                                    ? 'Código: ' . (ProcesoSeleccion::PREFIJOS[$get('modalidad')] ?? '') . ' ### DE ' . ($get('vigencia') ?: date('Y'))
+                                    : null),
+                            Forms\Components\TextInput::make('vigencia')->label('Vigencia (Año)')
+                                ->numeric()->minValue(2020)->maxValue(2100)->default((int) date('Y'))->required()->live(),
+                            Forms\Components\Placeholder::make('codigo_view')
+                                ->label('Consecutivo / Código')
+                                ->content(fn (?ProcesoSeleccion $record) => $record?->codigo
+                                    ?? 'Se asignará automáticamente al guardar (según modalidad y vigencia).'),
+                            Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
+                            Forms\Components\Select::make('estado')->label('Estado')
+                                ->options([
+                                    'EN PROCESO' => 'En proceso',
+                                    'ADJUDICADO' => 'Adjudicado',
+                                    'DESIERTO'   => 'Desierto',
+                                    'SUSPENDIDO' => 'Suspendido',
+                                    'CANCELADO'  => 'Cancelado',
+                                    'TERMINADO'  => 'Terminado',
+                                ])->native(false)->placeholder('Seleccione un estado'),
+                            Forms\Components\Textarea::make('objeto')
+                                ->label('Objeto (abreviado)')->rows(2)->columnSpanFull(),
+                        ])->columns(2),
+
+                    Forms\Components\Wizard\Step::make('Responsable y PAA')
+                        ->icon('heroicon-o-user-group')
+                        ->schema([
+                            Forms\Components\Select::make('dependencia_id')
+                                ->label('Dependencia')
+                                ->relationship('dependencia', 'nombre')
+                                ->searchable()->preload(),
+                            Forms\Components\Select::make('elaborador_id')
+                                ->label('Quién elaboró')
+                                ->relationship('elaborador', 'nombre')
+                                ->searchable()->preload()
+                                ->createOptionForm([
+                                    Forms\Components\TextInput::make('nombre')->required()
+                                        ->dehydrateStateUsing(fn ($s) => mb_strtoupper(trim((string) $s))),
+                                ]),
+                            // PAA: primero la vigencia, luego el registro del Plan (busca por N° Reg).
+                            Forms\Components\Select::make('paa_vigencia')
+                                ->label('Vigencia del PAA')
+                                ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
+                                    ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
+                                ->native(false)->live()->dehydrated(false)
+                                ->afterStateUpdated(fn (Forms\Set $set) => $set('planadquisicione_id', null))
+                                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                                    if ($pid = $get('planadquisicione_id')) {
+                                        $set('paa_vigencia', optional(\App\Models\Planadquisicione::find($pid))->vigencia);
+                                    }
+                                }),
+                            Forms\Components\Select::make('planadquisicione_id')
+                                ->label('Registro del PAA (N° Reg)')
+                                ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
+                                    ? \App\Models\Planadquisicione::where('vigencia', $get('paa_vigencia'))
+                                        ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
+                                        ->mapWithKeys(fn ($p) => [$p->id => $p->id_vigencia . ' - ' . $p->descripcioncont])
+                                    : [])
+                                ->getOptionLabelUsing(fn ($value) => ($p = \App\Models\Planadquisicione::find($value))
+                                    ? $p->id_vigencia . ' - ' . $p->descripcioncont : $value)
+                                ->searchable()->native(false)
+                                ->helperText('Seleccione la vigencia y luego el registro del Plan.')
+                                ->live()
+                                ->afterStateUpdated(function (Forms\Set $set, $state) {
+                                    if ($p = \App\Models\Planadquisicione::find($state)) {
+                                        $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
+                                    }
+                                }),
+                            Forms\Components\Hidden::make('consecutivo_paa'),
+                            Forms\Components\Textarea::make('observaciones')
+                                ->label('Observaciones')->rows(2)->columnSpanFull(),
+                        ])->columns(2),
+                ])->columnSpanFull(),
+            ]);
     }
 
     public static function table(Table $table): Table
