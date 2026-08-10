@@ -37,7 +37,7 @@ class ContratoRegistroResource extends Resource
                     ->label('Tipo')->options(ContratoRegistro::TIPOS)
                     ->native(false)->required()->default('CONTRATO'),
                 Forms\Components\TextInput::make('numero')->label('N° / Ítem')->maxLength(50),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false),
+                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
                 Forms\Components\TextInput::make('contratista')->label('Contratista')->maxLength(255)->columnSpanFull(),
                 Forms\Components\TextInput::make('proceso_texto')->label('Proceso')->placeholder('Ej: CD-CPS 001 DE 2026')->maxLength(255),
                 Forms\Components\TextInput::make('modalidad')->label('Modalidad')->maxLength(100),
@@ -76,9 +76,7 @@ class ContratoRegistroResource extends Resource
                             $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
                         }
                     }),
-                Forms\Components\TextInput::make('consecutivo_paa')
-                    ->label('Consecutivo PAA (texto)')->placeholder('Ej: 2026-221')
-                    ->helperText('Se completa al elegir el registro; editable si el PAA no está en el sistema.'),
+                Forms\Components\Hidden::make('consecutivo_paa'),
                 Forms\Components\TextInput::make('valor')->label('Valor')->numeric()->prefix('$'),
                 Forms\Components\Textarea::make('observaciones')->label('Observaciones')->rows(2)->columnSpanFull(),
             ])->columns(2);

@@ -34,7 +34,7 @@ class PolizaResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('consecutivo')->label('Consecutivo')->maxLength(50),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false),
+                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
                 Forms\Components\TextInput::make('contrato_texto')->label('Contrato')
                     ->placeholder('Ej: 468 de 2025')->maxLength(100),
                 Forms\Components\TextInput::make('estado')->label('Estado')

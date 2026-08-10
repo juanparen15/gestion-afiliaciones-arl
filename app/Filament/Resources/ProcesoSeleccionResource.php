@@ -42,11 +42,20 @@ class ProcesoSeleccionResource extends Resource
                         : null),
                 Forms\Components\TextInput::make('vigencia')->label('Vigencia (Año)')
                     ->numeric()->minValue(2020)->maxValue(2100)->default((int) date('Y'))->required()->live(),
-                Forms\Components\TextInput::make('consecutivo')
-                    ->label('Consecutivo (N°)')->maxLength(50)
-                    ->helperText('Déjelo vacío para asignación automática por modalidad y vigencia.'),
-                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false),
-                Forms\Components\TextInput::make('estado')->label('Estado')->maxLength(100),
+                Forms\Components\Placeholder::make('codigo_view')
+                    ->label('Consecutivo / Código')
+                    ->content(fn (?ProcesoSeleccion $record) => $record?->codigo
+                        ?? 'Se asignará automáticamente al guardar (según modalidad y vigencia).'),
+                Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false)->default(now()),
+                Forms\Components\Select::make('estado')->label('Estado')
+                    ->options([
+                        'EN PROCESO' => 'En proceso',
+                        'ADJUDICADO' => 'Adjudicado',
+                        'DESIERTO'   => 'Desierto',
+                        'SUSPENDIDO' => 'Suspendido',
+                        'CANCELADO'  => 'Cancelado',
+                        'TERMINADO'  => 'Terminado',
+                    ])->native(false)->placeholder('Seleccione un estado'),
                 Forms\Components\Textarea::make('objeto')
                     ->label('Objeto (abreviado)')->rows(2)->columnSpanFull(),
                 Forms\Components\Select::make('dependencia_id')
@@ -90,10 +99,7 @@ class ProcesoSeleccionResource extends Resource
                             $set('consecutivo_paa', $p->vigencia . '-' . $p->id_vigencia);
                         }
                     }),
-                Forms\Components\TextInput::make('consecutivo_paa')
-                    ->label('Consecutivo PAA (texto)')
-                    ->placeholder('Ej: 2026-221')
-                    ->helperText('Se completa al elegir el registro; editable si el PAA no está en el sistema.'),
+                Forms\Components\Hidden::make('consecutivo_paa'),
                 Forms\Components\Textarea::make('observaciones')
                     ->label('Observaciones')->rows(2)->columnSpanFull(),
             ])->columns(2);
