@@ -36,9 +36,15 @@ class ProcesoSeleccionResource extends Resource
                 Forms\Components\Select::make('modalidad')
                     ->label('Modalidad')
                     ->options(ProcesoSeleccion::MODALIDADES)
-                    ->native(false)->required(),
+                    ->native(false)->required()->live()
+                    ->helperText(fn (Forms\Get $get) => filled($get('modalidad'))
+                        ? 'Código: ' . (ProcesoSeleccion::PREFIJOS[$get('modalidad')] ?? '') . ' ### DE ' . ($get('vigencia') ?: date('Y'))
+                        : null),
+                Forms\Components\TextInput::make('vigencia')->label('Vigencia (Año)')
+                    ->numeric()->minValue(2020)->maxValue(2100)->default((int) date('Y'))->required()->live(),
                 Forms\Components\TextInput::make('consecutivo')
-                    ->label('Consecutivo (N°)')->maxLength(50),
+                    ->label('Consecutivo (N°)')->maxLength(50)
+                    ->helperText('Déjelo vacío para asignación automática por modalidad y vigencia.'),
                 Forms\Components\DatePicker::make('fecha')->label('Fecha')->native(false),
                 Forms\Components\TextInput::make('estado')->label('Estado')->maxLength(100),
                 Forms\Components\Textarea::make('objeto')
@@ -97,10 +103,12 @@ class ProcesoSeleccionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('consecutivo')->label('N°')->badge()->color('primary')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('codigo')->label('Código')->badge()->color('primary')
+                    ->sortable(['consecutivo']),
                 Tables\Columns\TextColumn::make('modalidad')->label('Modalidad')->badge()
                     ->formatStateUsing(fn ($state) => ProcesoSeleccion::MODALIDADES[$state] ?? $state)
                     ->color('info')->sortable(),
+                Tables\Columns\TextColumn::make('vigencia')->label('Vig.')->badge()->color('gray')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('fecha')->label('Fecha')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('objeto')->label('Objeto')->limit(45)->tooltip(fn ($record) => $record->objeto)->searchable(),
                 Tables\Columns\TextColumn::make('dependencia_texto')->label('Dependencia')->badge()->color('gray')->placeholder('-'),

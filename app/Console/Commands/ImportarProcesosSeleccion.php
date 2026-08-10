@@ -25,7 +25,7 @@ class ImportarProcesosSeleccion extends Command
         'MENOR'     => 'MENOR_CUANTIA',
         'SUBASTA'   => 'SUBASTA_INVERSA',
         'CONCURSO'  => 'CONCURSO_MERITOS',
-        'LICITACION' => 'LICITACION',
+        'LICITACION' => 'LICITACION_PUBLICA',
     ];
 
     public function handle(): int
@@ -114,9 +114,11 @@ class ImportarProcesosSeleccion extends Command
 
                 if ($dryRun) { $creados++; continue; }
 
+                $fecha = $this->fecha($hoja->getCell('C' . $i)->getValue());
                 ProcesoSeleccion::create([
                     'consecutivo'         => $consecutivo ?: null,
-                    'fecha'               => $this->fecha($hoja->getCell('C' . $i)->getValue()),
+                    'vigencia'            => $fecha ? (int) substr($fecha, 0, 4) : (int) date('Y'),
+                    'fecha'               => $fecha,
                     'objeto'              => $objeto,
                     'modalidad'           => $clave,
                     'dependencia_id'      => $dep?->id,

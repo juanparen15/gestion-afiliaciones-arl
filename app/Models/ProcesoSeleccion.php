@@ -11,6 +11,7 @@ class ProcesoSeleccion extends Model
 
     protected $fillable = [
         'consecutivo',
+        'vigencia',
         'fecha',
         'objeto',
         'modalidad',
@@ -28,12 +29,57 @@ class ProcesoSeleccion extends Model
     ];
 
     public const MODALIDADES = [
-        'MINIMA_CUANTIA'   => 'Mínima cuantía',
-        'MENOR_CUANTIA'    => 'Menor cuantía',
-        'SUBASTA_INVERSA'  => 'Subasta inversa',
-        'CONCURSO_MERITOS' => 'Concurso de méritos',
-        'LICITACION'       => 'Licitación',
+        'MINIMA_CUANTIA'     => 'Mínima cuantía',
+        'MENOR_CUANTIA'      => 'Menor cuantía',
+        'SUBASTA_INVERSA'    => 'Subasta inversa',
+        'CONCURSO_MERITOS'   => 'Concurso de méritos',
+        'LICITACION_PUBLICA' => 'Licitación pública',
+        'LICITACION_OBRA'    => 'Licitación de obra',
     ];
+
+    /** Prefijo del consecutivo por modalidad. */
+    public const PREFIJOS = [
+        'MINIMA_CUANTIA'     => 'SMC',
+        'MENOR_CUANTIA'      => 'SAMC',
+        'SUBASTA_INVERSA'    => 'SASI',
+        'CONCURSO_MERITOS'   => 'CMA',
+        'LICITACION_PUBLICA' => 'LIC',
+        'LICITACION_OBRA'    => 'LIC OBRA',
+    ];
+
+    protected static function booted(): void
+    {
+        // Consecutivo automático por modalidad + vigencia (si viene vacío).
+        static::creating(function (ProcesoSeleccion $p) {
+            if (blank($p->vigencia)) {
+                $p->vigencia = optional($p->fecha)->year ?? (int) date('Y');
+            }
+            if (blank($p->consecutivo)) {
+                $p->consecutivo = static::siguienteConsecutivo($p->modalidad, (int) $p->vigencia);
+            }
+        });
+    }
+
+    /** Siguiente consecutivo (3 dígitos) para una modalidad y vigencia. */
+    public static function siguienteConsecutivo(string $modalidad, int $vigencia): string
+    {
+        $max = static::where('modalidad', $modalidad)->where('vigencia', $vigencia)
+            ->get(['consecutivo'])
+            ->map(fn ($r) => (int) preg_replace('/\D/', '', (string) $r->consecutivo))
+            ->max();
+
+        return str_pad((string) (((int) $max) + 1), 3, '0', STR_PAD_LEFT);
+    }
+
+    /** Código completo, ej. "SMC 001 DE 2026". */
+    public function getCodigoAttribute(): string
+    {
+        $prefijo = self::PREFIJOS[$this->modalidad] ?? '';
+        $num = str_pad((string) (int) preg_replace('/\D/', '', (string) $this->consecutivo), 3, '0', STR_PAD_LEFT);
+        $anio = $this->vigencia ?: (optional($this->fecha)->year ?? date('Y'));
+
+        return trim("{$prefijo} {$num} DE {$anio}");
+    }
 
     public function dependencia(): BelongsTo
     {
