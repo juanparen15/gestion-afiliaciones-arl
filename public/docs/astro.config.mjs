@@ -39,6 +39,10 @@ export default defineConfig({
           autogenerate: { directory: 'usuario' },
         },
         {
+          label: 'Contratación',
+          autogenerate: { directory: 'contratacion' },
+        },
+        {
           label: 'Roles',
           autogenerate: { directory: 'roles' },
         },
