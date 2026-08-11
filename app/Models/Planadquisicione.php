@@ -60,7 +60,7 @@ class Planadquisicione extends Model
     public function scopeApplyDashboardFilters(Builder $query, array $filters): Builder
     {
         if (! empty($filters['vigencia'])) {
-            $query->whereYear($query->qualifyColumn('created_at'), (int) $filters['vigencia']);
+            $query->where($query->qualifyColumn('vigencia'), (int) $filters['vigencia']);
         }
 
         foreach (['area_id', 'dependencia_id', 'tipoadquisicione_id'] as $col) {

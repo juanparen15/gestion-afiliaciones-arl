@@ -237,7 +237,8 @@ class PlanadquisicioneResource extends Resource
                         TextEntry::make('codbpim')->label('Código BPIM')->placeholder('-'),
                         TextEntry::make('valorestimadocont')->label('Valor Estimado')->prefix('$ '),
                         TextEntry::make('valorestimadovig')->label('Valor Vigencia')->prefix('$ '),
-                        TextEntry::make('duracont')->label('Duración (meses)'),
+                        TextEntry::make('duracont')->label('Duración')
+                            ->formatStateUsing(fn ($state, $record) => trim($state . ' ' . optional($record->intervalo)->intervalo)),
                         TextEntry::make('user.name')->label('Registrado por')->placeholder('-'),
                     ])->columns(4),
 
@@ -325,7 +326,8 @@ class PlanadquisicioneResource extends Resource
                                     Column::make('descripcioncont')->heading('Descripción'),
                                     Column::make('valorestimadocont')->heading('Valor Estimado'),
                                     Column::make('valorestimadovig')->heading('Valor Vigencia'),
-                                    Column::make('duracont')->heading('Duración (meses)'),
+                                    Column::make('duracont')->heading('Duración')
+                                        ->formatStateUsing(fn ($state, $record) => trim($state . ' ' . optional($record->intervalo)->intervalo)),
                                     Column::make('dependencia.nombre')->heading('Dependencia'),
                                     Column::make('area.nombre')->heading('Área'),
                                     Column::make('modalidade.detmodalidad')->heading('Modalidad'),

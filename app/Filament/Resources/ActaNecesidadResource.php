@@ -191,15 +191,8 @@ class ActaNecesidadResource extends Resource
                     // Plan de esa vigencia, buscable por N° Reg (id_vigencia) o descripción.
                     Forms\Components\Select::make('paa_vigencia')
                         ->label('Vigencia del PAA')
-                        ->options(function () {
-                            $driver = \Illuminate\Support\Facades\DB::getDriverName();
-                            $yearExpr = $driver === 'sqlite'
-                                ? "CAST(strftime('%Y', created_at) AS INTEGER)"
-                                : 'YEAR(created_at)';
-                            return \App\Models\Planadquisicione::selectRaw("{$yearExpr} as y")
-                                ->whereNotNull('created_at')->distinct()->orderBy('y', 'desc')
-                                ->pluck('y', 'y')->toArray();
-                        })
+                        ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
+                            ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
                         ->native(false)->live()->dehydrated(false)
                         ->afterStateUpdated(fn (Forms\Set $set) => $set('codigo_paa', null))
                         ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
@@ -208,7 +201,7 @@ class ActaNecesidadResource extends Resource
                             $first = is_array($cod) ? ($cod[0] ?? null)
                                 : (filled($cod) ? trim(explode(',', (string) $cod)[0]) : null);
                             if (filled($first) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $first)->first())) {
-                                $set('paa_vigencia', (int) optional($p->created_at)->format('Y'));
+                                $set('paa_vigencia', (int) $p->vigencia);
                             }
                         })
                         ->columnSpanFull(),
@@ -218,7 +211,7 @@ class ActaNecesidadResource extends Resource
                         ->helperText('Seleccione la vigencia; luego uno o varios registros (busca por N° Reg o descripción).')
                         ->multiple()
                         ->options(fn (Forms\Get $get) => filled($get('paa_vigencia'))
-                            ? \App\Models\Planadquisicione::whereYear('created_at', $get('paa_vigencia'))
+                            ? \App\Models\Planadquisicione::where('vigencia', $get('paa_vigencia'))
                                 ->whereNotNull('id_vigencia')->orderBy('id_vigencia')->get()
                                 ->mapWithKeys(fn ($p) => [$p->id_vigencia => $p->id_vigencia . ' - ' . $p->descripcioncont])
                             : [])
