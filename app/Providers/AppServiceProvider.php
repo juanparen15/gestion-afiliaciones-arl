@@ -37,6 +37,18 @@ class AppServiceProvider extends ServiceProvider
         // Restringir WhatsApp Agent solo a super_admin
         Gate::policy(WhatsappAgent::class, WhatsappAgentPolicy::class);
 
+        // El toggle "puede aprobar actas" habilita editar Actas de Necesidad y
+        // Plan de Adquisiciones. Se hace aquí (no en las políticas) para que
+        // `shield:generate` pueda regenerar las políticas sin perder esta regla.
+        Gate::before(function ($user, string $ability) {
+            if (($user->puede_aprobar_actas ?? false)
+                && in_array($ability, ['update_acta::necesidad', 'update_planadquisicione'], true)) {
+                return true;
+            }
+
+            return null;
+        });
+
         // Registrar observer para afiliaciones
         Afiliacion::observe(AfiliacionObserver::class);
 

@@ -39,8 +39,7 @@ class PlanadquisicionePolicy
      */
     public function update(User $user, Planadquisicione $planadquisicione): bool
     {
-        // El toggle "puede aprobar actas" también habilita editar el Plan.
-        return $user->puede_aprobar_actas || $user->can('update_planadquisicione');
+        return $user->can('update_planadquisicione');
     }
 
     /**
