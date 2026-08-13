@@ -71,7 +71,8 @@
 </head>
 <body>
     @php
-        $money = fn ($v) => '$ ' . number_format((float) $v, 0, ',', '.');
+        // El valor se guarda como texto con puntos de miles ("39.600.000").
+        $money = fn ($v) => '$ ' . number_format((float) preg_replace('/[^\d]/', '', (string) $v), 0, ',', '.');
         $dur = trim($plan->duracont . ' ' . optional($plan->intervalo)->intervalo);
     @endphp
 
