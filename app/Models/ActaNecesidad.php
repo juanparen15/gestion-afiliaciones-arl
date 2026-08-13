@@ -135,9 +135,19 @@ class ActaNecesidad extends Model
     /** URL pública de verificación de autenticidad. */
     public function urlVerificacion(): ?string
     {
-        return $this->codigo_verificacion
-            ? url('/actas/verificar/' . $this->codigo_verificacion)
-            : null;
+        if (! $this->codigo_verificacion) {
+            return null;
+        }
+
+        // Base tomada de APP_URL, normalizada: garantiza esquema absoluto y una
+        // sola barra antes de la ruta. Evita QRs malformados (p. ej. ".coactas")
+        // si APP_URL viniera sin http(s):// o con barra final.
+        $base = rtrim((string) config('app.url'), '/');
+        if (! preg_match('~^https?://~i', $base)) {
+            $base = 'https://' . $base;
+        }
+
+        return $base . '/actas/verificar/' . $this->codigo_verificacion;
     }
 
     /** Nombre de dependencia (relación o texto denormalizado). */
