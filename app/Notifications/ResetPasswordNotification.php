@@ -71,10 +71,14 @@ class ResetPasswordNotification extends Notification
             return call_user_func(static::$createUrlCallback, $notifiable, $this->token);
         }
 
-        return url(route('password.reset', [
-            'token' => $this->token,
-            'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        // Filament NO registra la ruta 'password.reset'. Su ruta de reset es
+        // 'filament.{panel}.auth.password-reset.reset' y además requiere una URL
+        // FIRMADA. Este helper genera la URL correcta y firmada del panel actual;
+        // usarlo evita el RouteNotFoundException que impedía enviar el correo.
+        $panel = \Filament\Facades\Filament::getCurrentPanel()
+            ?? \Filament\Facades\Filament::getPanel('admin');
+
+        return $panel->getResetPasswordUrl($this->token, $notifiable);
     }
 
     /**
