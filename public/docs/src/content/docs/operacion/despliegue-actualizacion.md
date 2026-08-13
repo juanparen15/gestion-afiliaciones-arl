@@ -13,7 +13,7 @@ Guía operativa para el servidor de producción de la Alcaldía.
 |----------|-------|
 | Ruta del proyecto | `/var/www/html/gestion-afiliaciones-arl` |
 | Servidor web | Nginx/Apache + PHP-FPM 8.3 |
-| Dominio | `https://arl.ticsistemas.com.co` (detrás de Cloudflare) |
+| Dominio | `https://tramites.ticsistemas.com.co` (detrás de Cloudflare) |
 | Base de datos | MySQL |
 | Usuario del sistema | `www-data` |
 

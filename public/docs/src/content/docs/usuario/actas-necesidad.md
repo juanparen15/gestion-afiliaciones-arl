@@ -88,7 +88,7 @@ Cada acta aprobada tiene un **código de verificación** único. El QR del PDF
 enlaza a una página pública:
 
 ```
-https://arl.ticsistemas.com.co/actas/verificar/{codigo}
+https://tramites.ticsistemas.com.co/actas/verificar/{codigo}
 ```
 
 Cualquier persona puede escanear el QR o abrir el enlace para confirmar que el
