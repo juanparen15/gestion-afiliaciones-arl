@@ -32,11 +32,11 @@
             border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
         }
         .cab {
-            background: #0f2f5f; color: #ffffff; padding: 20px 28px; display: flex; align-items: center; gap: 16px;
+            background: #4b5563; color: #ffffff; padding: 20px 28px; display: flex; align-items: center; gap: 16px;
         }
         .cab img { width: 54px; height: 54px; }
         .cab h1 { font-size: 18px; font-weight: 700; }
-        .cab p { font-size: 12px; color: #c7d3e0; margin-top: 2px; }
+        .cab p { font-size: 12px; color: #d1d5db; margin-top: 2px; }
 
         .cuerpo { padding: 22px 28px; }
         .seccion-titulo {
