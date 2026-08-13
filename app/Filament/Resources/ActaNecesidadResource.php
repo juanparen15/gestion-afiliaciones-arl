@@ -200,7 +200,9 @@ class ActaNecesidadResource extends Resource
                             // Un acta puede tener varios códigos (coma-separados); tomo el primero.
                             $first = is_array($cod) ? ($cod[0] ?? null)
                                 : (filled($cod) ? trim(explode(',', (string) $cod)[0]) : null);
-                            if (filled($first) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $first)->first())) {
+                            // El N° Reg se repite entre vigencias; se prefiere la más reciente.
+                            if (filled($first) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $first)
+                                ->orderByDesc('vigencia')->first())) {
                                 $set('paa_vigencia', (int) $p->vigencia);
                             }
                         })
