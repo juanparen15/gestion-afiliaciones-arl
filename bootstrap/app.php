@@ -28,6 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Redirige el dominio antiguo (arl) al nuevo (tramites) conservando la
+        // ruta. Va primero para que los QR/correos viejos sigan funcionando.
+        $middleware->prepend(\App\Http\Middleware\RedirigirDominioAntiguo::class);
+
         // Configuración importante para Livewire
         $middleware->web(append: [
             \Illuminate\Session\Middleware\StartSession::class,
