@@ -9,6 +9,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Comprobante limpio (blanco) de un Plan de Adquisición, para imprimir/guardar.
+Route::get('/plan-comprobante/{plan}', function (\App\Models\Planadquisicione $plan) {
+    $plan->load([
+        'dependencia', 'area', 'user', 'intervalo', 'vigenfutura', 'tipozona',
+        'estadovigencia', 'modalidade', 'tipoadquisicione', 'requiproyecto',
+        'fuente', 'tipoprioridade', 'mese', 'requipoai', 'items',
+    ]);
+    return view('plan.comprobante', ['plan' => $plan]);
+})->middleware('auth')->name('plan.comprobante');
+
 // Verificación pública de autenticidad de un Acta de Necesidad (QR)
 Route::get('/actas/verificar/{codigo}', function (string $codigo) {
     $acta = \App\Models\ActaNecesidad::where('codigo_verificacion', $codigo)->first();

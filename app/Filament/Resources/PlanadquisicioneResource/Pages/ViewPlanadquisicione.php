@@ -13,14 +13,12 @@ class ViewPlanadquisicione extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pantallazo')
-                ->label('Tomar pantallazo')
+            Action::make('comprobante')
+                ->label('Comprobante')
                 ->icon('heroicon-o-camera')
                 ->color('success')
-                ->action(fn () => null)
-                ->extraAttributes([
-                    'onclick' => 'if (window.tomarPantallazoPlan) { window.tomarPantallazoPlan(); }',
-                ]),
+                ->url(fn (): string => route('plan.comprobante', ['plan' => $this->record]))
+                ->openUrlInNewTab(),
 
             Action::make('editar')
                 ->label('Editar')
