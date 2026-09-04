@@ -51,6 +51,90 @@ class AfiliacionResource extends Resource
                         ->description('Información personal del contratista')
                         ->completedIcon('heroicon-o-check-circle')
                         ->schema([
+                            // Buscador de contratista con afiliación previa: autocompleta los
+                            // datos repetitivos para no volver a escribirlos. Solo al crear.
+                            Forms\Components\Section::make('¿Contratista con afiliación previa?')
+                                ->description('Búscalo por nombre o documento y trae sus datos automáticamente.')
+                                ->icon('heroicon-o-magnifying-glass')
+                                ->visibleOn('create')
+                                ->collapsible()
+                                ->schema([
+                                    Forms\Components\Toggle::make('usar_contratista_existente')
+                                        ->label('El contratista ya tuvo una afiliación antes')
+                                        ->helperText('Actívalo para buscar y autocompletar datos personales, residencia, seguridad social, ARL, nivel de riesgo y supervisor. Podrás editarlos.')
+                                        ->live()
+                                        ->dehydrated(false)
+                                        ->columnSpanFull(),
+
+                                    Forms\Components\Select::make('buscar_contratista_existente')
+                                        ->label('Buscar contratista')
+                                        ->placeholder('Escribe el nombre o el número de documento…')
+                                        ->visible(fn(Forms\Get $get) => (bool) $get('usar_contratista_existente'))
+                                        ->dehydrated(false)
+                                        ->searchable()
+                                        ->native(false)
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->columnSpanFull()
+                                        ->getSearchResultsUsing(function (string $search): array {
+                                            $search = trim($search);
+                                            if (mb_strlen($search) < 3) {
+                                                return [];
+                                            }
+                                            $depId = \Illuminate\Support\Facades\Auth::user()?->dependencia_id;
+
+                                            return \App\Models\Afiliacion::query()
+                                                ->when($depId, fn($q) => $q->where('dependencia_id', $depId))
+                                                ->where(fn($q) => $q
+                                                    ->where('numero_documento', 'like', "%{$search}%")
+                                                    ->orWhere('nombre_contratista', 'like', "%{$search}%"))
+                                                ->orderByDesc('id')
+                                                ->limit(200)
+                                                ->get(['numero_documento', 'nombre_contratista'])
+                                                ->unique('numero_documento')
+                                                ->take(25)
+                                                ->mapWithKeys(fn($a) => [
+                                                    $a->numero_documento => trim($a->nombre_contratista) . ' — ' . $a->numero_documento,
+                                                ])
+                                                ->all();
+                                        })
+                                        ->getOptionLabelUsing(function ($value): ?string {
+                                            $a = \App\Models\Afiliacion::where('numero_documento', $value)->latest('id')->first();
+                                            return $a ? trim($a->nombre_contratista) . ' — ' . $a->numero_documento : $value;
+                                        })
+                                        ->afterStateUpdated(function ($state, Forms\Set $set): void {
+                                            if (blank($state)) {
+                                                return;
+                                            }
+                                            $a = \App\Models\Afiliacion::where('numero_documento', $state)->latest('id')->first();
+                                            if (! $a) {
+                                                return;
+                                            }
+                                            $n = \App\Models\Afiliacion::dividirNombre($a->nombre_contratista);
+                                            $set('primer_nombre', $n['primer_nombre']);
+                                            $set('segundo_nombre', $n['segundo_nombre']);
+                                            $set('primer_apellido', $n['primer_apellido']);
+                                            $set('segundo_apellido', $n['segundo_apellido']);
+                                            $set('tipo_documento', $a->tipo_documento);
+                                            $set('numero_documento', $a->numero_documento);
+                                            $set('fecha_nacimiento', $a->fecha_nacimiento ? \Illuminate\Support\Carbon::parse($a->fecha_nacimiento)->format('Y-m-d') : null);
+                                            $set('telefono_contratista', $a->telefono_contratista);
+                                            $set('email_contratista', $a->email_contratista);
+                                            $set('direccion_residencia', $a->direccion_residencia);
+                                            $set('barrio', $a->barrio);
+                                            $set('eps', $a->eps);
+                                            $set('afp', $a->afp);
+                                            $set('supervisor_contrato', $a->supervisor_contrato);
+                                            $set('nombre_arl', $a->nombre_arl);
+                                            $set('tipo_riesgo', $a->tipo_riesgo);
+
+                                            \Filament\Notifications\Notification::make()
+                                                ->success()
+                                                ->title('Datos autocompletados')
+                                                ->body('Se trajeron los datos de ' . trim($a->nombre_contratista) . '. Revisa y completa la información del nuevo contrato.')
+                                                ->send();
+                                        }),
+                                ]),
+
                             Forms\Components\Section::make('Información Personal')
                                 ->description('Ingrese los datos de identificación del contratista')
                                 ->icon('heroicon-o-identification')
