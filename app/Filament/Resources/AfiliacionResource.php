@@ -325,7 +325,10 @@ class AfiliacionResource extends Resource
                                         ->preload()
                                         ->native(false)
                                         ->live()
-                                        ->disabled(fn() => Auth::user()->hasRole('Dependencia'))
+                                        // Se bloquea solo si el usuario Dependencia YA tiene dependencia
+                                        // asignada. Si no la tiene, debe poder elegirla (si no, el campo
+                                        // queda deshabilitado + vacío + obligatorio = no puede registrar).
+                                        ->disabled(fn() => Auth::user()->hasRole('Dependencia') && filled(Auth::user()->dependencia_id))
                                         ->afterStateUpdated(function (Forms\Set $set) {
                                             $set('area_id', null);
                                         })
