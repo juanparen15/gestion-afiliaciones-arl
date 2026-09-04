@@ -72,6 +72,7 @@ class AfiliacionResource extends Resource
                                         ->visible(fn(Forms\Get $get) => (bool) $get('usar_contratista_existente'))
                                         ->dehydrated(false)
                                         ->searchable()
+                                        ->live() // necesario para que afterStateUpdated dispare al seleccionar
                                         ->native(false)
                                         ->prefixIcon('heroicon-o-user')
                                         ->columnSpanFull()
