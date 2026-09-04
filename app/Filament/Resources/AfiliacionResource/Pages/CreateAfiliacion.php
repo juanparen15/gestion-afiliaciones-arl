@@ -69,6 +69,16 @@ class CreateAfiliacion extends CreateRecord
     }
 
     /**
+     * Ocultamos las acciones del pie de página porque el botón "Guardar
+     * Afiliación" se renderiza DENTRO del footer del wizard (último paso),
+     * vía la vista filament.afiliacion.wizard-submit.
+     */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
+    /**
      * Hook que se ejecuta al montar el componente
      */
     public function mount(): void

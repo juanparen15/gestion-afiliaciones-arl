@@ -756,6 +756,7 @@ class AfiliacionResource extends Resource
                 ])
                     ->skippable(true)
                     ->persistStepInQueryString('paso')
+                    ->submitAction(view('filament.afiliacion.wizard-submit'))
                     ->columnSpanFull(),
             ]);
     }
