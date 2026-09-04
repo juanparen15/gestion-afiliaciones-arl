@@ -29,7 +29,7 @@ class ActaNecesidadResource extends Resource
     protected static ?string $navigationLabel = 'Actas de Necesidad';
     protected static ?string $modelLabel = 'Acta de Necesidad';
     protected static ?string $pluralModelLabel = 'Actas de Necesidad';
-    protected static ?string $navigationGroup = 'Gestión';
+    protected static ?string $navigationGroup = 'Gestión de Actas';
     protected static ?int $navigationSort = 20;
 
     public static function form(Form $form): Form

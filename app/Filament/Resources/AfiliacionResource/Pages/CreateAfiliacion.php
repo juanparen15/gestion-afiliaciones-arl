@@ -65,7 +65,7 @@ class CreateAfiliacion extends CreateRecord
     protected function getCreateFormAction(): Action
     {
         return parent::getCreateFormAction()
-            ->hidden();
+            ->label('Guardar Afiliación');
     }
 
     /**
