@@ -81,7 +81,9 @@ class AfiliacionResource extends Resource
                                             if (mb_strlen($search) < 3) {
                                                 return [];
                                             }
-                                            $depId = \Illuminate\Support\Facades\Auth::user()?->dependencia_id;
+                                            $user = \Illuminate\Support\Facades\Auth::user();
+                                            // El super_admin busca en TODAS las dependencias; los demas solo en la suya.
+                                            $depId = $user?->hasRole('super_admin') ? null : $user?->dependencia_id;
 
                                             return \App\Models\Afiliacion::query()
                                                 ->when($depId, fn($q) => $q->where('dependencia_id', $depId))
@@ -94,13 +96,13 @@ class AfiliacionResource extends Resource
                                                 ->unique('numero_documento')
                                                 ->take(25)
                                                 ->mapWithKeys(fn($a) => [
-                                                    $a->numero_documento => trim($a->nombre_contratista) . ' — ' . $a->numero_documento,
+                                                    $a->numero_documento => trim($a->nombre_contratista) . ' - ' . $a->numero_documento,
                                                 ])
                                                 ->all();
                                         })
                                         ->getOptionLabelUsing(function ($value): ?string {
                                             $a = \App\Models\Afiliacion::where('numero_documento', $value)->latest('id')->first();
-                                            return $a ? trim($a->nombre_contratista) . ' — ' . $a->numero_documento : $value;
+                                            return $a ? trim($a->nombre_contratista) . ' - ' . $a->numero_documento : $value;
                                         })
                                         ->afterStateUpdated(function ($state, Forms\Set $set): void {
                                             if (blank($state)) {

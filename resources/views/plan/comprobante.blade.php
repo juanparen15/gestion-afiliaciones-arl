@@ -96,43 +96,43 @@
 
             <div class="grid" style="margin-top:14px">
                 <div class="dato"><div class="k">N° de Registro</div><div class="v">{{ $plan->id_vigencia }}</div></div>
-                <div class="dato"><div class="k">Dependencia</div><div class="v">{{ optional($plan->dependencia)->nombre ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Área</div><div class="v">{{ optional($plan->area)->nombre ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Vigencia</div><div class="v">{{ $plan->vigencia ?? '—' }}</div></div>
+                <div class="dato"><div class="k">Dependencia</div><div class="v">{{ optional($plan->dependencia)->nombre ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Área</div><div class="v">{{ optional($plan->area)->nombre ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Vigencia</div><div class="v">{{ $plan->vigencia ?? '-' }}</div></div>
 
-                <div class="dato"><div class="k">Código BPIM</div><div class="v">{{ $plan->codbpim ?: '—' }}</div></div>
+                <div class="dato"><div class="k">Código BPIM</div><div class="v">{{ $plan->codbpim ?: '-' }}</div></div>
                 <div class="dato"><div class="k">Valor Estimado</div><div class="v">{{ $money($plan->valorestimadocont) }}</div></div>
                 <div class="dato"><div class="k">Valor Vigencia</div><div class="v">{{ $money($plan->valorestimadovig) }}</div></div>
-                <div class="dato"><div class="k">Duración</div><div class="v">{{ $dur ?: '—' }}</div></div>
+                <div class="dato"><div class="k">Duración</div><div class="v">{{ $dur ?: '-' }}</div></div>
 
-                <div class="dato full"><div class="k">Registrado por</div><div class="v">{{ optional($plan->user)->name ?? '—' }}</div></div>
+                <div class="dato full"><div class="k">Registrado por</div><div class="v">{{ optional($plan->user)->name ?? '-' }}</div></div>
             </div>
 
             <div class="seccion-titulo">Clasificación del Proceso</div>
             <div class="grid">
-                <div class="dato"><div class="k">Tipo de Adquisición</div><div class="v">{{ optional($plan->tipoadquisicione)->dettipoadquisicion ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Modalidad</div><div class="v">{{ optional($plan->modalidade)->detmodalidad ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Tipo de Zona</div><div class="v">{{ optional($plan->tipozona)->tipozona ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Estado Vigencia</div><div class="v">{{ optional($plan->estadovigencia)->detestadovigencia ?? '—' }}</div></div>
+                <div class="dato"><div class="k">Tipo de Adquisición</div><div class="v">{{ optional($plan->tipoadquisicione)->dettipoadquisicion ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Modalidad</div><div class="v">{{ optional($plan->modalidade)->detmodalidad ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Tipo de Zona</div><div class="v">{{ optional($plan->tipozona)->tipozona ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Estado Vigencia</div><div class="v">{{ optional($plan->estadovigencia)->detestadovigencia ?? '-' }}</div></div>
 
-                <div class="dato"><div class="k">Vigencia Futura</div><div class="v">{{ optional($plan->vigenfutura)->detvigencia ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Fuente</div><div class="v">{{ optional($plan->fuente)->detfuente ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Mes de Inicio</div><div class="v">{{ optional($plan->mese)->nommes ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Intervalo</div><div class="v">{{ optional($plan->intervalo)->intervalo ?? '—' }}</div></div>
+                <div class="dato"><div class="k">Vigencia Futura</div><div class="v">{{ optional($plan->vigenfutura)->detvigencia ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Fuente</div><div class="v">{{ optional($plan->fuente)->detfuente ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Mes de Inicio</div><div class="v">{{ optional($plan->mese)->nommes ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Intervalo</div><div class="v">{{ optional($plan->intervalo)->intervalo ?? '-' }}</div></div>
 
-                <div class="dato"><div class="k">Prioridad</div><div class="v">{{ optional($plan->tipoprioridade)->detprioridad ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Req. Proyecto</div><div class="v">{{ optional($plan->requiproyecto)->detproyeto ?? '—' }}</div></div>
-                <div class="dato"><div class="k">Req. POA-I</div><div class="v">{{ optional($plan->requipoai)->detpoai ?? '—' }}</div></div>
+                <div class="dato"><div class="k">Prioridad</div><div class="v">{{ optional($plan->tipoprioridade)->detprioridad ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Req. Proyecto</div><div class="v">{{ optional($plan->requiproyecto)->detproyeto ?? '-' }}</div></div>
+                <div class="dato"><div class="k">Req. POA-I</div><div class="v">{{ optional($plan->requipoai)->detpoai ?? '-' }}</div></div>
             </div>
 
             @if ($plan->items->isNotEmpty())
                 <div class="seccion-titulo">Clasificación UNSPSC</div>
                 @foreach ($plan->items as $item)
                     <div class="item">
-                        <div class="dato"><div class="k">Segmento</div><div class="v">{{ $item->segmento_nombre ?? '—' }}</div></div>
-                        <div class="dato"><div class="k">Familia</div><div class="v">{{ $item->familia_nombre ?? '—' }}</div></div>
-                        <div class="dato"><div class="k">Clase</div><div class="v">{{ $item->clase_nombre ?? '—' }}</div></div>
-                        <div class="dato"><div class="k">Producto</div><div class="v">{{ $item->producto_nombre ?? '—' }}</div></div>
+                        <div class="dato"><div class="k">Segmento</div><div class="v">{{ $item->segmento_nombre ?? '-' }}</div></div>
+                        <div class="dato"><div class="k">Familia</div><div class="v">{{ $item->familia_nombre ?? '-' }}</div></div>
+                        <div class="dato"><div class="k">Clase</div><div class="v">{{ $item->clase_nombre ?? '-' }}</div></div>
+                        <div class="dato"><div class="k">Producto</div><div class="v">{{ $item->producto_nombre ?? '-' }}</div></div>
                     </div>
                 @endforeach
             @endif

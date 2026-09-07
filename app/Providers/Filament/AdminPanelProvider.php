@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             function (): string {
                 $img   = asset('images/actas/og-banner.png');
                 $icon  = asset('images/actas/logo-alcaldia.png');
-                $title = 'Gestión de Afiliaciones ARL — Alcaldía de Puerto Boyacá';
+                $title = 'Gestión de Afiliaciones ARL - Alcaldía de Puerto Boyacá';
                 $desc  = 'Sistema de gestión de afiliaciones ARL y actas de necesidad de la Alcaldía Municipal de Puerto Boyacá.';
                 return <<<HTML
                 <meta property="og:type" content="website"/>
