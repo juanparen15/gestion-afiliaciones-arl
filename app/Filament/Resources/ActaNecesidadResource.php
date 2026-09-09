@@ -554,6 +554,22 @@ class ActaNecesidadResource extends Resource
         $cfg = ConfiguracionActa::actual();
         $consecutivo = $record->consecutivo ?: ActaNecesidad::siguienteConsecutivo();
 
+        // Texto del código PAA para el documento: "SIIPAA {vigencia} - {N° Reg}".
+        // El año sale de paa_vigencia (guardado). Fallback para actas viejas: se
+        // deduce del primer N° Reg. Si ya viene formateado o es "NO APLICA", se deja igual.
+        $codigoPaa = trim((string) $record->codigo_paa);
+        if ($codigoPaa === '' || strcasecmp($codigoPaa, 'NO APLICA') === 0 || mb_stripos($codigoPaa, 'SIIPAA') !== false) {
+            $paaTexto = $codigoPaa;
+        } else {
+            $vig = $record->paa_vigencia;
+            if (! $vig) {
+                $first = trim(explode(',', $codigoPaa)[0]);
+                $vig = optional(\App\Models\Planadquisicione::where('id_vigencia', $first)
+                    ->orderByDesc('vigencia')->first())->vigencia;
+            }
+            $paaTexto = 'SIIPAA ' . ($vig ? $vig . ' - ' : '') . $codigoPaa;
+        }
+
         return app(ActaNecesidadDocGenerator::class)->generarPdf([
             'borrador'           => $borrador,
             'CODIGO'             => (string) $consecutivo,
@@ -569,7 +585,7 @@ class ActaNecesidadResource extends Resource
             'NUMERO_CONTRATO'    => (string) $record->numero_contrato_convenio,
             'PRESUPUESTO'        => number_format((float) $record->presupuesto_oficial, 0, ',', '.'),
             'BPIM_BPIN'          => (string) $record->codigo_bpim_bpin,
-            'CODIGO_PAA'         => (string) $record->codigo_paa,
+            'CODIGO_PAA'         => $paaTexto,
             'OBSERVACIONES'      => (string) $record->observaciones,
             'label_alcalde'      => $cfg->label_alcalde,
             'firma_alcalde_path' => $cfg->firmaAbsoluta(),
