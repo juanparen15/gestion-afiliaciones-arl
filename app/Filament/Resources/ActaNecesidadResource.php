@@ -193,14 +193,19 @@ class ActaNecesidadResource extends Resource
                         ->label('Vigencia del PAA')
                         ->options(fn () => \App\Models\Planadquisicione::whereNotNull('vigencia')
                             ->distinct()->orderBy('vigencia', 'desc')->pluck('vigencia', 'vigencia')->toArray())
-                        ->native(false)->live()->dehydrated(false)
+                        ->native(false)->live() // se persiste (columna paa_vigencia)
                         ->afterStateUpdated(fn (Forms\Set $set) => $set('codigo_paa', null))
                         ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                            // Si el acta ya tiene la vigencia guardada, se respeta (no adivinar).
+                            if (filled($get('paa_vigencia'))) {
+                                return;
+                            }
+                            // Compatibilidad con actas viejas sin vigencia guardada: se deduce
+                            // del primer N° Reg (id_vigencia). Como se repite entre años, se
+                            // toma la vigencia más reciente disponible.
                             $cod = $get('codigo_paa');
-                            // Un acta puede tener varios códigos (coma-separados); tomo el primero.
                             $first = is_array($cod) ? ($cod[0] ?? null)
                                 : (filled($cod) ? trim(explode(',', (string) $cod)[0]) : null);
-                            // El N° Reg se repite entre vigencias; se prefiere la más reciente.
                             if (filled($first) && ($p = \App\Models\Planadquisicione::where('id_vigencia', $first)
                                 ->orderByDesc('vigencia')->first())) {
                                 $set('paa_vigencia', (int) $p->vigencia);

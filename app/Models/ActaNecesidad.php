@@ -37,6 +37,7 @@ class ActaNecesidad extends Model
         'presupuesto_oficial',
         'codigo_bpim_bpin',
         'codigo_paa',
+        'paa_vigencia',
         'observaciones',
         'nombre_completo',
         'estado',
@@ -57,6 +58,7 @@ class ActaNecesidad extends Model
 
     protected $casts = [
         'consecutivo'        => 'integer',
+        'paa_vigencia'       => 'integer',
         'presupuesto_oficial'=> 'decimal:2',
         'fecha_solicitud'    => 'datetime',
         'fecha_generado'     => 'datetime',
