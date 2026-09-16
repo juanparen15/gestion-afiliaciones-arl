@@ -1734,21 +1734,32 @@ class AfiliacionResource extends Resource
 
                         $record->update($updateData);
 
-                        // Notificar a SSST cuando Dependencia registra una novedad
-                        if (isset($updateData['estado']) && $updateData['estado'] === 'pendiente') {
-                            \App\Models\User::role('SSST')->each(function ($u) use ($record) {
-                                Notification::make()
-                                    ->warning()
-                                    ->title('Novedad registrada - Afiliación pendiente de revisión')
-                                    ->body("Se registró una adición/prórroga en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere carga del PDF de novedad ARL y aprobación.")
-                                    ->sendToDatabase($u);
-                            });
-                        }
-
                         $novedades = collect([
                             $tieneAdicion  ? 'adición' : null,
                             $tieneProrroga ? 'prórroga' : null,
                         ])->filter()->implode(' y ');
+
+                        // Notificar SIEMPRE a SSST (campana + correo) cuando se registra
+                        // una novedad (adición/prórroga), sin importar quién la registró.
+                        if ($tieneAdicion || $tieneProrroga) {
+                            foreach (\App\Models\User::role('SSST')->get() as $u) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Novedad registrada - Afiliación ARL')
+                                    ->body("Se registró {$novedades} en el contrato {$record->numero_contrato} de {$record->nombre_contratista}. Requiere carga del PDF de novedad ARL y aprobación.")
+                                    ->sendToDatabase($u);
+
+                                $correo = $u->correo_institucional ?: $u->email;
+                                if ($correo) {
+                                    try {
+                                        \Illuminate\Support\Facades\Mail::to($correo)
+                                            ->send(new \App\Mail\NovedadRegistradaMail($record, $novedades ?: 'novedad'));
+                                    } catch (\Throwable $e) {
+                                        \Illuminate\Support\Facades\Log::error('Error al enviar correo de novedad ARL: ' . $e->getMessage());
+                                    }
+                                }
+                            }
+                        }
 
                         Notification::make()
                             ->success()
