@@ -28,6 +28,8 @@
       /* Hero: reducir el título para que las palabras rotativas no ocupen todo */
       .ca-hero-title{ font-size: clamp(2.2rem, 4.6vw, 4rem) !important; line-height: 1.1 !important; }
       .ca-hero-title .cd-words-wrapper{ font-size: .72em; }
+      /* Hero: imagen (reemplaza el video) se muestra completa */
+      .ca-hero-video img{ display:block; width:100%; height:auto; border-radius:10px; }
    </style>
 </head>
 
@@ -261,7 +263,7 @@
                      <div class="col-xl-4 col-lg-5 col-md-5">
                         <div class="ca-hero-left pt-65 pb-30">
                            <div class="ca-hero-video p-relative">
-                              <img class="img-cover w-100" src="/landing/img/alcaldia2/foto-01.jpg" alt="Alcaldía de Puerto Boyacá" style="border-radius:10px;">
+                              <img class="img-cover w-100" src="/landing/img/alcaldia2/foto-05.jpg" alt="Alcaldía de Puerto Boyacá" style="border-radius:10px;">
                            </div>
                            <div class="ca-hero-service">
                               <ul>
@@ -368,99 +370,7 @@
             </div>
             <!-- ca-about-area-end -->
 
-            <!-- ca-brand-area-start -->
-            <div class="ca-brand-area">
-               <div class="swiper ca-brand-slider-active">
-                  <div class="swiper-wrapper slide-transtion">
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-6.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-6.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
-                        </a>
-                     </div>
-                     <div class="swiper-slide">
-                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
-                           <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
-                        </a>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <!-- ca-brand-area-end -->
+            <!-- (sección de asociados eliminada) -->
 
             <!-- ca-portfolio-area-start -->
             <div id="modulos" class="ca-portfolio-area portfolio-area pt-160 pb-130">
@@ -770,7 +680,7 @@
                      <div class="col-lg-5">
                         <div class="ca-faq-title-wrap mb-40 tp_fade_anim" data-delay=".3">
                            <span class="ca-team-subtitle text-uppercase d-block mb-15"><span>[ </span>Preguntas<span> ]</span></span>
-                           <img class="mb-10" src="/cunnet/assets/img/faq/faq-thumb.png" alt="">
+                           <img class="mb-10" src="/images/actas/logo-alcaldia.png" alt="Escudo Alcaldía de Puerto Boyacá" style="max-width:120px;height:auto;">
                            <h2 class="ca-section-title mb-15">Preguntas frecuentes</h2>
                            <p class="tp-faq-dec mb-35">Resuelve tus dudas sobre el sistema</p>
                            <a href="/admin" class="tp-btn tp-btn-xl tp-btn-grey tp-btn-switch-animation">
