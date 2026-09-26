@@ -963,7 +963,9 @@
                            <div class="ca-footer-social-item tp_fade_anim" data-delay=".5">
                               <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-15">Social</h5>
                               <ul>
-                                 <li><a href="https://www.facebook.com/alcaldia.puertoboyaca/" target="_blank" rel="noopener">Facebook</a></li>
+                                 <li><a href="https://www.facebook.com/share/1EmTDcxiH8/" target="_blank" rel="noopener">Facebook</a></li>
+                                 <li><a href="https://www.instagram.com/alcaldiadepuertoboyaca" target="_blank" rel="noopener">Instagram</a></li>
+                                 <li><a href="https://www.tiktok.com/@alcaldiadepuertoboyaca" target="_blank" rel="noopener">TikTok</a></li>
                                  <li><a href="https://twitter.com/alcaldiaptoboy/" target="_blank" rel="noopener">X (Twitter)</a></li>
                                  <li><a href="https://www.youtube.com/channel/UCzCGO8srqG8ojZXguEnfvAQ" target="_blank" rel="noopener">YouTube</a></li>
                               </ul>
