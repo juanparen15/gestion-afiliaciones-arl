@@ -21,6 +21,14 @@
    <link rel="stylesheet" href="/cunnet/assets/css/spacing.css">
    <link rel="stylesheet" href="/cunnet/assets/css/main.css">
 
+   <style>
+      /* Color institucional (azul de la Alcaldía) en acentos y botones */
+      .tp-btn-red{ background-color: var(--tp-theme-primary) !important; }
+      ::selection{ background: var(--tp-theme-primary); color:#fff; }
+      /* Hero: reducir el título para que las palabras rotativas no ocupen todo */
+      .ca-hero-title{ font-size: clamp(2.2rem, 4.6vw, 4rem) !important; line-height: 1.1 !important; }
+      .ca-hero-title .cd-words-wrapper{ font-size: .72em; }
+   </style>
 </head>
 
 <body class="tp-magic-cursor">
@@ -81,22 +89,22 @@
             <div class="row gx-2">
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/alcaldia/alcaldia-01.png"><img src="/landing/img/alcaldia/alcaldia-01.png" alt=""></a>
+                     <a class="popup-image" href="/landing/img/alcaldia2/foto-02.jpg"><img src="/landing/img/alcaldia2/foto-02.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/alcaldia/alcaldia-02.png"><img src="/landing/img/alcaldia/alcaldia-02.png" alt=""></a>
+                     <a class="popup-image" href="/landing/img/alcaldia2/foto-05.jpg"><img src="/landing/img/alcaldia2/foto-05.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/alcaldia/alcaldia-03.png"><img src="/landing/img/alcaldia/alcaldia-03.png" alt=""></a>
+                     <a class="popup-image" href="/landing/img/alcaldia2/foto-06.jpg"><img src="/landing/img/alcaldia2/foto-06.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/alcaldia/alcaldia-04.jpg"><img src="/landing/img/alcaldia/alcaldia-04.jpg" alt=""></a>
+                     <a class="popup-image" href="/landing/img/alcaldia2/foto-07.jpg"><img src="/landing/img/alcaldia2/foto-07.jpg" alt=""></a>
                   </div>
                </div>
             </div>
@@ -104,16 +112,16 @@
          <div class="tp-offcanvas-contact">
             <h3 class="tp-offcanvas-title sm">Información</h3>
             <ul>
-               <li><a href="#">Puerto Boyacá, Boyacá</a></li>
+               <li><a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Puerto Boyacá, Boyacá</a></li>
                <li><a href="mailto:contactenos@@puertoboyaca-boyaca.gov.co">contactenos@@puertoboyaca-boyaca.gov.co</a></li>
-               <li><a href="#">Alcaldía Municipal de Puerto Boyacá</a></li>
+               <li><a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Alcaldía Municipal de Puerto Boyacá</a></li>
             </ul>
          </div>
          <div class="tp-offcanvas-social">
             <h3 class="tp-offcanvas-title sm">Síguenos</h3>
             <ul>
                <li>
-                  <a href="#">
+                  <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">
                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M11.25 1.5H4.75C2.95507 1.5 1.5 2.95507 1.5 4.75V11.25C1.5 13.0449 2.95507 14.5 4.75 14.5H11.25C13.0449 14.5 14.5 13.0449 14.5 11.25V4.75C14.5 2.95507 13.0449 1.5 11.25 1.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M10.6016 7.5907C10.6818 8.13166 10.5894 8.68414 10.3375 9.16955C10.0856 9.65497 9.68711 10.0486 9.19862 10.2945C8.71014 10.5404 8.15656 10.6259 7.61663 10.5391C7.0767 10.4522 6.57791 10.1972 6.19121 9.81055C5.80451 9.42385 5.54959 8.92506 5.46271 8.38513C5.37583 7.8452 5.46141 7.29163 5.70728 6.80314C5.95315 6.31465 6.34679 5.91613 6.83221 5.66425C7.31763 5.41238 7.87011 5.31998 8.41107 5.4002C8.96287 5.48202 9.47372 5.73915 9.86817 6.1336C10.2626 6.52804 10.5197 7.0389 10.6016 7.5907Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -122,7 +130,7 @@
                   </a>
                </li>
                <li>
-                  <a href="#">
+                  <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">
                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2.50589 12.7494C4.57662 16.336 9.16278 17.5648 12.7494 15.4941C14.2113 14.65 15.2816 13.388 15.8962 11.9461C16.7895 9.85066 16.7208 7.37526 15.4941 5.25063C14.2674 3.12599 12.1581 1.82872 9.89669 1.55462C8.34063 1.366 6.71259 1.66183 5.25063 2.50589C1.66403 4.57662 0.435172 9.16278 2.50589 12.7494Z" stroke="currentColor" stroke-width="1.5" />
                         <path d="M12.7127 15.4292C12.7127 15.4292 12.0086 10.4867 10.5011 7.87559C8.99362 5.26451 5.28935 2.57155 5.28935 2.57155M5.68449 15.6124C6.79553 12.2606 12.34 8.54524 16.3975 9.43537M12.311 2.4082C11.1953 5.72344 5.75732 9.38453 1.71875 8.58915" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -130,7 +138,7 @@
                   </a>
                </li>
                <li>
-                  <a href="#">
+                  <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">
                      <svg width="18" height="11" viewBox="0 0 18 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1 5.5715H6.33342C7.62867 5.5715 8.61917 6.56199 8.61917 7.85725C8.61917 9.15251 7.62867 10.143 6.33342 10.143H1.76192C1.30477 10.143 1 9.83823 1 9.38108V1.76192C1 1.30477 1.30477 1 1.76192 1H5.5715C6.86676 1 7.85725 1.99049 7.85725 3.28575C7.85725 4.58101 6.86676 5.5715 5.5715 5.5715H1Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"></path>
                         <path d="M10.9062 7.09454H17.0016C17.0016 5.41832 15.6301 4.04688 13.9539 4.04688C12.2777 4.04688 10.9062 5.41832 10.9062 7.09454ZM10.9062 7.09454C10.9062 8.77076 12.2777 10.1422 13.9539 10.1422H15.2492" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -139,7 +147,7 @@
                   </a>
                </li>
                <li>
-                  <a href="#">
+                  <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">
                      <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.75 13H5.25C3 13 1.5 11.5 1.5 9.25V4.75C1.5 2.5 3 1 5.25 1H12.75C15 1 16.5 2.5 16.5 4.75V9.25C16.5 11.5 15 13 12.75 13Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M8.70676 5.14837L10.8006 6.40465C11.5543 6.90716 11.5543 7.66093 10.8006 8.16344L8.70676 9.41972C7.86923 9.92224 7.19922 9.50348 7.19922 8.5822V6.06964C7.19922 4.98086 7.86923 4.64585 8.70676 5.14837Z" fill="currentColor" />
@@ -253,9 +261,7 @@
                      <div class="col-xl-4 col-lg-5 col-md-5">
                         <div class="ca-hero-left pt-65 pb-30">
                            <div class="ca-hero-video p-relative">
-                              <video loop="" muted="" autoplay="" playsinline="">
-                                 <source src="https://html.aqlova.com/videos/cunnet/ca-video-2.mp4" type="video/mp4">
-                              </video>
+                              <img class="img-cover w-100" src="/landing/img/alcaldia2/foto-01.jpg" alt="Alcaldía de Puerto Boyacá" style="border-radius:10px;">
                            </div>
                            <div class="ca-hero-service">
                               <ul>
@@ -322,7 +328,7 @@
                   </div>
                </div>
                <div class="ca-hero-thumb fix scale-up-img">
-                  <img data-speed="0.4" class="img-cover scale-up" src="/landing/img/alcaldia/alcaldia-01.png" alt="">
+                  <img data-speed="0.4" class="img-cover scale-up" src="/landing/img/alcaldia2/foto-02.jpg" alt="">
                </div>
             </div>
             <!-- ca-hero-area-end -->
@@ -367,87 +373,87 @@
                <div class="swiper ca-brand-slider-active">
                   <div class="swiper-wrapper slide-transtion">
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-6.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-6.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-2.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-3.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-4.png" alt="Zow">
                         </a>
                      </div>
                      <div class="swiper-slide">
-                        <a href="#" class="ca-brand-logo">
+                        <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener" class="ca-brand-logo">
                            <img src="/cunnet/assets/img/brand/logo-5.png" alt="Zow">
                         </a>
                      </div>
@@ -477,7 +483,7 @@
                         <div class="ca-portfolio-item tp-hover-item mb-30">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-02.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-05.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -496,7 +502,7 @@
                         <div class="ca-portfolio-item mb-30 ca-portfolio-item-2 mt-110 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-03.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-06.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -517,7 +523,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-04.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-07.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -536,7 +542,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-4 mt-110 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-05.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-08.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -557,7 +563,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-06.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-09.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -576,7 +582,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-6 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-07.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-10.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -595,7 +601,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/alcaldia/alcaldia-08.png" alt="">
+                                 <img class="w-100" src="/landing/img/alcaldia2/foto-03.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -701,7 +707,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".3">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/alcaldia/alcaldia-05.png" alt="">
+                                    <img class="w-100" src="/landing/img/alcaldia2/foto-08.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -714,7 +720,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".5">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/alcaldia/alcaldia-06.png" alt="">
+                                    <img class="w-100" src="/landing/img/alcaldia2/foto-09.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -727,7 +733,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".7">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/alcaldia/alcaldia-07.png" alt="">
+                                    <img class="w-100" src="/landing/img/alcaldia2/foto-10.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -740,7 +746,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".9">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/alcaldia/alcaldia-08.png" alt="">
+                                    <img class="w-100" src="/landing/img/alcaldia2/foto-03.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -793,75 +799,68 @@
                                  </h2>
                                  <div id="collapseOne" class="tp-faq-collapse collapse show" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Es la plataforma oficial de la Alcaldía de Puerto Boyacá para gestionar en línea afiliaciones ARL, actas de necesidad, contratación, plan de adquisiciones y solicitudes BPIM.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">¿Cómo se aprueban las solicitudes?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">¿Qué módulos incluye?</button>
                                  </h2>
                                  <div id="collapseTwo" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Incluye Afiliaciones ARL, Actas de Necesidad, Contratación, Plan de Adquisiciones, Solicitudes BPIM, verificación de documentos por QR y reportes.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">¿Qué módulos incluye?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">¿Cómo se registra una solicitud?</button>
                                  </h2>
                                  <div id="collapseThree" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Los funcionarios ingresan al panel con su usuario y registran la solicitud en el módulo correspondiente; el sistema guía el diligenciamiento paso a paso.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">¿Cómo verifico un documento?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">¿Cómo se aprueban las solicitudes?</button>
                                  </h2>
                                  <div id="collapseFour" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Cada solicitud pasa por un flujo de revisión y aprobación. Solo los usuarios habilitados pueden aprobar, y queda registrado quién y cuándo lo hizo.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">¿Quién puede aprobar las solicitudes?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">¿Cómo verifico la autenticidad de un documento?</button>
                                  </h2>
                                  <div id="collapseFive" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Los documentos oficiales llevan un código QR; al escanearlo se abre una página pública que confirma su autenticidad y muestra sus datos.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">¿Cómo ingreso al sistema?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">¿Quién puede acceder al sistema?</button>
                                  </h2>
                                  <div id="collapseSix" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>El personal autorizado de cada dependencia. Los permisos se administran por roles, de modo que cada usuario ve solo lo que le corresponde.</p>
+</div>
                                  </div>
                               </div>
                               <div class="tp-faq-item tp_fade_anim" data-delay=".3">
                                  <h2 class="accordion-header">
-                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSaven" aria-expanded="false" aria-controls="collapseSaven">¿Cómo se aprueban las solicitudes?</button>
+                                    <button class="tp-faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSaven" aria-expanded="false" aria-controls="collapseSaven">¿Cómo ingreso al sistema?</button>
                                  </h2>
                                  <div id="collapseSaven" class="tp-faq-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="tp-faq-body">
-                                       <p>El sistema reúne los trámites de la Alcaldía de Puerto Boyacá en una sola plataforma:<br>
-                                       registro, aprobación en línea, correos automáticos y documentos con verificación por QR.</p>
-                                    </div>
+<p>Haz clic en “Ingresar”, inicia sesión con tu usuario institucional y, si olvidaste la contraseña, usa la opción de recuperación.</p>
+</div>
                                  </div>
                               </div>
                            </div>
@@ -947,15 +946,15 @@
                      </div>
                      <div class="col-xxl-3 col-xl-4 col-lg-6">
                         <div class="tp-footer-widget tp-footer-link ca-footer-link mb-30 tp_fade_anim" data-delay=".4">
-                           <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-25">Quick links</h5>
+                           <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-25">Enlaces rápidos</h5>
                            <div class="tp-hero-social">
-                              <a href="#">Afiliaciones ARL</a>
-                              <a href="#">Actas de Necesidad</a>
-                              <a href="#">Contratación</a>
-                              <a href="#">Plan de Adquisiciones</a>
-                              <a href="#">Solicitudes BPIM</a>
-                              <a href="#">Reportes</a>
-                              <a href="#">Ingresar</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Afiliaciones ARL</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Actas de Necesidad</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Contratación</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Plan de Adquisiciones</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Solicitudes BPIM</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Reportes</a>
+                              <a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Ingresar</a>
                            </div>
                         </div>
                      </div>
@@ -964,21 +963,19 @@
                            <div class="ca-footer-social-item tp_fade_anim" data-delay=".5">
                               <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-15">Social</h5>
                               <ul>
-                                 <li><a href="#">Facebook</a></li>
-                                 <li><a href="#">Twitter</a></li>
-                                 <li><a href="#">Dribbble</a></li>
-                                 <li><a href="#">Instagram</a></li>
-                                 <li><a href="#">YouTube</a></li>
+                                 <li><a href="https://www.facebook.com/alcaldia.puertoboyaca/" target="_blank" rel="noopener">Facebook</a></li>
+                                 <li><a href="https://twitter.com/alcaldiaptoboy/" target="_blank" rel="noopener">X (Twitter)</a></li>
+                                 <li><a href="https://www.youtube.com/channel/UCzCGO8srqG8ojZXguEnfvAQ" target="_blank" rel="noopener">YouTube</a></li>
                               </ul>
                            </div>
                            <div class="ca-footer-social-item tp_fade_anim" data-delay=".6">
-                              <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-15">Office</h5>
+                              <h5 class="tp-footer-subtitle ca-footer-subtitle tp-ff-inter mb-15">Enlaces</h5>
                               <ul>
-                                 <li><a href="#">New York</a></li>
-                                 <li><a href="#">france</a></li>
-                                 <li><a href="#">German</a></li>
-                                 <li><a href="#">Italy</a></li>
-                                 <li><a href="#">Mexico</a></li>
+                                 <li><a href="https://www.puertoboyaca-boyaca.gov.co" target="_blank" rel="noopener">Sitio web oficial</a></li>
+                                 <li><a href="https://www.puertoboyaca-boyaca.gov.co/NuestraAlcaldia/SaladePrensa" target="_blank" rel="noopener">Sala de prensa</a></li>
+                                 <li><a href="https://www.puertoboyaca-boyaca.gov.co/Paginas/Politicas-de-Privacidad-y-Condiciones-de-Uso.aspx" target="_blank" rel="noopener">Políticas</a></li>
+                                 <li><a href="/admin">Ingresar al sistema</a></li>
+                                 
                               </ul>
                            </div>
                         </div>
@@ -1000,8 +997,8 @@
                         </div>
                         <div class="col-lg-6">
                            <div class="tp-footer-copyright-wrap text-lg-end mb-20">
-                              <span class="tp-footer-copyright ca-footer-copyright"><a href="#">Terms and Conditions</a></span>
-                              <span class="tp-footer-copyright ca-footer-copyright ml-140"><a href="#">Privacy Policy</a></span>
+                              <span class="tp-footer-copyright ca-footer-copyright"><a href="https://www.puertoboyaca-boyaca.gov.co/Paginas/Politicas-de-Privacidad-y-Condiciones-de-Uso.aspx" target="_blank" rel="noopener">Términos y Condiciones</a></span>
+                              <span class="tp-footer-copyright ca-footer-copyright ml-140"><a href="https://www.puertoboyaca-boyaca.gov.co/Paginas/Politicas-de-Privacidad-y-Condiciones-de-Uso.aspx" target="_blank" rel="noopener">Política de Privacidad</a></span>
                            </div>
                         </div>
                      </div>
