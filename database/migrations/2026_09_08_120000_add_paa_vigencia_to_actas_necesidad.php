@@ -11,7 +11,9 @@ return new class extends Migration
         Schema::table('actas_necesidad', function (Blueprint $table) {
             // Vigencia (año) del PAA seleccionada. Se persiste porque el N° Reg
             // (id_vigencia) se repite entre años y antes se adivinaba mal.
-            $table->smallInteger('paa_vigencia')->unsigned()->nullable()->after('codigo_paa');
+            if (! Schema::hasColumn('actas_necesidad', 'paa_vigencia')) {
+                $table->smallInteger('paa_vigencia')->unsigned()->nullable()->after('codigo_paa');
+            }
         });
     }
 

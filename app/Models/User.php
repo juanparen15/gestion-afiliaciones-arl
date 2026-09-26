@@ -24,6 +24,7 @@ class User extends Authenticatable implements FilamentUser
         'dependencia_id',
         'area_id',
         'puede_aprobar_actas',
+        'puede_aprobar_bpim',
         'password',
     ];
 
@@ -38,6 +39,7 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'puede_aprobar_actas' => 'boolean',
+            'puede_aprobar_bpim' => 'boolean',
         ];
     }
 
