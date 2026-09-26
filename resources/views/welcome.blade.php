@@ -263,7 +263,7 @@
                      <div class="col-xl-4 col-lg-5 col-md-5">
                         <div class="ca-hero-left pt-65 pb-30">
                            <div class="ca-hero-video p-relative">
-                              <img class="img-cover w-100" src="/landing/img/alcaldia2/foto-05.jpg" alt="Alcaldía de Puerto Boyacá" style="border-radius:10px;">
+                              <img class="img-cover w-100" src="/landing/img/alcaldia2/foto-reunion.jpg" alt="Equipo de la Alcaldía de Puerto Boyacá" style="border-radius:10px;">
                            </div>
                            <div class="ca-hero-service">
                               <ul>
