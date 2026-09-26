@@ -26,8 +26,8 @@
       .tp-btn-red{ background-color: var(--tp-theme-primary) !important; }
       ::selection{ background: var(--tp-theme-primary); color:#fff; }
       /* Hero: reducir el título para que las palabras rotativas no ocupen todo */
-      .ca-hero-title{ font-size: clamp(2.2rem, 4.6vw, 4rem) !important; line-height: 1.1 !important; }
-      .ca-hero-title .cd-words-wrapper{ font-size: .72em; }
+      .ca-hero-title{ font-size: clamp(3rem, 6.5vw, 6.5rem) !important; line-height: 1.08 !important; }
+      .ca-hero-title .cd-words-wrapper{ font-size: .82em; }
       /* Hero: imagen (reemplaza el video) se muestra completa */
       .ca-hero-video img{ display:block; width:100%; height:auto; border-radius:10px; }
    </style>
