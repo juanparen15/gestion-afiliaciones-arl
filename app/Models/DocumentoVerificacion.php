@@ -63,6 +63,6 @@ class DocumentoVerificacion extends Model
      */
     public function getUrlVerificacion(): string
     {
-        return route('verificar.documento', ['codigo' => $this->codigo_verificacion]);
+        return route('bpim.verificar', ['codigo' => $this->codigo_verificacion]);
     }
 }

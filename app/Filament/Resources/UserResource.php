@@ -116,6 +116,12 @@ class UserResource extends Resource
                             ->helperText('Actívelo para que este usuario pueda aprobar o rechazar las solicitudes de acta de necesidad')
                             ->inline(false)
                             ->columnSpanFull(),
+
+                        Forms\Components\Toggle::make('puede_aprobar_bpim')
+                            ->label('Puede aprobar/rechazar solicitudes BPIM')
+                            ->helperText('Actívelo para que este usuario (super_admin) pueda aprobar y firmar las solicitudes BPIM')
+                            ->inline(false)
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
             ]);
@@ -183,6 +189,12 @@ class UserResource extends Resource
                 Tables\Columns\ToggleColumn::make('puede_aprobar_actas')
                     ->label('Aprueba Actas')
                     ->tooltip('Puede aprobar/rechazar actas de necesidad')
+                    ->sortable(),
+
+                Tables\Columns\ToggleColumn::make('puede_aprobar_bpim')
+                    ->label('Aprueba BPIM')
+                    ->tooltip('Puede aprobar/rechazar solicitudes BPIM')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')

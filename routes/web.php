@@ -25,6 +25,19 @@ Route::get('/actas/verificar/{codigo}', function (string $codigo) {
     return view('actas.verificar', ['acta' => $acta, 'codigo' => $codigo]);
 })->name('actas.verificar');
 
+// Verificación pública de autenticidad de una Solicitud BPIM (QR)
+Route::get('/bpim/verificar/{codigo}', function (string $codigo) {
+    $verificacion = \App\Models\DocumentoVerificacion::where('codigo_verificacion', $codigo)
+        ->with('solicitud')
+        ->first();
+
+    if ($verificacion) {
+        $verificacion->registrarVerificacion();
+    }
+
+    return view('bpim.verificar', ['verificacion' => $verificacion, 'codigo' => $codigo]);
+})->name('bpim.verificar');
+
 // Servir documentación estática de Starlight
 Route::get('/docs/{path?}', function ($path = '') {
     $basePath = public_path('docs');
