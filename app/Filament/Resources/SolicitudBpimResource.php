@@ -170,7 +170,7 @@ class SolicitudBpimResource extends Resource
                     Forms\Components\Toggle::make('check')->label('Verificado'),
                     Forms\Components\Placeholder::make('usuario_aprobo')
                         ->label('Aprobado por')
-                        ->content(fn ($record) => $record?->usuario_aprobo ?: '—')
+                        ->content(fn ($record) => $record?->usuario_aprobo ?: '-')
                         ->visible(fn ($record) => (bool) $record?->aprobado),
                     Forms\Components\Textarea::make('motivo_rechazo')->label('Motivo de Rechazo')->rows(3)->columnSpanFull()
                         ->visible(fn ($record) => (bool) $record?->rechazado)->disabled(),

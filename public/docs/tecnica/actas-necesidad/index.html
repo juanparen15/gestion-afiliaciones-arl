@@ -130,9 +130,9 @@
 y se convierte con <strong>LibreOffice headless</strong>. No se manipula el PDF directamente.</p>
 <p>Flujo en <code dir="auto">ActaNecesidadDocGenerator</code>:</p>
 <ol>
-<li><code dir="auto">generarDocx()</code> — abre la plantilla con <code dir="auto">PhpWord\TemplateProcessor</code> y rellena
+<li><code dir="auto">generarDocx()</code> - abre la plantilla con <code dir="auto">PhpWord\TemplateProcessor</code> y rellena
 los macros <code dir="auto">${...}</code> (DEPENDENCIA, OBJETO, DURACION, CODIGO_PAA, etc.).</li>
-<li><code dir="auto">insertarImagenesFlotantes()</code> — inserta como <strong>imágenes flotantes ancladas</strong>
+<li><code dir="auto">insertarImagenesFlotantes()</code> - inserta como <strong>imágenes flotantes ancladas</strong>
 (no crecen la tabla ni empujan a otra hoja):
 <ul>
 <li><strong>Firma del alcalde</strong> sobre “Vo. Bo. Alcalde Municipal” (posición absoluta
@@ -142,7 +142,7 @@ en la página, fuera de la tabla).</li>
 La firma mal posicionada que trae la plantilla se elimina antes de reinsertar.</li>
 </ul>
 </li>
-<li><code dir="auto">convertirAPdf()</code> — ejecuta <code dir="auto">soffice --convert-to pdf</code> (vía <code dir="auto">proc_open</code>, con
+<li><code dir="auto">convertirAPdf()</code> - ejecuta <code dir="auto">soffice --convert-to pdf</code> (vía <code dir="auto">proc_open</code>, con
 timeout y perfil de usuario único para permitir concurrencia). Puede exportar
 el PDF cifrado con permisos de <strong>solo impresión</strong> según
 <code dir="auto">config('services.actas.proteger_pdf')</code>.</li>

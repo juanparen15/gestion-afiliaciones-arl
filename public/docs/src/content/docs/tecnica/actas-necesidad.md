@@ -26,16 +26,16 @@ y se convierte con **LibreOffice headless**. No se manipula el PDF directamente.
 
 Flujo en `ActaNecesidadDocGenerator`:
 
-1. `generarDocx()` — abre la plantilla con `PhpWord\TemplateProcessor` y rellena
+1. `generarDocx()` - abre la plantilla con `PhpWord\TemplateProcessor` y rellena
    los macros `${...}` (DEPENDENCIA, OBJETO, DURACION, CODIGO_PAA, etc.).
-2. `insertarImagenesFlotantes()` — inserta como **imágenes flotantes ancladas**
+2. `insertarImagenesFlotantes()` - inserta como **imágenes flotantes ancladas**
    (no crecen la tabla ni empujan a otra hoja):
    - **Firma del alcalde** sobre "Vo. Bo. Alcalde Municipal" (posición absoluta
      en la página, fuera de la tabla).
    - **QR** de verificación en la esquina superior derecha.
    - **Sello BORRADOR** (solo vista previa) centrado y semitransparente.
    La firma mal posicionada que trae la plantilla se elimina antes de reinsertar.
-3. `convertirAPdf()` — ejecuta `soffice --convert-to pdf` (vía `proc_open`, con
+3. `convertirAPdf()` - ejecuta `soffice --convert-to pdf` (vía `proc_open`, con
    timeout y perfil de usuario único para permitir concurrencia). Puede exportar
    el PDF cifrado con permisos de **solo impresión** según
    `config('services.actas.proteger_pdf')`.

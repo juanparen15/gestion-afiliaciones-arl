@@ -42,24 +42,24 @@
         @if ($afiliacion->tiene_adicion)
             <div class="info-section">
                 <h3 style="margin-top: 0; color: #f59e0b;">Adición</h3>
-                <div class="info-row"><span class="label">Descripción:</span> <span class="value">{{ $afiliacion->descripcion_adicion ?: '—' }}</span></div>
-                <div class="info-row"><span class="label">Valor:</span> <span class="value">{{ $afiliacion->valor_adicion !== null ? '$' . number_format((float) $afiliacion->valor_adicion, 0, ',', '.') : '—' }}</span></div>
-                <div class="info-row"><span class="label">Fecha:</span> <span class="value">{{ optional($afiliacion->fecha_adicion)->format('d/m/Y') ?? '—' }}</span></div>
+                <div class="info-row"><span class="label">Descripción:</span> <span class="value">{{ $afiliacion->descripcion_adicion ?: '-' }}</span></div>
+                <div class="info-row"><span class="label">Valor:</span> <span class="value">{{ $afiliacion->valor_adicion !== null ? '$' . number_format((float) $afiliacion->valor_adicion, 0, ',', '.') : '-' }}</span></div>
+                <div class="info-row"><span class="label">Fecha:</span> <span class="value">{{ optional($afiliacion->fecha_adicion)->format('d/m/Y') ?? '-' }}</span></div>
             </div>
         @endif
 
         @if ($afiliacion->tiene_prorroga)
             <div class="info-section">
                 <h3 style="margin-top: 0; color: #f59e0b;">Prórroga</h3>
-                <div class="info-row"><span class="label">Descripción:</span> <span class="value">{{ $afiliacion->descripcion_prorroga ?: '—' }}</span></div>
+                <div class="info-row"><span class="label">Descripción:</span> <span class="value">{{ $afiliacion->descripcion_prorroga ?: '-' }}</span></div>
                 <div class="info-row"><span class="label">Ampliación:</span> <span class="value">{{ (int) $afiliacion->meses_prorroga }} meses y {{ (int) $afiliacion->dias_prorroga }} días</span></div>
-                <div class="info-row"><span class="label">Nueva fecha fin:</span> <span class="value">{{ optional($afiliacion->nueva_fecha_fin_prorroga)->format('d/m/Y') ?? '—' }}</span></div>
+                <div class="info-row"><span class="label">Nueva fecha fin:</span> <span class="value">{{ optional($afiliacion->nueva_fecha_fin_prorroga)->format('d/m/Y') ?? '-' }}</span></div>
             </div>
         @endif
 
         <div class="info-section">
-            <div class="info-row"><span class="label">Registrada por:</span> <span class="value">{{ $registradoPor ?? '—' }}</span></div>
-            <div class="info-row"><span class="label">Fecha de registro:</span> <span class="value">{{ optional($afiliacion->novedad_registrada_at)->format('d/m/Y H:i') ?? '—' }}</span></div>
+            <div class="info-row"><span class="label">Registrada por:</span> <span class="value">{{ $registradoPor ?? '-' }}</span></div>
+            <div class="info-row"><span class="label">Fecha de registro:</span> <span class="value">{{ optional($afiliacion->novedad_registrada_at)->format('d/m/Y H:i') ?? '-' }}</span></div>
         </div>
 
         <div style="text-align: center;">

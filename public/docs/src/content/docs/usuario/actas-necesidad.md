@@ -21,9 +21,9 @@ verificación de autenticidad.
 
 1. Menú lateral → **Actas de Necesidad** → botón **Crear**.
 2. Se abre un asistente (wizard) por pasos:
-   - **Paso 1 — Solicitud:** dependencia, área, nombre del solicitante,
+   - **Paso 1 - Solicitud:** dependencia, área, nombre del solicitante,
      correo, objeto del contrato y nombre de la persona a contratar.
-   - **Paso 2 — Condiciones:** tipo de contrato, **duración**, modalidad de
+   - **Paso 2 - Condiciones:** tipo de contrato, **duración**, modalidad de
      selección, tipo de solicitud, número de contrato/convenio, presupuesto,
      código BPIN-BPIM y **Código(s) del Plan Anual de Adquisiciones (PAA)**.
    - **Observaciones** (según aplique).
