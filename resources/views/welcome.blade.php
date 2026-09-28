@@ -91,22 +91,22 @@
             <div class="row gx-2">
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/institucional/inst-05.jpg"><img src="/landing/img/institucional/inst-05.jpg" alt=""></a>
+                     <a class="popup-image" href="/landing/img/oficial/hero/thumb.jpg"><img src="/landing/img/oficial/hero/thumb.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/institucional/inst-15.jpg"><img src="/landing/img/institucional/inst-15.jpg" alt=""></a>
+                     <a class="popup-image" href="/landing/img/oficial/hero/thumb-2.jpg"><img src="/landing/img/oficial/hero/thumb-2.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/institucional/inst-11.jpg"><img src="/landing/img/institucional/inst-11.jpg" alt=""></a>
+                     <a class="popup-image" href="/landing/img/oficial/hero/thumb-3.jpg"><img src="/landing/img/oficial/hero/thumb-3.jpg" alt=""></a>
                   </div>
                </div>
                <div class="col-md-3 col-3">
                   <div class="tp-offcanvas-gallery-img fix">
-                     <a class="popup-image" href="/landing/img/institucional/inst-12.jpg"><img src="/landing/img/institucional/inst-12.jpg" alt=""></a>
+                     <a class="popup-image" href="/landing/img/oficial/hero/thumb-4.jpg"><img src="/landing/img/oficial/hero/thumb-4.jpg" alt=""></a>
                   </div>
                </div>
             </div>
@@ -330,7 +330,7 @@
                   </div>
                </div>
                <div class="ca-hero-thumb fix scale-up-img">
-                  <img data-speed="0.4" class="img-cover scale-up" src="/landing/img/institucional/inst-05.jpg" alt="">
+                  <img data-speed="0.4" class="img-cover scale-up" src="/landing/img/oficial/hero/thumb.jpg" alt="">
                </div>
             </div>
             <!-- ca-hero-area-end -->
@@ -393,7 +393,7 @@
                         <div class="ca-portfolio-item tp-hover-item mb-30">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-15.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-2.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -412,7 +412,7 @@
                         <div class="ca-portfolio-item mb-30 ca-portfolio-item-2 mt-110 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-11.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-3.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -433,7 +433,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-12.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-4.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -452,7 +452,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-4 mt-110 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-10.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-5.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -473,7 +473,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-16.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-6.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -492,7 +492,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-6 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-09.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-8.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -511,7 +511,7 @@
                         <div class="ca-portfolio-item ca-portfolio-item-3 mb-30 tp-hover-item">
                            <a href="/admin" class="ca-portfolio-thumb mb-15 p-relative fix d-block">
                               <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/stripe.png" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                 <img class="w-100" src="/landing/img/institucional/inst-13.jpg" alt="">
+                                 <img class="w-100" src="/landing/img/oficial/hero/thumb-7.jpg" alt="">
                               </div>
                               <div class="ca-portfolio-btn">
                                  <div class="p-relative d-inline-block">
@@ -617,7 +617,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".3">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/institucional/inst-10.jpg" alt="">
+                                    <img class="w-100" src="/landing/img/oficial/hero/thumb-5.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -630,7 +630,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".5">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/institucional/inst-16.jpg" alt="">
+                                    <img class="w-100" src="/landing/img/oficial/hero/thumb-6.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -643,7 +643,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".7">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/institucional/inst-09.jpg" alt="">
+                                    <img class="w-100" src="/landing/img/oficial/hero/thumb-8.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
@@ -656,7 +656,7 @@
                            <div class="ca-team-item tp-hover-item mb-30 tp_fade_anim" data-delay=".9">
                               <a href="/admin" class="ca-portfolio-thumb mb-20 p-relative fix d-block">
                                  <div class="tp-hover-img" data-displacement="/cunnet/assets/img/imghover/fluid.jpg" data-intensity="0.2" data-speedin="1" data-speedout="1">
-                                    <img class="w-100" src="/landing/img/institucional/inst-13.jpg" alt="">
+                                    <img class="w-100" src="/landing/img/oficial/hero/thumb-7.jpg" alt="">
                                  </div>
                               </a>
                               <div class="ca-team-content">
