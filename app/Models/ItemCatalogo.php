@@ -89,7 +89,7 @@ class ItemCatalogo extends Model
         static::creating(function ($item) {
             $item->nombre = strtoupper($item->nombre);
             $item->descripcion = strtoupper($item->descripcion);
-            $item->valor_restante = $item->valor_total_disponible;
+            $item->valor_restante ??= ($item->valor_unitario ?? 0) * ($item->cantidad ?? 0);
         });
 
         static::updating(function ($item) {

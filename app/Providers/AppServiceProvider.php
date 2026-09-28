@@ -5,8 +5,12 @@ namespace App\Providers;
 use App\Events\AfiliacionCreada;
 use App\Listeners\EnviarNotificacionNuevaAfiliacion;
 use App\Models\Afiliacion;
+use App\Models\ItemCatalogo;
+use App\Models\Proyecto;
 use App\Models\SolicitudBpim;
 use App\Observers\AfiliacionObserver;
+use App\Policies\ItemCatalogoPolicy;
+use App\Policies\ProyectoPolicy;
 use App\Policies\SolicitudBpimPolicy;
 use App\Policies\WhatsappAgentPolicy;
 use Illuminate\Support\Facades\Event;
@@ -41,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Módulo BPIM (Solicitudes, Proyectos, Catálogo) solo visible a super_admin.
         Gate::policy(SolicitudBpim::class, SolicitudBpimPolicy::class);
+        Gate::policy(Proyecto::class, ProyectoPolicy::class);
+        Gate::policy(ItemCatalogo::class, ItemCatalogoPolicy::class);
 
         // El toggle "puede aprobar actas" habilita editar Actas de Necesidad y
         // Plan de Adquisiciones. Se hace aquí (no en las políticas) para que
