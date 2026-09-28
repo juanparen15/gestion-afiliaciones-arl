@@ -25,6 +25,13 @@ Route::get('/actas/verificar/{codigo}', function (string $codigo) {
     return view('actas.verificar', ['acta' => $acta, 'codigo' => $codigo]);
 })->name('actas.verificar');
 
+// Formulario público de solicitud BPIM (sin autenticación)
+Route::prefix('bpim')->name('bpim.formulario.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\FormularioBpimController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\FormularioBpimController::class, 'store'])->name('store');
+    Route::get('/exito/{solicitud}', [\App\Http\Controllers\FormularioBpimController::class, 'exito'])->name('exito');
+});
+
 // Verificación pública de autenticidad de una Solicitud BPIM (QR)
 Route::get('/bpim/verificar/{codigo}', function (string $codigo) {
     $verificacion = \App\Models\DocumentoVerificacion::where('codigo_verificacion', $codigo)
